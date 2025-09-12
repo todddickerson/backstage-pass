@@ -1,10 +1,12 @@
-# Bullet Train theme configuration.
+Rails.application.config.theme = "backstage_pass"
 
-# The application's main color scheme.
-BulletTrain::Themes::Light.color = :blue
-
-# The orientation of the navbar.
-# BulletTrain::Themes::Light.navigation = :left
-#
-# The logo shown in the navbar. To tweak further, run `bin/resolve shared/menu/logo --eject`
-# BulletTrain::Themes::Light.show_logo_in_account = true
+Rails.application.config.theme_colors = {
+  primary: "#6B46C1",     # Purple
+  secondary: "#EC4899",   # Pink
+  success: "#10B981",     # Green
+  danger: "#EF4444",      # Red
+  warning: "#F59E0B",     # Amber
+  info: "#3B82F6",        # Blue
+  light: "#F3F4F6",       # Gray 100
+  dark: "#1F2937"         # Gray 800
+}

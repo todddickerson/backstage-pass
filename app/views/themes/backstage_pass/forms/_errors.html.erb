@@ -1,0 +1,16 @@
+<% # Ejected from bullet_train-themes-light-1.29.0/app/views/themes/light/forms/_errors.html.erb %>
+
+<% attributes ||= [] %>
+<% attributes.select! { |attribute| form.object.errors[attribute].any? } %>
+<% if form.object.errors[:base].any? || form.object.errors.present? || attributes.any? %>
+  <%= render 'account/shared/alert', color: 'red' do %>
+    <% if form.object.errors[:base].any? || attributes.any? %>
+      <%= form.object.errors[:base].join(' ') %>
+      <% attributes.each do |attribute| %>
+      <%= resource.class.human_attribute_name(attribute) %> <%= resource.errors[attribute].to_sentence %>.
+      <% end %>
+    <% else %>
+      Please correct the errors below.
+    <% end %>
+  <% end %>
+<% end %>

@@ -241,7 +241,7 @@ gem "active_hash"
 # The bullet_train-action_models gem can use OpenAI during the CSV import process to
 # automatically match column names to database attributes.
 # https://github.com/alexrudall/ruby-openai
-# gem "ruby-openai"
+gem "ruby-openai"
 
 # awesome_print allows us to `ap` our objects for a clean presentation of them.
 # https://github.com/awesome-print/awesome_print
@@ -262,3 +262,30 @@ gem "active_hash"
 # that you run into a merge conflict in the future.
 
 # 🚅 super scaffolding will insert new oauth providers above this line.
+
+# === Backstage Pass Custom Gems ===
+
+# Testing
+group :development, :test do
+  gem 'webdrivers'
+end
+
+# Streaming Infrastructure
+gem 'livekit-server-sdk'
+gem 'mux_ruby'
+
+# Mobile
+gem 'turbo-native-initializer'
+
+# Marketplace Features
+gem 'money-rails', '~> 1.15'
+gem 'friendly_id', '~> 5.5'
+
+# AI/Processing
+# gem 'ruby-openai'  # Already uncommented in optional section above
+gem 'streamio-ffmpeg'
+
+# Development Tools
+group :development do
+  gem 'bullet'  # N+1 query detection
+end

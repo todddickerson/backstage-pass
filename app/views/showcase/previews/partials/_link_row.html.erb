@@ -1,0 +1,16 @@
+<% # Ejected from bullet_train-themes-light-1.29.0/app/views/showcase/previews/partials/_link_row.html.erb %>
+
+<% showcase.sample "Basic" do %>
+  <%= render "shared/link_row", path: new_user_session_path do |link_row| %>
+    <% link_row.body "Login Page" %>
+  <% end %>
+<% end %>
+
+<% showcase.sample "Without body" do %>
+  <%= render "shared/link_row", path: new_user_session_path %>
+<% end %>
+
+<% showcase.options.context :nice_partials do |o| %>
+  <% o.required :path, "Valid url path" %>
+  <% o.optional.content_block :body %>
+<% end %>

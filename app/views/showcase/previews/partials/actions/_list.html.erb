@@ -1,0 +1,10 @@
+<% # Ejected from bullet_train-themes-light-1.29.0/app/views/showcase/previews/partials/actions/_list.html.erb %>
+
+<% showcase.sample "Basic" do %>
+  <%= render "shared/actions/list", content: "This is a list" %>
+  <%= render "shared/actions/list", content: "This is a second list" %>
+
+  <%= render "shared/actions/list" do %>
+    This is a block invoked list
+  <% end %>
+<% end %>

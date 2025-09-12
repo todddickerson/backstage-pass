@@ -109,6 +109,9 @@ GEM
     bootsnap (1.18.6)
       msgpack (~> 1.2)
     builder (3.3.0)
+    bullet (8.0.8)
+      activesupport (>= 3.0.0)
+      uniform_notifier (~> 1.11)
     bullet_train (1.29.0)
       bullet_train-fields
       bullet_train-has_uuid
@@ -231,6 +234,8 @@ GEM
       sexp_processor
     coderay (1.1.3)
     colorize (1.1.0)
+    commonmarker (2.3.2)
+      rb_sys (~> 0.9)
     commonmarker (2.3.2-aarch64-linux)
     commonmarker (2.3.2-arm64-darwin)
     commonmarker (2.3.2-x86_64-darwin)
@@ -286,6 +291,9 @@ GEM
     erb (5.0.2)
     erubi (1.13.1)
     erubis (2.7.0)
+    ethon (0.15.0)
+      ffi (>= 1.15.0)
+    event_stream_parser (1.0.0)
     factory_bot (6.5.5)
       activesupport (>= 6.1.0)
     factory_bot_rails (6.5.0)
@@ -302,6 +310,7 @@ GEM
     faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
     fastimage (2.4.0)
+    ffi (1.17.2)
     ffi (1.17.2-aarch64-linux-gnu)
     ffi (1.17.2-arm64-darwin)
     ffi (1.17.2-x86_64-darwin)
@@ -310,11 +319,14 @@ GEM
       thor (>= 0.14.0, < 2)
     foreman (0.90.0)
       thor (~> 1.4)
+    friendly_id (5.5.1)
+      activerecord (>= 4.0.0)
     get_process_mem (1.0.0)
       bigdecimal (>= 2.0)
       ffi (~> 1.0)
     globalid (1.2.1)
       activesupport (>= 6.1)
+    google-protobuf (3.25.8)
     hashids (1.0.6)
     hashie (5.0.0)
     heapy (0.2.0)
@@ -343,7 +355,7 @@ GEM
     jsbundling-rails (1.3.1)
       railties (>= 6.0.0)
     json (2.13.2)
-    jwt (3.1.2)
+    jwt (2.10.2)
       base64
     knapsack_pro (8.3.3)
       rake
@@ -355,6 +367,11 @@ GEM
     letter_opener (1.10.0)
       launchy (>= 2.2, < 4)
     lint_roller (1.1.0)
+    livekit-server-sdk (0.8.3)
+      google-protobuf (>= 3.21.0, < 4.0)
+      jwt (>= 2.2.3, < 3.0)
+      rack (>= 2.2.3)
+      twirp (>= 1.10.0, < 2.0)
     logger (1.7.0)
     loofah (2.24.1)
       crass (~> 1.0.2)
@@ -380,6 +397,7 @@ GEM
     method_source (1.1.0)
     mini_histogram (0.3.1)
     mini_mime (1.1.5)
+    mini_portile2 (2.8.9)
     minitest (5.25.5)
     minitest-reporters (1.7.1)
       ansi
@@ -388,11 +406,23 @@ GEM
       ruby-progressbar
     minitest-retry (0.2.5)
       minitest (>= 5.0)
+    monetize (1.13.0)
+      money (~> 6.12)
+    money (6.19.0)
+      i18n (>= 0.6.4, <= 2)
+    money-rails (1.15.0)
+      activesupport (>= 3.0)
+      monetize (~> 1.9)
+      money (~> 6.13)
+      railties (>= 3.0)
     msgpack (1.8.0)
+    multi_json (1.17.0)
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
     multipart-post (2.4.1)
     mutex_m (0.3.0)
+    mux_ruby (5.1.0)
+      typhoeus (~> 1.0, >= 1.0.1)
     net-http (0.6.0)
       uri
     net-imap (0.5.10)
@@ -407,6 +437,9 @@ GEM
     nice_partials (0.10.1)
       actionview (>= 4.2.6)
     nio4r (2.7.4)
+    nokogiri (1.18.9)
+      mini_portile2 (~> 2.8.2)
+      racc (~> 1.4)
     nokogiri (1.18.9-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.18.9-arm64-darwin)
@@ -446,6 +479,7 @@ GEM
     parser (3.3.9.0)
       ast (~> 2.4.1)
       racc
+    pg (1.6.2)
     pg (1.6.2-aarch64-linux)
     pg (1.6.2-arm64-darwin)
     pg (1.6.2-x86_64-darwin)
@@ -546,6 +580,9 @@ GEM
       zeitwerk (~> 2.6)
     rainbow (3.1.1)
     rake (13.3.0)
+    rake-compiler-dock (1.9.1)
+    rb_sys (0.9.117)
+      rake-compiler-dock (= 1.9.1)
     rdoc (6.14.2)
       erb
       psych (>= 4.0.0)
@@ -586,6 +623,10 @@ GEM
       rubocop-ast (>= 1.38.0, < 2.0)
     ruby-graphviz (1.2.5)
       rexml
+    ruby-openai (8.3.0)
+      event_stream_parser (>= 0.3.0, < 2.0.0)
+      faraday (>= 1)
+      faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
     ruby-statistics (4.1.0)
     ruby-vips (2.2.5)
@@ -635,21 +676,32 @@ GEM
       rubocop-performance (~> 1.25.0)
     stimulus-rails (1.3.4)
       railties (>= 6.0.0)
+    streamio-ffmpeg (3.0.2)
+      multi_json (~> 1.8)
     stringio (3.1.7)
     stripe (15.5.0)
     thor (1.4.0)
     thread-local (1.1.0)
     timeout (0.4.3)
+    turbo-native-initializer (0.0.19)
+      thor
     turbo-rails (2.0.16)
       actionpack (>= 7.1.0)
       railties (>= 7.1.0)
     turbo_power (0.7.0)
       turbo-rails (>= 1.3.0)
+    twirp (1.13.1)
+      faraday (< 3)
+      google-protobuf (>= 3.25, < 5.a)
+      rack (>= 2.2.3)
+    typhoeus (1.5.0)
+      ethon (>= 0.9.0, < 0.16.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (3.1.5)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
+    uniform_notifier (1.18.0)
     uri (1.0.3)
     useragent (0.16.11)
     version_gem (1.1.9)
@@ -663,6 +715,10 @@ GEM
       activemodel (>= 6.0.0)
       bindex (>= 0.4.0)
       railties (>= 6.0.0)
+    webdrivers (5.2.0)
+      nokogiri (~> 1.6)
+      rubyzip (>= 1.3.0)
+      selenium-webdriver (~> 4.0)
     websocket (1.2.11)
     websocket-driver (0.8.0)
       base64
@@ -678,6 +734,7 @@ PLATFORMS
   arm64-darwin-22
   arm64-darwin-23
   arm64-darwin-24
+  ruby
   x86_64-darwin-21
   x86_64-linux
 
@@ -685,6 +742,7 @@ DEPENDENCIES
   active_hash
   avo (>= 3.1.7)
   bootsnap
+  bullet
   bullet_train (= 1.29.0)
   bullet_train-api (= 1.29.0)
   bullet_train-fields (= 1.29.0)
@@ -714,13 +772,17 @@ DEPENDENCIES
   devise-two-factor
   factory_bot_rails (~> 6.2, != 6.4.2, != 6.4.1, != 6.4.0, != 6.3.0)
   foreman
+  friendly_id (~> 5.5)
   jbuilder
   jsbundling-rails
   knapsack_pro
   letter_opener
+  livekit-server-sdk
   magic_test
   minitest-reporters
   minitest-retry
+  money-rails (~> 1.15)
+  mux_ruby
   parallel_tests
   pg (>= 0.18, < 2.0)
   premailer-rails
@@ -734,6 +796,7 @@ DEPENDENCIES
   rails_best_practices
   redis (~> 5.4.0)
   rqrcode
+  ruby-openai
   ruby-vips
   selenium-webdriver
   sidekiq
@@ -741,9 +804,12 @@ DEPENDENCIES
   simplecov-json
   standard
   stimulus-rails
+  streamio-ffmpeg
+  turbo-native-initializer
   turbo-rails
   tzinfo-data
   web-console
+  webdrivers
 
 RUBY VERSION
    ruby 3.4.5

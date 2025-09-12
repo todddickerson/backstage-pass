@@ -1,0 +1,25 @@
+@import "./utilities/bg-fade";
+@import "./utilities/billing";
+@import "./utilities/scroll-reveal";
+
+@layer utilities {
+  .space-y {
+    @apply space-y-5;
+  }
+
+  .space-x {
+    @apply space-x-3;
+  }
+
+  .gap-y {
+    @apply gap-y-5;
+  }
+
+  .gap-x {
+    @apply gap-x-4;
+  }
+ 
+  [hidden] {
+    display: none !important;
+  }
+}

@@ -2,6 +2,6 @@ module ApplicationHelper
   include Helpers::Base
 
   def current_theme
-    :light
+    :backstage_pass
   end
 end

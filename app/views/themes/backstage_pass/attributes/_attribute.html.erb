@@ -1,0 +1,10 @@
+<% # Ejected from bullet_train-themes-1.29.0/app/views/themes/base/attributes/_attribute.html.erb %>
+
+<% object ||= current_attributes_object %>
+<% strategy ||= current_attributes_strategy || :none %>
+<% url ||= nil %>
+
+<%= render 'shared/attributes/base', strategy: strategy, url: url, attribute: attribute do |p| %>
+  <% p.heading t("#{object.class.name.pluralize.underscore}.fields.#{attribute}.heading", default: object.class.human_attribute_name(attribute)) %>
+  <% p.body yield %>
+<% end %>

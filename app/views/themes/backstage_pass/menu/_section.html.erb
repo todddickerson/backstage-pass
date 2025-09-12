@@ -1,0 +1,13 @@
+<% # Ejected from bullet_train-themes-light-1.29.0/app/views/themes/light/menu/_section.html.erb %>
+
+<% title ||= nil %>
+
+<div class="<%= @menu_orientation == :top ? "grow flex flex-row" : "pb-3" %>">
+  <% if title %>
+    <%= render 'account/shared/menu/heading' do %>
+      <%= title %>
+    <% end %>
+  <% end %>
+
+  <%= yield %>
+</div>

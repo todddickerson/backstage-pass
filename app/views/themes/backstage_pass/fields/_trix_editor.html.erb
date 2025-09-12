@@ -1,0 +1,40 @@
+<% # Ejected from bullet_train-themes-1.29.0/app/views/themes/base/fields/_trix_editor.html.erb %>
+
+<%
+form ||= current_fields_form
+labels = labels_for(form, method)
+options ||= {}
+other_options ||= {}
+
+options[:class] = "formatted_content trix-content #{options[:class]}"
+options[:placeholder] ||= labels.placeholder if labels.placeholder
+options[:data] ||= {}
+if defined?(current_team) && current_team.present?
+  options[:data][:mentions] ||= ([current_team].map { |team|
+    {key: team.name, value: team.id, protocol: 'bullettrain', model: 'teams', id: team.id, label: team.name, photo: photo_for(team)}
+  } + current_team.memberships.current_and_invited.map { |membership|
+    {key: membership.name, value: membership.id, protocol: 'bullettrain', model: 'memberships', id: membership.id, label: membership.name, photo: membership_profile_photo_url(membership)}
+  }).to_json
+end
+options[:data][:topics] ||= []
+# current_team.scaffolding_things.map { |scaffolding_thing|
+#   {key: scaffolding_thing.name, value: scaffolding_thing.id, protocol: 'bullettrain', model: 'scaffolding/things', id: scaffolding_thing.id, label: scaffolding_thing.name, photo: photo_for(scaffolding_thing)}
+# }.to_json
+%>
+
+<div class="<%= 'trix-hide-toolbar' if other_options[:hide_toolbar] %>">
+<%= render 'shared/fields/field', form: form, method: method, options: options, other_options: other_options do %>
+  <% content_for :field do %>
+    <%= form.rich_text_area method, options %>
+    <%= partial.submit_button.presence %>
+  <% end %>
+<% end %>
+</div>
+
+<% if options[:disabled] %>
+  <script charset="utf-8">
+    document.addEventListener("trix-initialize", function() {
+      document.getElementById("<%= field_id(form.object, method) %>").editor.element.setAttribute('contentEditable', false)
+    });
+  </script>
+<% end %>

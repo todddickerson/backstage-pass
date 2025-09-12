@@ -1,0 +1,10 @@
+<% # Ejected from bullet_train-themes-tailwind_css-1.29.0/app/views/themes/tailwind_css/limits/_index.html.erb %>
+
+<% model ||= @records.model %>
+<% color ||= "red" %>
+
+<% if current_limits.exhausted?(model) %>
+  <div class="pt-3">
+    <%= render "shared/limits/error", model: model, color: color, count: 0 %>
+  </div>
+<% end %>

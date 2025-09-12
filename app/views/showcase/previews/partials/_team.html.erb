@@ -1,0 +1,26 @@
+<% # Ejected from bullet_train-themes-light-1.29.0/app/views/showcase/previews/partials/_team.html.erb %>
+
+<% showcase.sample "Basic" do %>
+  <ul>
+    <%= render "shared/team" do |cell| %>
+      <% cell.name "Name" %>
+    <% end %>
+  </ul>
+<% end %>
+
+<% if defined?(Membership) %>
+  <% showcase.sample "With Memberships" do %>
+    <ol>
+      <%= render "shared/team", memberships: Membership.limit(10) do |cell| %>
+        <% cell.name "Title" %>
+      <% end %>
+    </ol>
+  <% end %>
+<% end %>
+
+
+<% showcase.options.context :nice_partials do |o| %>
+  <% o.optional :link_url %>
+  <% o.optional :memberships %>
+  <% o.optional.content_block :name %>
+<% end %>

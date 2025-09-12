@@ -1,0 +1,8 @@
+<% # Ejected from bullet_train-themes-light-1.29.0/app/views/showcase/previews/partials/_notices.html.erb %>
+
+<% showcase.sample "Basic" do %>
+  <% flash.now[:notice] = "Success Notice" %>
+  <% flash.now[:error] = "Error Notice" %>
+
+  <%= render "shared/notices" %>
+<% end %>

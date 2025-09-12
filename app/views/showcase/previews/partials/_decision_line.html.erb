@@ -1,0 +1,9 @@
+<% # Ejected from bullet_train-themes-light-1.29.0/app/views/showcase/previews/partials/_decision_line.html.erb %>
+
+<% showcase.sample "Basic" do %>
+  <%= render "shared/decision_line", label: 'else' %>
+<% end %>
+
+<% showcase.options do |o| %>
+  <% o.optional :label, "Label for the decision line", default: "t('global.or')" %>
+<% end %>
