@@ -1,0 +1,8 @@
+<% space ||= @space %>
+<% team ||= @team || space&.team %>
+<%= render 'account/teams/breadcrumbs', team: team %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, team, :spaces] %>
+<% if space&.persisted? %>
+  <%= render 'account/shared/breadcrumb', label: space.label_string, url: [:account, space] %>
+<% end %>
+<%= render 'account/shared/breadcrumbs/actions', only_for: 'spaces' %>

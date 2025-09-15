@@ -1,0 +1,10 @@
+<% if can? :read, Space.new(team: current_team) %>
+  <%= render 'account/shared/menu/item', {
+    url: main_app.polymorphic_path([:account, current_team, :spaces]),
+    label: t('spaces.navigation.label'),
+  } do |p| %>
+    <% p.icon do %>
+      <i class="<%= t('spaces.navigation.icon') %>"></i>
+    <% end %>
+  <% end %>
+<% end %>

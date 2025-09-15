@@ -1,0 +1,100 @@
+en:
+  access_passes: &access_passes
+    label: &label Access Passes
+    breadcrumbs:
+      label: *label
+    navigation:
+      label: *label
+      icon: fal fa-puzzle-piece
+    buttons: &buttons
+      new: Add New Access Pass
+      create: Create Access Pass
+      edit: Edit Access Pass
+      update: Update Access Pass
+      destroy: Remove Access Pass
+      shorthand:
+        edit: Edit
+        destroy: Delete
+      confirmations:
+        # TODO customize for your use-case.
+        destroy: Are you sure you want to remove %{access_pass_name}? This will also remove any child resources and can't be undone.
+    access_pass:
+      buttons: *buttons
+    fields: &fields
+      id:
+        heading: Access Pass ID
+      team_id:
+        heading: Team ID
+      status:
+        _: &status Status
+        label: *status
+        heading: *status
+        api_title: *status
+        api_description: *status
+      expires_at:
+        _: &expires_at Expires At
+        label: *expires_at
+        heading: *expires_at
+        api_title: *expires_at
+        api_description: *expires_at
+      # 🚅 super scaffolding will insert new fields above this line.
+      created_at:
+        _: &created_at Added
+        label: *created_at
+        heading: *created_at
+      updated_at:
+        _: &updated_at Updated
+        label: *updated_at
+        heading: *updated_at
+    api:
+      collection_actions: "Collection Actions for Access Passes"
+      index: "List Access Passes"
+      create: "Add a New Access Pass"
+      member_actions: "Actions for an Individual Access Pass"
+      show: "Retrieve a Access Pass"
+      update: "Update a Access Pass"
+      destroy: "Delete a Access Pass"
+      fields: *fields
+    index:
+      section: "%{teams_possessive} Access Passes"
+      contexts:
+        team:
+          header: Access Passes
+          description: Below is a list of Access Passes that have been added for %{team_name}.
+          description_empty: No Access Passes have been added for %{team_name}.
+      fields: *fields
+      buttons: *buttons
+    show:
+      section: "%{access_pass_name}"
+      header: Access Pass Details
+      description: Below are the details we have for %{access_pass_name}.
+      manage_description: You'll also find options for updating these details or removing %{access_pass_name} from %{team_name} entirely.
+      fields: *fields
+      buttons: *buttons
+    form: &form
+      buttons: *buttons
+      fields: *fields
+    new:
+      section: "New Access Pass for %{team_name}"
+      header: New Access Pass Details
+      description: Please provide the details of the new Access Pass you'd like to add to %{team_name}.
+      form: *form
+    edit:
+      section: "%{access_pass_name}"
+      header: Edit Access Pass Details
+      description: You can update the details or settings for %{access_pass_name} below.
+      form: *form
+    notifications:
+      created: Access Pass was successfully created.
+      updated: Access Pass was successfully updated.
+      destroyed: Access Pass was successfully destroyed.
+  account:
+    access_passes: *access_passes
+  activerecord:
+    attributes:
+      access_pass:
+        status: *status
+        expires_at: *expires_at
+        # 🚅 super scaffolding will insert new activerecord attributes above this line.
+        created_at: *created_at
+        updated_at: *updated_at

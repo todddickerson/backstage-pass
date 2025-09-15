@@ -1,0 +1,8 @@
+<% experience ||= @experience %>
+<% space ||= @space || experience&.space %>
+<%= render 'account/spaces/breadcrumbs', space: space %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, space, :experiences] %>
+<% if experience&.persisted? %>
+  <%= render 'account/shared/breadcrumb', label: experience.label_string, url: [:account, experience] %>
+<% end %>
+<%= render 'account/shared/breadcrumbs/actions', only_for: 'experiences' %>
