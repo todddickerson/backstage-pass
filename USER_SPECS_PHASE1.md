@@ -347,90 +347,111 @@ Native iOS and Android apps using Hotwire Native wrappers with native video play
 
 ### Mobile Technical Architecture
 
-#### iOS Implementation
+#### iOS Implementation (2025 Simplified - <20 lines!)
 ```swift
-// Hotwire Native Configuration
+// Hotwire Native Setup - That's it!
+import HotwireNative
+
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-    func configureRootViewController() -> UIViewController {
-        let navigator = Navigator()
-        navigator.delegate = self
+    var window: UIWindow?
+    private let rootURL = URL(string: "https://backstagepass.app")!
+    
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options: UIConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
         
-        // Register native video player route
-        navigator.route("/account/*/experiences/*/stream") { _ in
-            return LiveKitVideoViewController()
-        }
-        
-        return navigator.rootViewController
+        window = UIWindow(windowScene: windowScene)
+        window?.rootViewController = Navigator(rootURL: rootURL)
+        window?.makeKeyAndVisible()
     }
 }
 
-// Native LiveKit Player
-class LiveKitVideoViewController: UIViewController {
-    private let room = LiveKitRoom()
-    
-    func connect(token: String, url: String) {
-        room.connect(url, token) { [weak self] in
-            self?.setupVideoView()
-        }
-    }
-}
+// Video player registered via Bridge Component (separate file)
 ```
 
-#### Android Implementation
+#### Android Implementation (2025 Simplified)
 ```kotlin
-// Hotwire Native Configuration
+// Hotwire Native Setup - Minimal configuration!
+import dev.hotwire.navigation.activities.HotwireActivity
+import dev.hotwire.navigation.navigator.NavigatorConfiguration
+
 class MainActivity : HotwireActivity() {
-    override fun registeredActivities(): List<KClass<out HotwireActivity>> {
-        return listOf(
-            LiveStreamActivity::class
-        )
-    }
-    
-    override fun registeredFragments(): List<KClass<out HotwireFragment>> {
-        return listOf(
-            WebFragment::class,
-            LiveKitFragment::class
-        )
-    }
+    override fun navigatorConfiguration() = NavigatorConfiguration(
+        name = "main",
+        startLocation = "https://backstagepass.app"
+    )
 }
 
-// Native LiveKit Player
-class LiveKitFragment : Fragment() {
-    private lateinit var room: LiveKitRoom
-    
-    fun connect(token: String, url: String) {
-        room = LiveKitRoom(requireContext())
-        room.connect(url, token)
-    }
-}
+// Video player registered via Bridge Component (separate file)
 ```
 
-#### JavaScript Bridge
+#### JavaScript Bridge (2025 BridgeComponent Pattern)
 ```javascript
-// app/javascript/bridges/native_video.js
-export class NativeVideoBridge {
-  static connect(element) {
-    const platform = element.dataset.platform
-    const streamData = {
-      token: element.dataset.livekitToken,
-      url: element.dataset.livekitUrl,
-      streamId: element.dataset.streamId
-    }
+// app/javascript/controllers/native/video_controller.js
+import { BridgeComponent } from "@hotwired/hotwire-native-bridge"
+
+export default class extends BridgeComponent {
+  static component = "video-player"
+  
+  connect() {
+    super.connect()
     
-    if (window.HotwireNative) {
-      // Send to native player
-      window.HotwireNative.playStream(streamData)
+    if (this.platformOptingOut) { 
+      // Use web player for non-mobile
+      this.initializeWebPlayer()
     } else {
-      // Fallback to web player
-      new WebStreamPlayer(element, streamData)
+      // Send to native player
+      this.send("play", {
+        url: this.data.get("stream-url"),
+        token: this.data.get("livekit-token"),
+        streamId: this.data.get("stream-id")
+      })
+    }
+  }
+  
+  onMessage(message) {
+    // Handle messages from native (stream ended, errors, etc.)
+    if (message.name === "stream-ended") {
+      window.location.href = "/account/purchased_spaces"
     }
   }
 }
+```
 
-// Register with Stimulus
-import { Application } from "@hotwired/stimulus"
-const application = Application.start()
-application.register("native-video", NativeVideoBridge)
+### Path Configuration (New in 2025!)
+
+Path configuration controls navigation behavior without native code changes:
+
+```json
+// config/hotwire_native/path_configuration.json
+{
+  "settings": {
+    "show_navigation_bar": true,
+    "enable_pull_to_refresh": true
+  },
+  "rules": [
+    {
+      "patterns": ["/new$", "/edit$", "/waitlist_entries"],
+      "properties": {
+        "presentation": "modal",
+        "pull_to_refresh_enabled": false
+      }
+    },
+    {
+      "patterns": ["/account/.*/stream"],
+      "properties": {
+        "presentation": "replace",
+        "view_controller": "stream"
+      }
+    },
+    {
+      "patterns": ["/sign_in", "/sign_up"],
+      "properties": {
+        "presentation": "modal",
+        "view_controller": "authentication"
+      }
+    }
+  ]
+}
 ```
 
 ### Mobile-Specific Features
@@ -504,19 +525,24 @@ end
 - Gradle 8.0+
 ```
 
-#### Dependencies
+#### Dependencies (2025 Versions)
 ```ruby
 # Gemfile additions for mobile support
-gem 'rpush' # Push notifications
-gem 'device_detector' # Detect mobile platforms
+gem 'hotwire-native-rails', '~> 1.0'  # Rails helpers
+gem 'rpush', '~> 8.0'                 # Push notifications
+gem 'device_detector', '~> 1.1'       # Platform detection
 
-# iOS Podfile
-pod 'LiveKit'
-pod 'HotwireNative'
+# iOS Package.swift (Swift Package Manager)
+dependencies: [
+  .package(url: "https://github.com/hotwired/hotwire-native-ios", from: "1.0.0"),
+  .package(url: "https://github.com/livekit/client-sdk-swift", from: "2.0.0")
+]
 
 # Android build.gradle
-implementation 'io.livekit:livekit-android:1.5.0'
-implementation 'dev.hotwire:turbo:7.0.0'
+dependencies {
+  implementation 'dev.hotwire:hotwire-native:1.0.0'
+  implementation 'io.livekit:livekit-android:2.0.0'
+}
 ```
 
 ### Mobile Testing Strategy
@@ -535,21 +561,22 @@ implementation 'dev.hotwire:turbo:7.0.0'
 5. Native player performance metrics
 6. Battery usage monitoring
 
-### Phase 1b Timeline (Additional 2 weeks)
+### Phase 1b Timeline (Reduced to 1.5 weeks with 2025 simplifications!)
 
-#### Week 5: iOS App
-- [ ] Hotwire Native iOS setup
-- [ ] LiveKit iOS SDK integration
-- [ ] Native video player implementation
-- [ ] Push notifications (APNS)
-- [ ] TestFlight deployment
+#### Week 5: Both Mobile Apps (Parallel Development)
+- [ ] iOS: Basic Hotwire Native setup (~20 lines)
+- [ ] Android: Basic Hotwire Native setup (~15 lines)
+- [ ] Path configuration for both platforms
+- [ ] Bridge components for video players
+- [ ] LiveKit SDK integration (iOS & Android)
+- [ ] Push notification setup
 
-#### Week 6: Android App
-- [ ] Hotwire Native Android setup
-- [ ] LiveKit Android SDK integration
-- [ ] Native video player implementation
-- [ ] Push notifications (Firebase)
-- [ ] Internal testing release
+#### Week 5.5: Testing & Deployment
+- [ ] iOS TestFlight build
+- [ ] Android internal testing build
+- [ ] Cross-platform testing
+- [ ] Performance verification
+- [ ] Final adjustments
 
 ## Out of Scope for Phase 1
 
@@ -647,21 +674,22 @@ implementation 'dev.hotwire:turbo:7.0.0'
 - [ ] Error handling
 - [ ] Production deployment
 
-### Phase 1b: Mobile Apps (Weeks 5-6)
+### Phase 1b: Mobile Apps (Week 5-5.5)
 
-#### Checkpoint 5: iOS App (Week 5)
-- [ ] Hotwire Native iOS wrapper
-- [ ] LiveKit native player integrated
-- [ ] Push notifications working
-- [ ] TestFlight build available
-- [ ] Background audio working
+#### Checkpoint 5: Both Mobile Apps (Week 5)
+- [ ] iOS: Hotwire Native setup complete (~20 lines)
+- [ ] Android: Hotwire Native setup complete (~15 lines)
+- [ ] Path configuration deployed for both platforms
+- [ ] Bridge components for video streaming working
+- [ ] LiveKit native players integrated (iOS & Android)
+- [ ] Push notifications configured
 
-#### Checkpoint 6: Android App (Week 6)
-- [ ] Hotwire Native Android wrapper
-- [ ] LiveKit native player integrated
-- [ ] Firebase notifications working
-- [ ] Internal testing build available
-- [ ] Picture-in-picture working
+#### Checkpoint 5.5: Testing & Release (Week 5.5)
+- [ ] iOS TestFlight build live
+- [ ] Android internal testing build live
+- [ ] Cross-platform testing complete
+- [ ] Background audio (iOS) verified
+- [ ] Picture-in-picture (Android) verified
 
 ## Questions for Clarification
 
@@ -736,9 +764,16 @@ implementation 'dev.hotwire:turbo:7.0.0'
 
 ---
 
-**Timeline Summary:**
+**Timeline Summary (Updated with 2025 Simplifications):**
 - **Phase 1 (Weeks 1-4):** Web platform with full functionality
-- **Phase 1b (Weeks 5-6):** Native iOS and Android apps with superior streaming
-- **Total Duration:** 6 weeks to production-ready web + mobile
+- **Phase 1b (Week 5-5.5):** Native iOS and Android apps with superior streaming
+- **Total Duration:** 5.5 weeks to production-ready web + mobile (reduced from 6 weeks!)
+
+**Key 2025 Improvements:**
+- Setup reduced from 100+ lines to <20 lines per platform
+- Path configuration eliminates most native navigation code
+- Bridge components provide structured native integration
+- Both mobile apps can be developed in parallel
+- Joe Masilotti's patterns are now the standard
 
 **STOP POINT**: Review this specification before proceeding with implementation. Confirm all user stories align with business goals and technical capabilities.
