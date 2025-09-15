@@ -8,30 +8,40 @@
    - Primary subjects vs supporting models
    - Validation script: `.claude/validate-namespacing.rb`
 
-2. **[TEAM_SPACE_ARCHITECTURE.md](./TEAM_SPACE_ARCHITECTURE.md)** 🔴 **CRITICAL - READ FIRST**
+2. **[PUBLIC_ROUTES_ARCHITECTURE.md](./PUBLIC_ROUTES_ARCHITECTURE.md)** 🔴 **CRITICAL UNDERSTANDING**
+   - Public routes do NOT need team context
+   - Clean URLs for marketing/discovery
+   - Separation between public and account routes
+
+3. **[TEAM_SPACE_ARCHITECTURE.md](./TEAM_SPACE_ARCHITECTURE.md)** 🔴 **CRITICAL - READ FIRST**
    - Team has_many Spaces with simplified UX (one Space per Team initially)
    - Implementation guide and code patterns
    - Future expansion path documented
 
-3. **[PHASE1_REVISED.md](./PHASE1_REVISED.md)** 🔴 **USE THIS - SIMPLIFIED PLAN**
+4. **[AUTHENTICATION_PASSWORDLESS.md](./AUTHENTICATION_PASSWORDLESS.md)** - 6-digit OTP implementation
+   - Custom passwordless auth that works with Bullet Train
+   - Uses super_scaffold for AuthCode model
+   - Maintains Devise for team members
+
+5. **[PHASE1_REVISED.md](./PHASE1_REVISED.md)** - Implementation plan
    - Framework-compliant approach
    - 4 week realistic timeline
    - Simplified models and authentication
    - Stripe Checkout instead of Elements
 
-4. **[USER_SPECS_PHASE1.md](./USER_SPECS_PHASE1.md)** - Original Phase 1 specifications
+6. **[USER_SPECS_PHASE1.md](./USER_SPECS_PHASE1.md)** - Original Phase 1 specifications
    - 13 user stories (overly ambitious)
    - See PHASE1_REVISED.md for realistic approach
    - Timeline: 5.5 weeks (unrealistic)
 
-5. **[ARCHITECTURE_DECISIONS.md](./ARCHITECTURE_DECISIONS.md)** - Technical architecture
+7. **[ARCHITECTURE_DECISIONS.md](./ARCHITECTURE_DECISIONS.md)** - Technical architecture
    - Team vs Space decision (see TEAM_SPACE_ARCHITECTURE.md for details)
    - AccessPass model design (complex, not polymorphic)
    - CreatorProfile model (new requirement)
    - GetStream.io for chat (decision made)
    - Deferred features documented
 
-6. **[HOTWIRE_NATIVE_2025.md](./HOTWIRE_NATIVE_2025.md)** - Mobile implementation
+8. **[HOTWIRE_NATIVE_2025.md](./HOTWIRE_NATIVE_2025.md)** - Mobile implementation
    - Rails World 2025 patterns
    - <20 lines of setup code
    - BridgeComponent pattern

@@ -1,11 +1,11 @@
 # Phase 1 REVISED - Simplified & Framework-Compliant
 
-## 🔴 Critical Changes from Original Plan
+## 🔴 Corrections to My Analysis
 
-### 1. Authentication
-- **OLD**: Passwordless (6-digit codes)
-- **NEW**: Bullet Train's standard Devise authentication
-- **Why**: Passwordless would require massive framework customization
+### 1. Authentication - Passwordless IS Possible
+- **Original Plan**: Passwordless with 6-digit codes ✓
+- **Implementation**: Custom 6-digit OTP system using Bullet Train patterns
+- **Note**: devise-passwordless uses magic links, not codes - we'll build custom
 
 ### 2. Payment Processing  
 - **OLD**: Stripe Elements (custom forms)
@@ -23,9 +23,9 @@
 - **Why**: Native video players require significant development
 
 ### 5. AccessPass Model
-- **OLD**: Complex with Experience selection
-- **NEW**: Simple one-to-one with Space for MVP
-- **Why**: Can add complexity incrementally
+- **Keep Original**: Complex with Experience selection via join table
+- **Implementation**: Use super_scaffold for AccessPassExperience bridge
+- **Note**: Build the right architecture from the start
 
 ## ✅ Simplified Phase 1 Implementation (4 Weeks)
 
@@ -47,21 +47,22 @@ rails generate super_scaffold Stream Experience title:text_field scheduled_at:da
 # - Experience has_many :streams
 ```
 
-### Week 2: Purchase Flow (Simplified)
+### Week 2: Purchase Flow with Passwordless Auth
 
 ```bash
-# Day 1-2: Purchase model and Stripe setup
+# Day 1: 6-digit OTP authentication
+rails generate super_scaffold AuthCode User code:text_field purpose:options{login,signup} expires_at:date_and_time_field
+
+# Day 2-3: Purchase model and Stripe setup
 rails generate super_scaffold Billing::Purchase AccessPass,User amount:number_field stripe_charge_id:text_field
 
-# Day 3-4: Stripe Checkout integration
-# - Use hosted Stripe Checkout (not Elements)
-# - Simple redirect flow
-# - Webhook for payment confirmation
+# Day 4: Stripe Checkout or Elements (your choice)
+# - Stripe Checkout for speed OR
+# - Stripe Elements for custom UI
 
 # Day 5: Access control
-# - Can user view Space/Experience?
 # - Purchase creates active AccessPass
-# - No complex waitlist for MVP
+# - AccessPass grants Experience access
 ```
 
 ### Week 3: Basic Streaming
