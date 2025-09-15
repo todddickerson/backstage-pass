@@ -25,6 +25,9 @@ Rails.application.routes.draw do
     resources :spaces, only: [:index, :show], param: :space_slug do
       resources :experiences, only: [:show], param: :experience_slug
     end
+    
+    # Creator profile routes (@username)
+    get "/:username", to: "creator_profiles#show", constraints: { username: /[a-zA-Z0-9_-]+/ }, as: :creator_profile
   end
 
   namespace :webhooks do
@@ -59,6 +62,9 @@ Rails.application.routes.draw do
 
         # routes for standard user actions and resources are configured in the `bullet_train` gem, but you can add more here.
       end
+      
+      # Creator profile management (singular resource)
+      resource :creator_profile, only: [:show, :edit, :update, :create]
 
       # team-level resources.
       resources :teams, extending do

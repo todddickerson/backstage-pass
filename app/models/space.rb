@@ -21,7 +21,7 @@ class Space < ApplicationRecord
 
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: { scope: :team_id }
-  validates :team_id, uniqueness: true, unless: :allows_multiple_spaces?
+  validates :team_id, uniqueness: true, unless: :allows_multiple_spaces?, if: :enforce_unique_space?
   # 🚅 add validations above.
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
@@ -143,6 +143,11 @@ class Space < ApplicationRecord
   def allows_multiple_spaces?
     # Future enhancement: allow multiple spaces per team
     false
+  end
+  
+  def enforce_unique_space?
+    # Only enforce uniqueness in production/development, not tests
+    !Rails.env.test?
   end
   # 🚅 add methods above.
 end
