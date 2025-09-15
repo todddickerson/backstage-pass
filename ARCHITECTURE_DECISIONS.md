@@ -1,5 +1,83 @@
 # Backstage Pass - Architecture Decisions & Research Findings
 
+## 🔴 CRITICAL: Team vs Space Architecture (Sept 2025)
+
+### Decision: Team has_many Spaces (with simplified UX)
+
+**We keep the flexible `Team has_many Spaces` relationship but simplify the UX to act like one-to-one initially.**
+
+#### Why This Approach?
+1. **Bullet Train Compliance**: Respects framework's Team-centric authorization/billing
+2. **Future Flexibility**: Easy to enable multi-brand creators later without database changes
+3. **Clean URLs**: Use routing to hide complexity (`/creator-name` not `/teams/x/spaces/y`)
+4. **Proper Separation**: Teams handle billing/members, Spaces handle content/marketplace
+
+#### Implementation Strategy
+```ruby
+# Phase 1: One Space per Team (hidden complexity)
+class Team < ApplicationRecord
+  has_one :space, dependent: :destroy  # Technically has_many, but constrained to one
+  after_create :create_default_space
+  
+  def primary_space
+    space || create_space!(name: name, slug: slug)
+  end
+  
+  private
+  
+  def create_default_space
+    create_space!(name: name, slug: slug.presence || name.parameterize)
+  end
+end
+
+class Space < ApplicationRecord
+  belongs_to :team
+  validates :team_id, uniqueness: true  # Enforce one space per team for now
+  
+  # Public URL: backstagepass.app/creator-name (not /spaces/creator-name)
+  extend FriendlyId
+  friendly_id :slug, use: :slugged
+end
+```
+
+#### UI/UX Simplification
+- **Admin Panel**: Show "Your Space" not "Your Spaces" 
+- **Navigation**: Direct to Space settings, not Space list
+- **URLs**: `/creator-name` for public, `/account/space` for admin
+- **Mental Model**: Team = Your Account, Space = Your Storefront
+- **Onboarding**: Auto-create Space when Team created
+
+#### Future Expansion (Phase 2+)
+```ruby
+# When creators need multiple brands/spaces
+class Team < ApplicationRecord
+  has_many :spaces, dependent: :destroy  # Change association
+  
+  def primary_space
+    spaces.primary.first || spaces.first
+  end
+end
+
+# Migration adds primary flag
+add_column :spaces, :primary, :boolean, default: false
+remove_index :spaces, :team_id  # Remove uniqueness
+```
+
+#### Rejected Alternative
+❌ **Making Team BE the Space (merging them)** 
+- Would violate Bullet Train's authorization patterns
+- Would mix billing context with content context
+- Would make future multi-space support a breaking change
+- Would require extensive framework customization
+
+#### Similar Platform Patterns
+- **Shopify**: Account → Store (1:1 initially, Plus plans get multiple)
+- **Substack**: Writer → Publications (1:many but most have one)
+- **Whop**: Account → Whops (1:many from start) 
+- **Our Approach**: Like Shopify - simple initially, expandable later
+
+---
+
 ## Executive Summary
 
 Based on your clarifications and deep research, here are the key architectural decisions and immediate implementation priorities:

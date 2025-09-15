@@ -3,12 +3,18 @@
 ## 📍 Current Active Documentation (Sept 2025)
 
 ### Primary Documents
-1. **[USER_SPECS_PHASE1.md](./USER_SPECS_PHASE1.md)** - Complete Phase 1 specifications
+1. **[TEAM_SPACE_ARCHITECTURE.md](./TEAM_SPACE_ARCHITECTURE.md)** 🔴 **CRITICAL - READ FIRST**
+   - Team has_many Spaces with simplified UX (one Space per Team initially)
+   - Implementation guide and code patterns
+   - Future expansion path documented
+
+2. **[USER_SPECS_PHASE1.md](./USER_SPECS_PHASE1.md)** - Complete Phase 1 specifications
    - 13 user stories with acceptance criteria
    - Technical implementation details
    - Timeline: 5.5 weeks total
 
-2. **[ARCHITECTURE_DECISIONS.md](./ARCHITECTURE_DECISIONS.md)** - Technical architecture
+3. **[ARCHITECTURE_DECISIONS.md](./ARCHITECTURE_DECISIONS.md)** - Technical architecture
+   - Team vs Space decision (see TEAM_SPACE_ARCHITECTURE.md for details)
    - AccessPass model design (complex, not polymorphic)
    - CreatorProfile model (new requirement)
    - GetStream.io for chat (decision made)

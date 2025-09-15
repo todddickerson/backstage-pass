@@ -746,9 +746,11 @@ dependencies {
    rails generate super_scaffold CreatorProfile User username:text_field bio:text_area
    ```
 
-3. **Create Space model**
+3. **Create Space model (with one-per-team constraint)**
    ```bash
    rails generate super_scaffold Space Team name:text_field slug:text_field description:trix_editor
+   # Then add validation: validates :team_id, uniqueness: true
+   # And add Team callback: after_create :create_default_space
    ```
 
 4. **Initialize mobile apps (Phase 1b)**
