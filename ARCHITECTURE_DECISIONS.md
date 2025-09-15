@@ -324,6 +324,7 @@ accessories:
 2. **Public::AccessPassesController** - Checkout flow
 3. **Passwordless auth** - 6-digit code system
 4. **Stripe Elements integration** - Not Stripe Checkout
+5. **Manual waitlist approval** - Simple admin UI
 
 ### Phase 3: Chat Integration (Week 3-4)
 1. **GetStream.io setup** - Replace LiveKit data channels plan
@@ -439,27 +440,54 @@ class PurchaseFlowTest < ApplicationSystemTestCase
 end
 ```
 
-## Questions Still Needing Answers
+## Deferred Features (Phase 2+)
+
+Based on clarifications, these features are deferred to later phases:
 
 1. **Waitlist Approval Workflow**
-   - Manual approval UI needed?
-   - Bulk approval features?
-   - Email notification templates?
+   - **Decision:** Manual approval only for MVP
+   - Simple admin interface to approve/reject
+   - Email notifications can be added later
+   - Bulk approval features deferred
+   
+   ```ruby
+   # Simple implementation for MVP
+   class Account::WaitlistEntriesController < Account::ApplicationController
+     def index
+       @entries = current_team.waitlist_entries.pending
+     end
+     
+     def approve
+       @entry = current_team.waitlist_entries.find(params[:id])
+       @entry.approve!
+       # Creates AccessPass and sends welcome email
+       redirect_back(fallback_location: account_waitlist_entries_path)
+     end
+     
+     def reject
+       @entry = current_team.waitlist_entries.find(params[:id])
+       @entry.reject!
+       redirect_back(fallback_location: account_waitlist_entries_path)
+     end
+   end
+   ```
 
 2. **Split Payment Implementation**
-   - Using Stripe Payment Plans?
-   - Custom implementation?
-   - How to handle failures?
+   - **Decision:** Deferred to Phase 2
+   - Focus on single payment flow initially
+   - Can add Stripe Payment Plans later
 
-3. **Experience Discovery**
-   - Category taxonomy structure?
-   - AI-powered recommendations?
-   - Search implementation (PostgreSQL full-text vs Elasticsearch)?
+3. **Search & Discovery**
+   - **Decision:** Deferred, will use vector database
+   - Basic filtering/categories for MVP
+   - Vector DB (pgvector or Pinecone) for semantic search later
+   - AI-powered recommendations in Phase 2
 
 4. **Creator Payouts**
-   - When to implement? (Can be Phase 2?)
-   - Stripe Connect vs custom?
-   - Tax handling?
+   - **Decision:** Deferred to Phase 2
+   - Platform-owned model initially
+   - Stripe Connect integration later
+   - Tax handling complexity pushed out
 
 ## Recommended Next Steps
 
