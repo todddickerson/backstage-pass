@@ -1,4 +1,5 @@
 class Experience < ApplicationRecord
+  include DualIdSupport
   # 🚅 add concerns above.
 
   # 🚅 add attribute accessors above.

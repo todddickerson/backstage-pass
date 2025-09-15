@@ -20,6 +20,11 @@ Rails.application.routes.draw do
     # The root `/` path is routed to `Public::HomeController#index` by default. You can set it
     # to whatever you want by doing something like this:
     # root to: "my_new_root_controller#index"
+    
+    # Public marketplace routes using friendly slugs
+    resources :spaces, only: [:index, :show], param: :space_slug do
+      resources :experiences, only: [:show], param: :experience_slug
+    end
   end
 
   namespace :webhooks do
