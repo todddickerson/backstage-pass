@@ -1,4 +1,19 @@
-# Hotwire Native Mobile Implementation Guide
+# ⚠️ DEPRECATED - See HOTWIRE_NATIVE_2025.md
+
+**This document is outdated as of Rails World 2025. Please use:**
+
+## 📍 **[HOTWIRE_NATIVE_2025.md](./HOTWIRE_NATIVE_2025.md)** for current implementation
+
+### Why this is deprecated:
+- Hotwire Native setup is now <20 lines (was 100+ lines)
+- Path configuration replaces most native code
+- BridgeComponent pattern supersedes old bridge approach
+- Navigator is built-in (no more TurboNavigator)
+- Joe Masilotti's patterns from Rails World 2025 are the standard
+
+---
+
+# [ARCHIVED] Hotwire Native Mobile Implementation Guide
 
 ## Quick Start: From Rails to App Store in 2 Weeks
 
