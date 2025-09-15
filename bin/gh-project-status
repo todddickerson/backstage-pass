@@ -1,0 +1,59 @@
+#!/bin/bash
+# Display GitHub Project board status
+
+echo "📊 GitHub Project Board Status"
+echo "=============================="
+
+# Get the project (Phase 1 MVP)
+PROJECT_NUMBER=$(gh project list --format json | jq -r '.projects[] | select(.title == "Phase 1 MVP") | .number' 2>/dev/null)
+
+if [ -z "$PROJECT_NUMBER" ]; then
+  echo "ℹ️  No 'Phase 1 MVP' project found"
+  echo ""
+  echo "Available projects:"
+  gh project list 2>/dev/null || echo "No projects found"
+  echo ""
+  echo "📝 Create project with:"
+  echo "   gh project create --title 'Phase 1 MVP' --body 'Core platform development'"
+  exit 0
+fi
+
+echo "🎯 Phase 1 MVP Project (#$PROJECT_NUMBER)"
+echo ""
+
+# Get project fields and items
+echo "📋 Board Status:"
+gh project item-list $PROJECT_NUMBER --format json 2>/dev/null | jq -r '
+  .items[] | 
+  "- [\(.status // "No Status")] #\(.content.number // "N/A"): \(.content.title // .title // "Unknown")"
+' 2>/dev/null || echo "Could not fetch project items"
+
+echo ""
+echo "📊 Column Summary:"
+gh project item-list $PROJECT_NUMBER --format json 2>/dev/null | jq -r '
+  .items | 
+  group_by(.status // "No Status") | 
+  map({
+    status: .[0].status // "No Status",
+    count: length
+  }) |
+  .[] |
+  "  \(.status): \(.count) items"
+' 2>/dev/null || echo "Could not generate summary"
+
+echo ""
+echo "🔥 Critical Priority Items:"
+gh issue list --label "priority/critical,ai/ready" --state open --limit 5 2>/dev/null || echo "None found"
+
+echo ""
+echo "⏱️  Current Sprint Items:"
+CURRENT_WEEK=$(date +%U)
+SPRINT_WEEK=$((($CURRENT_WEEK - 1) % 4 + 1))
+echo "   Sprint: Week $SPRINT_WEEK"
+gh issue list --label "sprint/week-$SPRINT_WEEK,ai/ready" --state open --limit 10 2>/dev/null || echo "None found"
+
+echo ""
+echo "💡 Commands:"
+echo "   bin/gh-project-move <issue> <column>  # Move issue to column"
+echo "   bin/gh-milestone-status               # Check milestone progress"
+echo "   bin/gh-sync                           # Sync AI-ready tasks"

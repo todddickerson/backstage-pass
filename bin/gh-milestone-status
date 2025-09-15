@@ -1,0 +1,82 @@
+#!/bin/bash
+# Check milestone progress and status
+
+MILESTONE_NAME=$1
+
+echo "🎯 GitHub Milestone Status"
+echo "=========================="
+
+if [ -z "$MILESTONE_NAME" ]; then
+  # Show all milestones
+  echo "📅 All Milestones:"
+  echo ""
+  
+  gh api repos/todddickerson/backstage-pass/milestones --jq '.[] | 
+    "📍 \(.title)
+    Progress: \(.open_issues)/\(.open_issues + .closed_issues) open (\(100 - (100 * .open_issues / (.open_issues + .closed_issues + 0.01)) | floor)% complete)
+    Due: \(.due_on // "No due date")
+    Description: \(.description // "No description")
+    "' 2>/dev/null || echo "No milestones found"
+  
+  echo ""
+  echo "💡 Usage: bin/gh-milestone-status 'Milestone Name'"
+  echo ""
+  echo "📝 Create milestones with:"
+  echo "   bin/gh-setup-milestones"
+else
+  # Show specific milestone
+  echo "📍 Milestone: $MILESTONE_NAME"
+  echo ""
+  
+  MILESTONE_DATA=$(gh api repos/todddickerson/backstage-pass/milestones --jq ".[] | select(.title == \"$MILESTONE_NAME\")" 2>/dev/null)
+  
+  if [ -z "$MILESTONE_DATA" ]; then
+    echo "❌ Milestone '$MILESTONE_NAME' not found"
+    echo ""
+    echo "Available milestones:"
+    gh api repos/todddickerson/backstage-pass/milestones --jq '.[].title' 2>/dev/null
+    exit 1
+  fi
+  
+  MILESTONE_NUMBER=$(echo "$MILESTONE_DATA" | jq -r '.number')
+  OPEN_ISSUES=$(echo "$MILESTONE_DATA" | jq -r '.open_issues')
+  CLOSED_ISSUES=$(echo "$MILESTONE_DATA" | jq -r '.closed_issues')
+  TOTAL_ISSUES=$((OPEN_ISSUES + CLOSED_ISSUES))
+  
+  if [ $TOTAL_ISSUES -gt 0 ]; then
+    PROGRESS=$((100 * CLOSED_ISSUES / TOTAL_ISSUES))
+  else
+    PROGRESS=0
+  fi
+  
+  echo "📊 Progress: $CLOSED_ISSUES/$TOTAL_ISSUES completed ($PROGRESS%)"
+  echo ""
+  
+  # Progress bar
+  BAR_LENGTH=30
+  FILLED=$((BAR_LENGTH * PROGRESS / 100))
+  EMPTY=$((BAR_LENGTH - FILLED))
+  
+  echo -n "["
+  for i in $(seq 1 $FILLED); do echo -n "="; done
+  for i in $(seq 1 $EMPTY); do echo -n " "; done
+  echo "] $PROGRESS%"
+  echo ""
+  
+  echo "📋 Open Issues in this Milestone:"
+  gh issue list --milestone "$MILESTONE_NAME" --state open --limit 20 2>/dev/null || echo "No open issues"
+  
+  echo ""
+  echo "✅ Completed Issues:"
+  gh issue list --milestone "$MILESTONE_NAME" --state closed --limit 10 2>/dev/null || echo "No completed issues"
+  
+  echo ""
+  echo "🔥 AI-Ready Issues in Milestone:"
+  gh issue list --milestone "$MILESTONE_NAME" --label "ai/ready" --state open 2>/dev/null || echo "None ready for AI"
+fi
+
+echo ""
+echo "💡 Quick Actions:"
+echo "   bin/gh-sync                    # Get AI-ready tasks"
+echo "   bin/gh-project-status          # View project board"
+echo "   bin/gh-setup-milestones        # Create all milestones"

@@ -1,0 +1,161 @@
+#!/bin/bash
+# Automatic GitHub sync that can be run via cron or as a daemon
+
+MODE=${1:-"once"}  # "once", "watch", or "daemon"
+INTERVAL=${2:-300}  # Default 5 minutes
+
+echo "🤖 GitHub Auto-Sync System"
+echo "=========================="
+
+# Function to perform sync
+perform_sync() {
+  echo ""
+  echo "🔄 [$(date '+%Y-%m-%d %H:%M:%S')] Running sync..."
+  
+  # Run the main sync
+  bin/gh-sync > /tmp/gh-sync.log 2>&1
+  
+  # Check for critical issues
+  CRITICAL=$(gh issue list --label "ai/ready,priority/critical" --state open --json number 2>/dev/null | jq '. | length')
+  
+  if [ "$CRITICAL" -gt "0" ]; then
+    echo "🔥 ALERT: $CRITICAL critical priority issues need attention!"
+    
+    # If running in a terminal, show notification
+    if command -v osascript &> /dev/null; then
+      osascript -e "display notification \"$CRITICAL critical issues need AI attention\" with title \"Backstage Pass\" sound name \"Hero\""
+    fi
+  fi
+  
+  # Check for stale working issues (over 2 hours old)
+  STALE=$(gh issue list --label "ai/working" --state open --json number,updatedAt 2>/dev/null | \
+    jq '[.[] | select((.updatedAt | fromdate) < (now - 7200))] | length')
+  
+  if [ "$STALE" -gt "0" ]; then
+    echo "⚠️  WARNING: $STALE issues have been in 'ai/working' for over 2 hours"
+  fi
+  
+  # Quick stats
+  READY=$(gh issue list --label "ai/ready" --state open --json number 2>/dev/null | jq '. | length')
+  WORKING=$(gh issue list --label "ai/working" --state open --json number 2>/dev/null | jq '. | length')
+  BLOCKED=$(gh issue list --label "status/blocked" --state open --json number 2>/dev/null | jq '. | length')
+  
+  echo "📊 Status: Ready=$READY, Working=$WORKING, Blocked=$BLOCKED"
+  
+  # Update a status file for other tools to read
+  cat > .github/sync-status.json << EOF
+{
+  "last_sync": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "critical_count": $CRITICAL,
+  "ready_count": $READY,
+  "working_count": $WORKING,
+  "blocked_count": $BLOCKED,
+  "stale_count": $STALE
+}
+EOF
+}
+
+# Function to watch for changes
+watch_mode() {
+  echo "👀 Watching for GitHub changes (checking every $INTERVAL seconds)..."
+  echo "Press Ctrl+C to stop"
+  
+  LAST_HASH=""
+  
+  while true; do
+    # Get current state hash
+    CURRENT_HASH=$(gh issue list --state open --json number,updatedAt 2>/dev/null | sha256sum | cut -d' ' -f1)
+    
+    if [ "$CURRENT_HASH" != "$LAST_HASH" ]; then
+      echo "🔔 Changes detected!"
+      perform_sync
+      LAST_HASH="$CURRENT_HASH"
+    else
+      echo "💤 [$(date '+%H:%M:%S')] No changes..."
+    fi
+    
+    sleep $INTERVAL
+  done
+}
+
+# Function to run as daemon
+daemon_mode() {
+  echo "🌙 Starting daemon mode (PID: $$)"
+  echo "Logging to: /tmp/gh-auto-sync.log"
+  echo $$ > /tmp/gh-auto-sync.pid
+  
+  # Redirect output to log
+  exec >> /tmp/gh-auto-sync.log 2>&1
+  
+  while true; do
+    perform_sync
+    sleep $INTERVAL
+  done
+}
+
+# Main execution
+case "$MODE" in
+  "once")
+    echo "🔄 Running single sync..."
+    perform_sync
+    ;;
+    
+  "watch")
+    watch_mode
+    ;;
+    
+  "daemon")
+    daemon_mode &
+    echo "✅ Daemon started with PID: $!"
+    echo "   Stop with: kill $(cat /tmp/gh-auto-sync.pid)"
+    echo "   Logs at: /tmp/gh-auto-sync.log"
+    ;;
+    
+  "stop")
+    if [ -f /tmp/gh-auto-sync.pid ]; then
+      PID=$(cat /tmp/gh-auto-sync.pid)
+      kill $PID 2>/dev/null && echo "✅ Stopped daemon (PID: $PID)" || echo "❌ Daemon not running"
+      rm /tmp/gh-auto-sync.pid
+    else
+      echo "❌ No daemon PID file found"
+    fi
+    ;;
+    
+  "status")
+    if [ -f /tmp/gh-auto-sync.pid ]; then
+      PID=$(cat /tmp/gh-auto-sync.pid)
+      if ps -p $PID > /dev/null; then
+        echo "✅ Daemon running (PID: $PID)"
+      else
+        echo "❌ Daemon not running (stale PID file)"
+      fi
+    else
+      echo "❌ Daemon not running"
+    fi
+    
+    if [ -f .github/sync-status.json ]; then
+      echo ""
+      echo "📊 Last sync status:"
+      cat .github/sync-status.json | jq '.'
+    fi
+    ;;
+    
+  *)
+    echo "Usage: bin/gh-auto-sync [mode] [interval]"
+    echo ""
+    echo "Modes:"
+    echo "  once    - Run sync once (default)"
+    echo "  watch   - Watch for changes continuously"
+    echo "  daemon  - Run as background daemon"
+    echo "  stop    - Stop the daemon"
+    echo "  status  - Check daemon status"
+    echo ""
+    echo "Examples:"
+    echo "  bin/gh-auto-sync                # Single sync"
+    echo "  bin/gh-auto-sync watch 60        # Watch, check every 60 seconds"
+    echo "  bin/gh-auto-sync daemon 300      # Daemon, sync every 5 minutes"
+    echo ""
+    echo "Cron example (add to crontab -e):"
+    echo "  */5 * * * * cd /path/to/backstage-pass && bin/gh-auto-sync once"
+    ;;
+esac

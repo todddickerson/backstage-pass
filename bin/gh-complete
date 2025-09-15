@@ -1,0 +1,120 @@
+#!/bin/bash
+# Complete work on an issue and create PR
+
+ISSUE_NUMBER=$1
+PR_TITLE=$2
+
+if [ -z "$ISSUE_NUMBER" ] || [ -z "$PR_TITLE" ]; then
+  echo "Usage: bin/gh-complete <issue-number> '<pr-title>'"
+  echo ""
+  echo "Example:"
+  echo "  bin/gh-complete 123 'Add Stream model with LiveKit integration'"
+  exit 1
+fi
+
+echo "✅ Completing issue #$ISSUE_NUMBER"
+echo "===================================="
+
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD --; then
+  echo "📝 Committing changes..."
+  git add -A
+  git commit -m "Complete #$ISSUE_NUMBER: $PR_TITLE
+
+Closes #$ISSUE_NUMBER"
+else
+  echo "ℹ️  No uncommitted changes"
+fi
+
+# Get current branch
+CURRENT_BRANCH=$(git branch --show-current)
+
+# Push branch
+echo "⬆️  Pushing branch: $CURRENT_BRANCH"
+git push -u origin $CURRENT_BRANCH
+
+# Get issue details for PR body
+ISSUE_BODY=$(gh issue view $ISSUE_NUMBER --json body --jq .body 2>/dev/null || echo "")
+
+# Create PR body
+PR_BODY="## Summary
+Implements issue #$ISSUE_NUMBER
+
+## Changes
+- [ ] Implementation complete
+- [ ] Tests added/updated
+- [ ] Documentation updated
+
+## Issue Description
+$ISSUE_BODY
+
+## Testing
+- [ ] Manual testing completed
+- [ ] Automated tests pass
+
+Closes #$ISSUE_NUMBER"
+
+# Create PR
+echo "🔄 Creating pull request..."
+PR_URL=$(gh pr create \
+  --title "$PR_TITLE" \
+  --body "$PR_BODY" \
+  --base main \
+  2>&1)
+
+if [ $? -eq 0 ]; then
+  echo "🎉 Pull request created!"
+  
+  # Extract PR number from URL
+  PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+  
+  # Update issue labels
+  echo "🏷️  Updating issue labels..."
+  gh issue edit $ISSUE_NUMBER \
+    --add-label "ai/complete,status/review" \
+    --remove-label "ai/working,status/executing" 2>/dev/null || echo "⚠️  Could not update labels"
+  
+  # Add comment to issue
+  echo "💬 Adding comment to issue..."
+  gh issue comment $ISSUE_NUMBER \
+    --body "🤖 AI implementation complete.
+
+**Pull Request:** $PR_URL
+
+### Summary of changes:
+- Implemented as specified in issue description
+- Tests added where applicable
+- Documentation updated
+
+Please review the PR for merge." 2>/dev/null || echo "⚠️  Could not add comment"
+  
+  # Clean up AI context
+  if [ -f "AI_CONTEXT.md" ]; then
+    echo "🧹 Cleaning up AI context..."
+    git rm AI_CONTEXT.md 2>/dev/null || rm AI_CONTEXT.md
+    git rm .github/current_issue.json 2>/dev/null || rm .github/current_issue.json
+    git commit -m "Clean up AI context files" 2>/dev/null
+    git push 2>/dev/null
+  fi
+  
+  echo ""
+  echo "✅ Issue #$ISSUE_NUMBER complete!"
+  echo "🔗 Pull Request: $PR_URL"
+  echo ""
+  echo "📋 Next steps:"
+  echo "   1. Wait for CI/CD checks"
+  echo "   2. Request review if needed"
+  echo "   3. Merge when approved"
+  echo ""
+  echo "🎯 Ready for next task? Run:"
+  echo "   bin/gh-sync"
+  echo "   bin/gh-start <next-issue-number>"
+else
+  echo "❌ Failed to create PR"
+  echo "Error: $PR_URL"
+  echo ""
+  echo "You may need to:"
+  echo "  1. Check if you're authenticated: gh auth status"
+  echo "  2. Check if PR already exists: gh pr list"
+  echo "  3. Create PR manually: gh pr create"
+fi

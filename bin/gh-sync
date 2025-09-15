@@ -1,0 +1,302 @@
+#!/bin/bash
+# Sync GitHub issues, milestones, and projects to local AI context
+
+echo "🔄 Syncing GitHub Issues, Projects & Milestones..."
+echo "================================================="
+
+# Check if gh is installed
+if ! command -v gh &> /dev/null; then
+    echo "❌ GitHub CLI not installed. Run: brew install gh"
+    exit 1
+fi
+
+# Check authentication
+if ! gh auth status &> /dev/null; then
+    echo "❌ Not authenticated. Run: gh auth login"
+    exit 1
+fi
+
+# Create issues directory
+mkdir -p .github/issues
+
+# Show project status first
+echo ""
+echo "📊 Project Board Overview:"
+PROJECT_NUMBER=$(gh project list --format json | jq -r '.projects[] | select(.title == "Phase 1 MVP") | .number' 2>/dev/null)
+
+if [ -n "$PROJECT_NUMBER" ]; then
+  gh project item-list $PROJECT_NUMBER --format json 2>/dev/null | jq -r '
+    .items | 
+    group_by(.status // "No Status") | 
+    map({
+      status: .[0].status // "No Status",
+      count: length
+    }) |
+    .[] |
+    "  \(.status): \(.count) items"
+  ' 2>/dev/null || echo "  No project items found"
+else
+  echo "  ℹ️ No 'Phase 1 MVP' project found"
+fi
+
+# Show current milestone
+echo ""
+echo "📅 Current Sprint:"
+CURRENT_WEEK=$(date +%U)
+SPRINT_WEEK=$((($CURRENT_WEEK - 1) % 4 + 1))
+MILESTONE="Week $SPRINT_WEEK: $(echo "Foundation Streaming Marketplace Polish" | cut -d' ' -f$SPRINT_WEEK)"
+echo "  Active: $MILESTONE"
+
+MILESTONE_DATA=$(gh api repos/todddickerson/backstage-pass/milestones --jq ".[] | select(.title | startswith(\"Week $SPRINT_WEEK\"))" 2>/dev/null)
+if [ -n "$MILESTONE_DATA" ]; then
+  OPEN=$(echo "$MILESTONE_DATA" | jq -r '.open_issues')
+  CLOSED=$(echo "$MILESTONE_DATA" | jq -r '.closed_issues')
+  TOTAL=$((OPEN + CLOSED))
+  if [ $TOTAL -gt 0 ]; then
+    PROGRESS=$((100 * CLOSED / TOTAL))
+    echo "  Progress: $CLOSED/$TOTAL tasks ($PROGRESS% complete)"
+  fi
+fi
+
+# Fetch AI-ready issues with priority
+echo ""
+echo "📋 Fetching AI-ready issues..."
+
+# Get critical priority first
+CRITICAL=$(gh issue list \
+  --label "ai/ready,priority/critical" \
+  --state open \
+  --json number,title,body,labels,milestone,assignees \
+  --limit 5 \
+  2>/dev/null)
+
+# Then high priority
+HIGH=$(gh issue list \
+  --label "ai/ready,priority/high" \
+  --state open \
+  --json number,title,body,labels,milestone,assignees \
+  --limit 10 \
+  2>/dev/null)
+
+# Then current sprint
+SPRINT=$(gh issue list \
+  --label "ai/ready,sprint/week-$SPRINT_WEEK" \
+  --state open \
+  --json number,title,body,labels,milestone,assignees \
+  --limit 10 \
+  2>/dev/null)
+
+# Then all other AI-ready
+ALL_READY=$(gh issue list \
+  --label "ai/ready" \
+  --state open \
+  --json number,title,body,labels,milestone,assignees \
+  --limit 20 \
+  2>/dev/null)
+
+# Save JSON data
+echo "$CRITICAL" > .github/issues/critical.json 2>/dev/null
+echo "$HIGH" > .github/issues/high.json 2>/dev/null
+echo "$SPRINT" > .github/issues/sprint.json 2>/dev/null
+echo "$ALL_READY" > .github/issues/ai_ready.json 2>/dev/null
+
+# Check if any AI-ready issues exist
+if [ -z "$ALL_READY" ] || [ "$ALL_READY" = "[]" ]; then
+  echo "ℹ️  No AI-ready issues found"
+  echo ""
+  echo "📝 All open issues:"
+  gh issue list --state open --limit 10
+  echo ""
+  echo "💡 To make an issue AI-ready:"
+  echo "   gh issue edit <number> --add-label 'ai/ready'"
+  
+  # Create empty tasks file
+  cat > AI_CURRENT_TASKS.md << 'EOF'
+# 🤖 AI Current Tasks
+
+*Last synced: $(date)*
+
+## ℹ️ No AI-Ready Tasks Available
+
+No issues are currently labeled as `ai/ready`.
+
+### To add tasks:
+1. Create issues on GitHub
+2. Label them with `ai/ready`
+3. Run `bin/gh-sync` again
+
+EOF
+  exit 0
+fi
+
+# Create comprehensive AI tasks file
+cat > AI_CURRENT_TASKS.md << EOF
+# 🤖 AI Current Tasks
+
+*Last synced: $(date)*
+*Current Sprint: $MILESTONE*
+
+## 📊 GitHub Status
+$(if [ -n "$PROJECT_NUMBER" ]; then
+  echo "### Project Board:"
+  gh project item-list $PROJECT_NUMBER --format json 2>/dev/null | jq -r '
+    .items | 
+    group_by(.status // "No Status") | 
+    map("- \(.[0].status // "No Status"): \(length) items") | 
+    .[]
+  ' 2>/dev/null || echo "- Unable to fetch project status"
+else
+  echo "### Project: Not configured"
+fi)
+
+## 🎯 Task Priority Order
+
+### 🔴 CRITICAL Priority (Do First!)
+EOF
+
+# Add critical issues
+if [ -n "$CRITICAL" ] && [ "$CRITICAL" != "[]" ]; then
+  echo "$CRITICAL" | jq -r '.[] | 
+"
+#### Issue #\(.number): \(.title)
+**Labels:** \(.labels | map(.name) | join(", "))
+**Milestone:** \(.milestone.title // "None")
+
+\(.body)
+
+**Start with:** \`bin/gh-start \(.number)\`
+
+---"' >> AI_CURRENT_TASKS.md
+else
+  echo "*No critical priority issues*" >> AI_CURRENT_TASKS.md
+fi
+
+echo "" >> AI_CURRENT_TASKS.md
+echo "### 🟡 HIGH Priority" >> AI_CURRENT_TASKS.md
+
+# Add high priority issues (excluding critical)
+if [ -n "$HIGH" ] && [ "$HIGH" != "[]" ]; then
+  echo "$HIGH" | jq -r '.[] | 
+    select(.labels | map(.name) | contains(["priority/critical"]) | not) |
+"
+#### Issue #\(.number): \(.title)
+**Labels:** \(.labels | map(.name) | join(", "))
+**Milestone:** \(.milestone.title // "None")
+
+\(.body)
+
+**Start with:** \`bin/gh-start \(.number)\`
+
+---"' >> AI_CURRENT_TASKS.md
+else
+  echo "*No high priority issues*" >> AI_CURRENT_TASKS.md
+fi
+
+echo "" >> AI_CURRENT_TASKS.md
+echo "### 📅 Current Sprint (Week $SPRINT_WEEK)" >> AI_CURRENT_TASKS.md
+
+# Add current sprint issues (excluding critical/high)
+if [ -n "$SPRINT" ] && [ "$SPRINT" != "[]" ]; then
+  echo "$SPRINT" | jq -r '.[] | 
+    select(.labels | map(.name) | contains(["priority/critical"]) | not) |
+    select(.labels | map(.name) | contains(["priority/high"]) | not) |
+"
+#### Issue #\(.number): \(.title)
+**Labels:** \(.labels | map(.name) | join(", "))
+**Milestone:** \(.milestone.title // "None")
+
+\(.body)
+
+**Start with:** \`bin/gh-start \(.number)\`
+
+---"' >> AI_CURRENT_TASKS.md
+else
+  echo "*No current sprint issues*" >> AI_CURRENT_TASKS.md
+fi
+
+echo "" >> AI_CURRENT_TASKS.md
+echo "### 📋 Other AI-Ready Issues" >> AI_CURRENT_TASKS.md
+
+# Add remaining issues
+echo "$ALL_READY" | jq -r '.[] | 
+  select(.labels | map(.name) | contains(["priority/critical"]) | not) |
+  select(.labels | map(.name) | contains(["priority/high"]) | not) |
+  select(.labels | map(.name) | contains(["sprint/week-'$SPRINT_WEEK'"]) | not) |
+"
+#### Issue #\(.number): \(.title)
+**Labels:** \(.labels | map(.name) | join(", "))
+**Milestone:** \(.milestone.title // "None")
+
+\(.body)
+
+**Start with:** \`bin/gh-start \(.number)\`
+
+---"' >> AI_CURRENT_TASKS.md
+
+# Add footer
+cat >> AI_CURRENT_TASKS.md << 'EOF'
+
+## 💡 Workflow Commands
+
+```bash
+# Start working on an issue
+bin/gh-start <issue-number>
+
+# Complete and create PR
+bin/gh-complete <issue-number> "PR title"
+
+# Check project status
+bin/gh-project-status
+
+# Check milestone progress
+bin/gh-milestone-status
+
+# Move issue on project board
+bin/gh-project-move <issue> "In Progress"
+```
+
+## 🚨 Important Notes
+- ALWAYS work on CRITICAL priority first
+- ALWAYS run tests before completing
+- NEVER leave issues in ai/working state
+- ALWAYS follow conventions in CLAUDE.md
+EOF
+
+# Count issues by priority
+CRITICAL_COUNT=$(echo "$CRITICAL" | jq '. | length' 2>/dev/null || echo "0")
+HIGH_COUNT=$(echo "$HIGH" | jq '. | length' 2>/dev/null || echo "0") 
+ALL_COUNT=$(echo "$ALL_READY" | jq '. | length' 2>/dev/null || echo "0")
+
+echo ""
+echo "✅ Sync Complete!"
+echo "📊 Summary:"
+echo "  - Critical Priority: $CRITICAL_COUNT issues"
+echo "  - High Priority: $HIGH_COUNT issues"  
+echo "  - Total AI-Ready: $ALL_COUNT issues"
+echo ""
+
+# Show what to work on next
+if [ "$CRITICAL_COUNT" -gt "0" ]; then
+  NEXT_ISSUE=$(echo "$CRITICAL" | jq -r '.[0].number')
+  NEXT_TITLE=$(echo "$CRITICAL" | jq -r '.[0].title')
+  echo "🔥 WORK ON THIS FIRST:"
+  echo "   Issue #$NEXT_ISSUE: $NEXT_TITLE"
+  echo "   Run: bin/gh-start $NEXT_ISSUE"
+elif [ "$HIGH_COUNT" -gt "0" ]; then
+  NEXT_ISSUE=$(echo "$HIGH" | jq -r '.[0].number')
+  NEXT_TITLE=$(echo "$HIGH" | jq -r '.[0].title')
+  echo "⚡ Start with high priority:"
+  echo "   Issue #$NEXT_ISSUE: $NEXT_TITLE"
+  echo "   Run: bin/gh-start $NEXT_ISSUE"
+elif [ "$ALL_COUNT" -gt "0" ]; then
+  NEXT_ISSUE=$(echo "$ALL_READY" | jq -r '.[0].number')
+  NEXT_TITLE=$(echo "$ALL_READY" | jq -r '.[0].title')
+  echo "📋 Next available task:"
+  echo "   Issue #$NEXT_ISSUE: $NEXT_TITLE"
+  echo "   Run: bin/gh-start $NEXT_ISSUE"
+else
+  echo "ℹ️  No AI-ready tasks available"
+fi
+
+echo ""
+echo "📄 Full task list saved to: AI_CURRENT_TASKS.md"

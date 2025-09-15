@@ -1,0 +1,89 @@
+#!/bin/bash
+# Set up GitHub milestones for Phase 1 MVP
+
+echo "🎯 Setting up GitHub Milestones for Backstage Pass"
+echo "=================================================="
+
+# Check authentication
+if ! gh auth status &>/dev/null; then
+  echo "❌ Not authenticated. Run: gh auth login"
+  exit 1
+fi
+
+echo ""
+echo "📅 Creating Phase 1 MVP Milestones..."
+
+# Calculate due dates (from today)
+WEEK1_DUE=$(date -v+7d '+%Y-%m-%d' 2>/dev/null || date -d "+7 days" '+%Y-%m-%d')
+WEEK2_DUE=$(date -v+14d '+%Y-%m-%d' 2>/dev/null || date -d "+14 days" '+%Y-%m-%d')
+WEEK3_DUE=$(date -v+21d '+%Y-%m-%d' 2>/dev/null || date -d "+21 days" '+%Y-%m-%d')
+WEEK4_DUE=$(date -v+28d '+%Y-%m-%d' 2>/dev/null || date -d "+28 days" '+%Y-%m-%d')
+
+# Week 1: Foundation
+gh api repos/todddickerson/backstage-pass/milestones \
+  --method POST \
+  --field title="Week 1: Foundation" \
+  --field description="Core models, authentication, routing setup. Bullet Train scaffolding." \
+  --field due_on="${WEEK1_DUE}T23:59:59Z" \
+  2>/dev/null && echo "✅ Created: Week 1: Foundation" || echo "⚠️  Week 1: Foundation already exists"
+
+# Week 2: Streaming
+gh api repos/todddickerson/backstage-pass/milestones \
+  --method POST \
+  --field title="Week 2: Streaming" \
+  --field description="LiveKit integration, stream management, real-time features." \
+  --field due_on="${WEEK2_DUE}T23:59:59Z" \
+  2>/dev/null && echo "✅ Created: Week 2: Streaming" || echo "⚠️  Week 2: Streaming already exists"
+
+# Week 3: Marketplace
+gh api repos/todddickerson/backstage-pass/milestones \
+  --method POST \
+  --field title="Week 3: Marketplace" \
+  --field description="Stripe payments, access passes, creator monetization." \
+  --field due_on="${WEEK3_DUE}T23:59:59Z" \
+  2>/dev/null && echo "✅ Created: Week 3: Marketplace" || echo "⚠️  Week 3: Marketplace already exists"
+
+# Week 4: Polish
+gh api repos/todddickerson/backstage-pass/milestones \
+  --method POST \
+  --field title="Week 4: Polish" \
+  --field description="Testing, documentation, Hotwire Native, production prep." \
+  --field due_on="${WEEK4_DUE}T23:59:59Z" \
+  2>/dev/null && echo "✅ Created: Week 4: Polish" || echo "⚠️  Week 4: Polish already exists"
+
+echo ""
+echo "📅 Creating GitHub Projects..."
+
+# Create Phase 1 MVP project if it doesn't exist
+PROJECT_EXISTS=$(gh project list --format json | jq '.projects[] | select(.title == "Phase 1 MVP")' 2>/dev/null)
+
+if [ -z "$PROJECT_EXISTS" ]; then
+  echo "Creating Phase 1 MVP project..."
+  gh project create \
+    --title "Phase 1 MVP" \
+    --body "Core platform development for Backstage Pass marketplace" \
+    2>/dev/null && echo "✅ Created: Phase 1 MVP project" || echo "❌ Failed to create project"
+else
+  echo "⚠️  Phase 1 MVP project already exists"
+fi
+
+echo ""
+echo "📊 Current Milestone Status:"
+echo "----------------------------"
+
+gh api repos/todddickerson/backstage-pass/milestones --jq '.[] | 
+  "• \(.title): \(.open_issues) open, \(.closed_issues) closed"' 2>/dev/null
+
+echo ""
+echo "✅ Milestones and Projects setup complete!"
+echo ""
+echo "📋 Next Steps:"
+echo "   1. Create issues for Week 1 tasks"
+echo "   2. Assign them to 'Week 1: Foundation' milestone"
+echo "   3. Label them appropriately (ai/ready, priority/*, sprint/week-1)"
+echo "   4. Run: bin/gh-sync"
+echo ""
+echo "💡 Quick Commands:"
+echo "   bin/gh-milestone-status         # View all milestones"
+echo "   bin/gh-milestone-status 'Week 1: Foundation'  # View specific"
+echo "   bin/gh-project-status           # View project board"

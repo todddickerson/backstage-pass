@@ -1,0 +1,124 @@
+#!/bin/bash
+# Start working on a GitHub issue
+
+ISSUE_NUMBER=$1
+
+if [ -z "$ISSUE_NUMBER" ]; then
+  echo "Usage: bin/gh-start <issue-number>"
+  echo ""
+  echo "📋 Available AI-ready issues:"
+  gh issue list --label "ai/ready" --limit 10 2>/dev/null || echo "No issues found. Check GitHub connection."
+  exit 1
+fi
+
+echo "🚀 Starting work on issue #$ISSUE_NUMBER"
+echo "========================================"
+
+# Verify issue exists
+if ! gh issue view $ISSUE_NUMBER &>/dev/null; then
+  echo "❌ Issue #$ISSUE_NUMBER not found"
+  exit 1
+fi
+
+# Update labels
+echo "🏷️  Updating issue labels..."
+gh issue edit $ISSUE_NUMBER \
+  --add-label "ai/working,status/executing" \
+  --remove-label "ai/ready,status/ready" 2>/dev/null || echo "⚠️  Could not update labels"
+
+# Create feature branch
+BRANCH_NAME="issue-$ISSUE_NUMBER"
+echo "🌿 Creating branch: $BRANCH_NAME"
+
+# Check if branch already exists
+if git show-ref --verify --quiet refs/heads/$BRANCH_NAME; then
+  echo "⚠️  Branch $BRANCH_NAME already exists, switching to it"
+  git checkout $BRANCH_NAME
+else
+  git checkout -b $BRANCH_NAME
+fi
+
+# Export issue details for AI
+echo "📝 Fetching issue details..."
+gh issue view $ISSUE_NUMBER --json number,title,body,labels,milestone,assignees > .github/current_issue.json
+
+# Get issue details
+ISSUE_TITLE=$(gh issue view $ISSUE_NUMBER --json title --jq .title)
+ISSUE_BODY=$(gh issue view $ISSUE_NUMBER --json body --jq .body)
+
+# Create AI context file
+cat > AI_CONTEXT.md << EOF
+# Current Task Context
+
+## 🎯 Working on Issue #$ISSUE_NUMBER
+
+### Title: $ISSUE_TITLE
+
+### Description:
+$ISSUE_BODY
+
+### Branch: $BRANCH_NAME
+
+## 📋 Implementation Checklist:
+- [ ] Review issue requirements above
+- [ ] Check NAMESPACING_CONVENTIONS.md before creating models
+- [ ] Run validation: \`ruby .claude/validate-namespacing.rb "command"\`
+- [ ] Use super_scaffold for all new models
+- [ ] Follow PUBLIC_ROUTES_ARCHITECTURE.md for routes
+- [ ] Maintain team context where needed
+- [ ] Write tests (Magic Test for UI, RSpec for models)
+- [ ] Update documentation if needed
+
+## 🔧 Common Commands:
+\`\`\`bash
+# Validate namespacing
+ruby .claude/validate-namespacing.rb "rails generate super_scaffold ModelName"
+
+# Generate model
+rails generate super_scaffold ModelName ParentModel field:type
+
+# Run tests
+rails test
+rails test:system
+
+# Check changes
+git status
+git diff
+
+# When complete
+bin/gh-complete $ISSUE_NUMBER "PR title describing changes"
+\`\`\`
+
+## 📚 Key Documentation:
+- CLAUDE.md - Project instructions (MUST READ)
+- NAMESPACING_CONVENTIONS.md - Model naming rules
+- TEAM_SPACE_ARCHITECTURE.md - Team/Space relationship
+- PUBLIC_ROUTES_ARCHITECTURE.md - Route structure
+- AUTHENTICATION_PASSWORDLESS.md - Auth implementation
+
+## 🚨 Important Notes:
+- Public routes do NOT need team context
+- Primary subjects (Space, Experience, AccessPass, Stream) should NOT be namespaced
+- Supporting models should be namespaced (Creators::Profile, Billing::Purchase)
+- Always validate namespacing before generating models
+
+---
+*Context generated at: $(date)*
+EOF
+
+# Add to git
+git add AI_CONTEXT.md .github/current_issue.json
+git commit -m "Start work on issue #$ISSUE_NUMBER: $ISSUE_TITLE" 2>/dev/null || echo "⚠️  No changes to commit yet"
+
+echo ""
+echo "✅ Issue #$ISSUE_NUMBER ready for work!"
+echo "📝 Context saved to AI_CONTEXT.md"
+echo "🌿 Working on branch: $BRANCH_NAME"
+echo ""
+echo "📋 Issue Summary:"
+echo "   $ISSUE_TITLE"
+echo ""
+echo "🚀 Next steps:"
+echo "   1. Review AI_CONTEXT.md"
+echo "   2. Implement the feature"
+echo "   3. Run: bin/gh-complete $ISSUE_NUMBER \"Your PR title\""

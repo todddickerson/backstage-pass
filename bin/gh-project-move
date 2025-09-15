@@ -1,0 +1,69 @@
+#!/bin/bash
+# Move an issue to a different column in the project board
+
+ISSUE_NUMBER=$1
+COLUMN=$2
+
+if [ -z "$ISSUE_NUMBER" ] || [ -z "$COLUMN" ]; then
+  echo "Usage: bin/gh-project-move <issue-number> <column>"
+  echo ""
+  echo "Available columns:"
+  echo "  - Backlog"
+  echo "  - Ready"
+  echo "  - In Progress"
+  echo "  - Review"
+  echo "  - Done"
+  echo ""
+  echo "Example:"
+  echo "  bin/gh-project-move 123 'In Progress'"
+  exit 1
+fi
+
+echo "🔄 Moving issue #$ISSUE_NUMBER to column: $COLUMN"
+
+# Get the project number
+PROJECT_NUMBER=$(gh project list --format json | jq -r '.projects[] | select(.title == "Phase 1 MVP") | .number' 2>/dev/null)
+
+if [ -z "$PROJECT_NUMBER" ]; then
+  echo "❌ Project 'Phase 1 MVP' not found"
+  echo "Create it with: gh project create --title 'Phase 1 MVP'"
+  exit 1
+fi
+
+# Get the project item ID for the issue
+ITEM_ID=$(gh project item-list $PROJECT_NUMBER --format json | jq -r ".items[] | select(.content.number == $ISSUE_NUMBER) | .id" 2>/dev/null)
+
+if [ -z "$ITEM_ID" ]; then
+  echo "⚠️  Issue #$ISSUE_NUMBER not in project. Adding it..."
+  gh project item-add $PROJECT_NUMBER --owner todddickerson --url "https://github.com/todddickerson/backstage-pass/issues/$ISSUE_NUMBER" 2>/dev/null
+  ITEM_ID=$(gh project item-list $PROJECT_NUMBER --format json | jq -r ".items[] | select(.content.number == $ISSUE_NUMBER) | .id" 2>/dev/null)
+fi
+
+if [ -n "$ITEM_ID" ]; then
+  # Update the status field
+  gh project item-edit --id "$ITEM_ID" --field-id "Status" --project-id $PROJECT_NUMBER --value "$COLUMN" 2>/dev/null
+  
+  if [ $? -eq 0 ]; then
+    echo "✅ Issue #$ISSUE_NUMBER moved to $COLUMN"
+    
+    # Update labels based on column
+    case "$COLUMN" in
+      "In Progress")
+        gh issue edit $ISSUE_NUMBER --add-label "status/executing" --remove-label "status/ready,status/planning" 2>/dev/null
+        ;;
+      "Review")
+        gh issue edit $ISSUE_NUMBER --add-label "status/review" --remove-label "status/executing" 2>/dev/null
+        ;;
+      "Done")
+        gh issue edit $ISSUE_NUMBER --add-label "ai/complete" --remove-label "ai/working,status/review" 2>/dev/null
+        ;;
+      "Ready")
+        gh issue edit $ISSUE_NUMBER --add-label "ai/ready,status/ready" --remove-label "status/planning" 2>/dev/null
+        ;;
+    esac
+  else
+    echo "❌ Failed to move issue"
+  fi
+else
+  echo "❌ Could not find or add issue to project"
+fi
