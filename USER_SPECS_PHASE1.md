@@ -2,9 +2,9 @@
 
 ## Executive Summary
 
-Phase 1 MVP delivers a functional marketplace where creators can sell access passes to live streaming experiences. Core functionality includes: creator spaces, access pass sales, live streaming with chat, and basic content management.
+Phase 1 MVP delivers a functional marketplace where creators can sell access passes to live streaming experiences. Core functionality includes: creator spaces, access pass sales, live streaming with chat, and basic content management. **Phase 1b adds native iOS and Android apps** with superior streaming performance through Hotwire Native and native video players.
 
-**MVP Goal:** Enable creators to monetize live streams through paid access passes with a complete viewer experience.
+**MVP Goal:** Enable creators to monetize live streams through paid access passes with a complete viewer experience across web and mobile platforms.
 
 ## User Roles
 
@@ -282,6 +282,275 @@ app/controllers/
     └── (Phase 2)
 ```
 
+## Phase 1b: Hotwire Native Mobile Apps
+
+### Overview
+Native iOS and Android apps using Hotwire Native wrappers with native video players for LiveKit streaming. Delivers superior streaming performance compared to web-only experience.
+
+### 📱 Mobile-Specific User Stories
+
+#### STORY 11: Mobile App Installation
+**As a** viewer  
+**I want to** download the Backstage Pass mobile app  
+**So that** I can have a better streaming experience
+
+**Acceptance Criteria:**
+- [ ] Can install iOS app via TestFlight
+- [ ] Can install Android app via internal testing  
+- [ ] App opens to Space discovery screen
+- [ ] Can sign in with email (passwordless)
+- [ ] Receives push notifications for streams
+
+**Technical Requirements:**
+- Hotwire Native iOS wrapper (Swift)
+- Hotwire Native Android wrapper (Kotlin)
+- Push notification setup (Firebase/APNS)
+- Native authentication bridge
+
+#### STORY 12: Native Video Streaming
+**As a** mobile viewer  
+**I want to** watch streams with native video players  
+**So that** I get optimal performance and battery life
+
+**Acceptance Criteria:**
+- [ ] Native video player launches for streams
+- [ ] Video continues in background (audio only)
+- [ ] Picture-in-picture mode supported
+- [ ] Screen rotation handled natively
+- [ ] Low latency (<2 seconds)
+- [ ] Adaptive bitrate for mobile networks
+
+**Technical Requirements:**
+- LiveKit iOS SDK integration
+- LiveKit Android SDK integration  
+- JavaScript bridge for player control
+- Native player UI components
+- Background audio permissions
+
+#### STORY 13: Mobile Chat Experience
+**As a** mobile viewer  
+**I want to** participate in chat while watching  
+**So that** I can engage with the community
+
+**Acceptance Criteria:**
+- [ ] Chat renders in web view (GetStream.io)
+- [ ] Keyboard doesn't cover chat input
+- [ ] Can send messages and reactions
+- [ ] Smooth scrolling performance
+- [ ] Notifications for mentions
+
+**Technical Requirements:**
+- GetStream.io JavaScript SDK
+- Keyboard handling in native wrapper
+- Web/native communication bridge
+- Push notifications for mentions
+
+### Mobile Technical Architecture
+
+#### iOS Implementation
+```swift
+// Hotwire Native Configuration
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    func configureRootViewController() -> UIViewController {
+        let navigator = Navigator()
+        navigator.delegate = self
+        
+        // Register native video player route
+        navigator.route("/account/*/experiences/*/stream") { _ in
+            return LiveKitVideoViewController()
+        }
+        
+        return navigator.rootViewController
+    }
+}
+
+// Native LiveKit Player
+class LiveKitVideoViewController: UIViewController {
+    private let room = LiveKitRoom()
+    
+    func connect(token: String, url: String) {
+        room.connect(url, token) { [weak self] in
+            self?.setupVideoView()
+        }
+    }
+}
+```
+
+#### Android Implementation
+```kotlin
+// Hotwire Native Configuration
+class MainActivity : HotwireActivity() {
+    override fun registeredActivities(): List<KClass<out HotwireActivity>> {
+        return listOf(
+            LiveStreamActivity::class
+        )
+    }
+    
+    override fun registeredFragments(): List<KClass<out HotwireFragment>> {
+        return listOf(
+            WebFragment::class,
+            LiveKitFragment::class
+        )
+    }
+}
+
+// Native LiveKit Player
+class LiveKitFragment : Fragment() {
+    private lateinit var room: LiveKitRoom
+    
+    fun connect(token: String, url: String) {
+        room = LiveKitRoom(requireContext())
+        room.connect(url, token)
+    }
+}
+```
+
+#### JavaScript Bridge
+```javascript
+// app/javascript/bridges/native_video.js
+export class NativeVideoBridge {
+  static connect(element) {
+    const platform = element.dataset.platform
+    const streamData = {
+      token: element.dataset.livekitToken,
+      url: element.dataset.livekitUrl,
+      streamId: element.dataset.streamId
+    }
+    
+    if (window.HotwireNative) {
+      // Send to native player
+      window.HotwireNative.playStream(streamData)
+    } else {
+      // Fallback to web player
+      new WebStreamPlayer(element, streamData)
+    }
+  }
+}
+
+// Register with Stimulus
+import { Application } from "@hotwired/stimulus"
+const application = Application.start()
+application.register("native-video", NativeVideoBridge)
+```
+
+### Mobile-Specific Features
+
+#### Background Capabilities
+- **iOS**: Background audio mode for continued playback
+- **Android**: Foreground service for streaming
+- **Both**: Picture-in-picture for video
+
+#### Push Notifications
+```ruby
+# app/jobs/mobile_notification_job.rb
+class MobileNotificationJob < ApplicationJob
+  def perform(user, event_type, data)
+    return unless user.push_tokens.any?
+    
+    case event_type
+    when :stream_starting
+      send_notification(
+        user.push_tokens,
+        title: "#{data[:creator_name]} is going live!",
+        body: data[:stream_title],
+        data: { 
+          type: 'stream',
+          stream_id: data[:stream_id],
+          deep_link: "/account/purchased_spaces/#{data[:space_id]}/experiences/#{data[:experience_id]}/stream"
+        }
+      )
+    when :purchase_complete
+      send_notification(
+        user.push_tokens,
+        title: "Welcome to #{data[:space_name]}!",
+        body: "Your access pass is ready",
+        data: { 
+          type: 'purchase',
+          space_id: data[:space_id]
+        }
+      )
+    end
+  end
+  
+  private
+  
+  def send_notification(tokens, payload)
+    # Firebase for Android
+    fcm_tokens = tokens.select { |t| t.platform == 'android' }
+    Firebase.send_multicast(fcm_tokens, payload) if fcm_tokens.any?
+    
+    # APNS for iOS
+    apns_tokens = tokens.select { |t| t.platform == 'ios' }
+    APNS.send_notifications(apns_tokens, payload) if apns_tokens.any?
+  end
+end
+```
+
+### Mobile Development Requirements
+
+#### Environment Setup
+```yaml
+# iOS Requirements
+- Xcode 15+
+- iOS 15.0+ deployment target
+- Swift 5.9+
+- CocoaPods or SPM for dependencies
+
+# Android Requirements  
+- Android Studio Hedgehog+
+- minSdk 24 (Android 7.0)
+- targetSdk 34 (Android 14)
+- Kotlin 1.9+
+- Gradle 8.0+
+```
+
+#### Dependencies
+```ruby
+# Gemfile additions for mobile support
+gem 'rpush' # Push notifications
+gem 'device_detector' # Detect mobile platforms
+
+# iOS Podfile
+pod 'LiveKit'
+pod 'HotwireNative'
+
+# Android build.gradle
+implementation 'io.livekit:livekit-android:1.5.0'
+implementation 'dev.hotwire:turbo:7.0.0'
+```
+
+### Mobile Testing Strategy
+
+#### Device Testing Matrix
+- **iOS**: iPhone 12+ (all sizes), iPad support optional
+- **Android**: Pixel 6+, Samsung Galaxy S21+
+- **OS Versions**: iOS 15-17, Android 10-14
+- **Network**: 3G, 4G, 5G, WiFi conditions
+
+#### Mobile-Specific Test Cases
+1. Stream playback in various network conditions
+2. Background audio continuation
+3. App backgrounding/foregrounding during stream
+4. Push notification delivery and deep linking
+5. Native player performance metrics
+6. Battery usage monitoring
+
+### Phase 1b Timeline (Additional 2 weeks)
+
+#### Week 5: iOS App
+- [ ] Hotwire Native iOS setup
+- [ ] LiveKit iOS SDK integration
+- [ ] Native video player implementation
+- [ ] Push notifications (APNS)
+- [ ] TestFlight deployment
+
+#### Week 6: Android App
+- [ ] Hotwire Native Android setup
+- [ ] LiveKit Android SDK integration
+- [ ] Native video player implementation
+- [ ] Push notifications (Firebase)
+- [ ] Internal testing release
+
 ## Out of Scope for Phase 1
 
 ### ❌ NOT Included in MVP
@@ -316,10 +585,10 @@ app/controllers/
    - No clip generation
    - No highlight detection
 
-6. **Mobile Apps**
-   - Web-responsive only
-   - Hotwire Native wrapper possible but not required
-   - No app store submissions
+6. **App Store Submissions** 
+   - No app store submissions in Phase 1
+   - TestFlight/internal testing only
+   - App store submission in Phase 2
 
 7. **Analytics & Reporting**
    - No real-time analytics
@@ -352,29 +621,47 @@ app/controllers/
 
 ## Development Checkpoints
 
-### Checkpoint 1: Models & Auth (Week 1)
+### Phase 1: Web Platform (Weeks 1-4)
+
+#### Checkpoint 1: Models & Auth (Week 1)
 - [ ] CreatorProfile model working
 - [ ] Space model with public pages
 - [ ] AccessPass with pricing
 - [ ] Passwordless auth functioning
 
-### Checkpoint 2: Purchase Flow (Week 2)
+#### Checkpoint 2: Purchase Flow (Week 2)
 - [ ] Stripe Elements integrated
 - [ ] Purchase flow complete
 - [ ] Access control working
 - [ ] Waitlist applications working
 
-### Checkpoint 3: Streaming (Week 3)
+#### Checkpoint 3: Streaming (Week 3)
 - [ ] LiveKit streaming working
 - [ ] GetStream.io chat integrated
 - [ ] Access verification for streams
 - [ ] Basic moderation tools
 
-### Checkpoint 4: Polish (Week 4)
+#### Checkpoint 4: Polish (Week 4)
 - [ ] Email notifications
 - [ ] Basic analytics
 - [ ] Error handling
 - [ ] Production deployment
+
+### Phase 1b: Mobile Apps (Weeks 5-6)
+
+#### Checkpoint 5: iOS App (Week 5)
+- [ ] Hotwire Native iOS wrapper
+- [ ] LiveKit native player integrated
+- [ ] Push notifications working
+- [ ] TestFlight build available
+- [ ] Background audio working
+
+#### Checkpoint 6: Android App (Week 6)
+- [ ] Hotwire Native Android wrapper
+- [ ] LiveKit native player integrated
+- [ ] Firebase notifications working
+- [ ] Internal testing build available
+- [ ] Picture-in-picture working
 
 ## Questions for Clarification
 
@@ -420,6 +707,8 @@ app/controllers/
    gem 'livekit-server-sdk'
    gem 'stripe'
    gem 'money-rails'
+   gem 'rpush'              # For mobile push notifications
+   gem 'device_detector'    # For platform detection
    
    bundle install
    ```
@@ -434,6 +723,22 @@ app/controllers/
    rails generate super_scaffold Space Team name:text_field slug:text_field description:trix_editor
    ```
 
+4. **Initialize mobile apps (Phase 1b)**
+   ```bash
+   # iOS App
+   rails generate hotwire:native:ios
+   cd ios && pod install
+   
+   # Android App  
+   rails generate hotwire:native:android
+   cd android && ./gradlew build
+   ```
+
 ---
+
+**Timeline Summary:**
+- **Phase 1 (Weeks 1-4):** Web platform with full functionality
+- **Phase 1b (Weeks 5-6):** Native iOS and Android apps with superior streaming
+- **Total Duration:** 6 weeks to production-ready web + mobile
 
 **STOP POINT**: Review this specification before proceeding with implementation. Confirm all user stories align with business goals and technical capabilities.
