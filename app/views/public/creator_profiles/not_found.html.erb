@@ -1,0 +1,33 @@
+<div class="max-w-2xl mx-auto py-16 px-4 text-center">
+  <div class="mb-8">
+    <div class="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6">
+      <%= icon "ti ti-user-question", class: "w-10 h-10 text-red-400" %>
+    </div>
+    
+    <h1 class="text-4xl font-bold text-gray-900 mb-4">
+      Creator Not Found
+    </h1>
+    
+    <p class="text-xl text-gray-600 mb-8">
+      The creator you're looking for doesn't exist or hasn't joined Backstage Pass yet.
+    </p>
+  </div>
+  
+  <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+    <h3 class="text-lg font-semibold text-gray-800 mb-3">Looking for something specific?</h3>
+    
+    <ul class="text-left text-gray-600 space-y-2">
+      <li>• Check the spelling of the username</li>
+      <li>• Make sure you're using the correct @username</li>
+      <li>• The creator might not have set up their profile yet</li>
+    </ul>
+  </div>
+  
+  <div class="space-y-4">
+    <%= link_to "Browse All Creators", spaces_path, 
+                class: "inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors mr-4" %>
+    
+    <%= link_to "Go Home", root_path, 
+                class: "inline-block bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors" %>
+  </div>
+</div>

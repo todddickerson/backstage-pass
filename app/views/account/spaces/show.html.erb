@@ -1,0 +1,38 @@
+<%= render 'account/shared/page' do |page| %>
+  <% page.title t('.section') %>
+  <% page.body do %>
+    <%= cable_ready_updates_for @space do %>
+      <%= render 'account/shared/box', divider: true do |box| %>
+        <% box.title t('.header') %>
+        <% box.description do %>
+          <%= t('.description') %>
+          <%= t('.manage_description') if can? :manage, @space %>
+        <% end %>
+
+        <% box.body do %>
+          <% with_attribute_settings object: @space, strategy: :label do %>
+            <%= render 'shared/attributes/text', attribute: :name %>
+            <%= render 'shared/attributes/html', attribute: :description %>
+            <%= render 'shared/attributes/text', attribute: :slug %>
+            <%= render 'shared/attributes/option', attribute: :published %>
+            <%# 🚅 super scaffolding will insert new fields above this line. %>
+          <% end %>
+        <% end %>
+
+        <% box.actions do %>
+          <%= link_to t('.buttons.edit'), [:edit, :account, @space], class: first_button_primary if can? :edit, @space %>
+          <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
+          <%= button_to t('.buttons.destroy'), [:account, @space], method: :delete, class: first_button_primary, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(@space)) } if can? :destroy, @space %>
+          <%= link_to t('global.buttons.back'), [:account, @team, :spaces], class: first_button_primary %>
+        <% end %>
+
+        <% box.raw_footer do %>
+          <%# 🚅 super scaffolding will insert new action model index views above this line. %>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%= render 'account/experiences/index', experiences: @space.experiences, hide_back: true %>
+    <%# 🚅 super scaffolding will insert new children above this line. %>
+  <% end %>
+<% end %>

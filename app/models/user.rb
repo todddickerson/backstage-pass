@@ -5,10 +5,12 @@ class User < ApplicationRecord
 
   # 🚅 add belongs_to associations above.
 
+  has_many :access_passes, dependent: :destroy
   # 🚅 add has_many associations above.
 
   # 🚅 add oauth providers above.
 
+  has_one :creator_profile, class_name: "Creators::Profile", dependent: :destroy
   # 🚅 add has_one associations above.
 
   # 🚅 add scopes above.

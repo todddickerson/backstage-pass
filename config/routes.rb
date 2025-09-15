@@ -20,6 +20,14 @@ Rails.application.routes.draw do
     # The root `/` path is routed to `Public::HomeController#index` by default. You can set it
     # to whatever you want by doing something like this:
     # root to: "my_new_root_controller#index"
+    
+    # Public marketplace routes using friendly slugs
+    resources :spaces, only: [:index, :show], param: :space_slug do
+      resources :experiences, only: [:show], param: :experience_slug
+    end
+    
+    # Creator profile routes (@username)
+    get "/:username", to: "creator_profiles#show", constraints: { username: /[a-zA-Z0-9_-]+/ }, as: :creator_profile
   end
 
   namespace :webhooks do
@@ -54,6 +62,9 @@ Rails.application.routes.draw do
 
         # routes for standard user actions and resources are configured in the `bullet_train` gem, but you can add more here.
       end
+      
+      # Creator profile management (singular resource)
+      resource :creator_profile, only: [:show, :edit, :update, :create]
 
       # team-level resources.
       resources :teams, extending do
@@ -72,6 +83,12 @@ Rails.application.routes.draw do
         namespace :integrations do
           # 🚅 super scaffolding will insert new integration installations above this line.
         end
+
+        resources :spaces do
+          resources :experiences
+        end
+
+        resources :access_passes
       end
     end
   end

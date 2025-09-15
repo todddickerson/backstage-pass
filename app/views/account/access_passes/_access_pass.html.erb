@@ -1,0 +1,26 @@
+<% team = @team || @team %>
+<% context ||= team %>
+<% collection ||= :access_passes %>
+<% hide_actions ||= false %>
+<% hide_back ||= false %>
+
+<% with_attribute_settings object: access_pass do %>
+  <tr data-id="<%= access_pass.id %>">
+    <%= render "shared/tables/checkbox", object: access_pass %>
+    <td><%= render 'shared/attributes/text', attribute: :status, url: [:account, access_pass] %></td>
+    <td><%= render 'shared/attributes/date_and_time', attribute: :expires_at %></td>
+    <%# 🚅 super scaffolding will insert new fields above this line. %>
+    <td><%= render 'shared/attributes/date_and_time', attribute: :created_at %></td>
+    <td class="buttons">
+      <% unless hide_actions %>
+        <% if can? :edit, access_pass %>
+          <%= link_to t('.buttons.shorthand.edit'), [:edit, :account, access_pass], class: 'button-secondary button-smaller' %>
+        <% end %>
+        <% if can? :destroy, access_pass %>
+          <%= button_to t('.buttons.shorthand.destroy'), [:account, access_pass], method: :delete, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(access_pass)) }, class: 'button-secondary button-smaller' %>
+        <% end %>
+        <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
+      <% end %>
+    </td>
+  </tr>
+<% end %>

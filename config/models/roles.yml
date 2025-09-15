@@ -1,5 +1,8 @@
 default:
   models:
+    AccessPass: read
+    Experience: read
+    Space: read
     Team: read
     Membership:
       - read
@@ -14,6 +17,14 @@ default:
       - create
       - destroy
 
+viewer:
+  models:
+    AccessPass: read
+    Experience: read
+    Space: read
+    Team: read
+    Membership: read
+
 editor:
   models:
     Scaffolding::CompletelyConcrete::TangibleThing: manage
@@ -24,10 +35,15 @@ editor:
 admin:
   includes:
     - editor
+    - viewer
   manageable_roles:
     - admin
     - editor
+    - viewer
   models:
+    AccessPass: manage
+    Experience: manage
+    Space: manage
     Team: manage
     Membership: manage
     Scaffolding::AbsolutelyAbstract::CreativeConcept: manage

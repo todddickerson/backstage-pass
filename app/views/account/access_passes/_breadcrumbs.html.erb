@@ -1,0 +1,8 @@
+<% access_pass ||= @access_pass %>
+<% team ||= @team || access_pass&.team %>
+<%= render 'account/teams/breadcrumbs', team: team %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, team, :access_passes] %>
+<% if access_pass&.persisted? %>
+  <%= render 'account/shared/breadcrumb', label: access_pass.label_string, url: [:account, access_pass] %>
+<% end %>
+<%= render 'account/shared/breadcrumbs/actions', only_for: 'access_passes' %>

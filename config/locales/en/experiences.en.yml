@@ -1,0 +1,113 @@
+en:
+  experiences: &experiences
+    label: &label Experiences
+    breadcrumbs:
+      label: *label
+    navigation:
+      label: *label
+      icon: fal fa-puzzle-piece
+    buttons: &buttons
+      new: Add New Experience
+      create: Create Experience
+      edit: Edit Experience
+      update: Update Experience
+      destroy: Remove Experience
+      shorthand:
+        edit: Edit
+        destroy: Delete
+      confirmations:
+        # TODO customize for your use-case.
+        destroy: Are you sure you want to remove %{experience_name}? This will also remove any child resources and can't be undone.
+    experience:
+      buttons: *buttons
+    fields: &fields
+      id:
+        heading: Experience ID
+      space_id:
+        heading: Space ID
+      name:
+        _: &name Name
+        label: *name
+        heading: *name
+        api_title: *name
+        api_description: *name
+      description:
+        _: &description Description
+        label: *description
+        heading: *description
+        api_title: *description
+        api_description: *description
+      experience_type:
+        _: &experience_type Experience Type
+        label: *experience_type
+        heading: *experience_type
+        api_title: *experience_type
+        api_description: *experience_type
+      price_cents:
+        _: &price_cents Price Cents
+        label: *price_cents
+        heading: *price_cents
+        api_title: *price_cents
+        api_description: *price_cents
+      # 🚅 super scaffolding will insert new fields above this line.
+      created_at:
+        _: &created_at Added
+        label: *created_at
+        heading: *created_at
+      updated_at:
+        _: &updated_at Updated
+        label: *updated_at
+        heading: *updated_at
+    api:
+      collection_actions: "Collection Actions for Experiences"
+      index: "List Experiences"
+      create: "Add a New Experience"
+      member_actions: "Actions for an Individual Experience"
+      show: "Retrieve a Experience"
+      update: "Update a Experience"
+      destroy: "Delete a Experience"
+      fields: *fields
+    index:
+      section: "%{spaces_possessive} Experiences"
+      contexts:
+        space:
+          header: Experiences
+          description: Below is a list of Experiences that have been added for %{space_name}.
+          description_empty: No Experiences have been added for %{space_name}.
+      fields: *fields
+      buttons: *buttons
+    show:
+      section: "%{experience_name}"
+      header: Experience Details
+      description: Below are the details we have for %{experience_name}.
+      manage_description: You'll also find options for updating these details or removing %{experience_name} from %{space_name} entirely.
+      fields: *fields
+      buttons: *buttons
+    form: &form
+      buttons: *buttons
+      fields: *fields
+    new:
+      section: "New Experience for %{space_name}"
+      header: New Experience Details
+      description: Please provide the details of the new Experience you'd like to add to %{space_name}.
+      form: *form
+    edit:
+      section: "%{experience_name}"
+      header: Edit Experience Details
+      description: You can update the details or settings for %{experience_name} below.
+      form: *form
+    notifications:
+      created: Experience was successfully created.
+      updated: Experience was successfully updated.
+      destroyed: Experience was successfully destroyed.
+  account:
+    experiences: *experiences
+  activerecord:
+    attributes:
+      experience:
+        name: *name
+        experience_type: *experience_type
+        price_cents: *price_cents
+        # 🚅 super scaffolding will insert new activerecord attributes above this line.
+        created_at: *created_at
+        updated_at: *updated_at

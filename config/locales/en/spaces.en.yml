@@ -1,0 +1,116 @@
+en:
+  spaces: &spaces
+    label: &label Spaces
+    breadcrumbs:
+      label: *label
+    navigation:
+      label: *label
+      icon: fal fa-puzzle-piece
+    buttons: &buttons
+      new: Add New Space
+      create: Create Space
+      edit: Edit Space
+      update: Update Space
+      destroy: Remove Space
+      shorthand:
+        edit: Edit
+        destroy: Delete
+      confirmations:
+        # TODO customize for your use-case.
+        destroy: Are you sure you want to remove %{space_name}? This will also remove any child resources and can't be undone.
+    space:
+      buttons: *buttons
+    fields: &fields
+      id:
+        heading: Space ID
+      team_id:
+        heading: Team ID
+      name:
+        _: &name Name
+        label: *name
+        heading: *name
+        api_title: *name
+        api_description: *name
+      description:
+        _: &description Description
+        label: *description
+        heading: *description
+        api_title: *description
+        api_description: *description
+      slug:
+        _: &slug Slug
+        label: *slug
+        heading: *slug
+        api_title: *slug
+        api_description: *slug
+      published:
+        _: &published Published
+        label: *published
+        heading: *published
+        api_title: *published
+        api_description: *published
+        options:
+          yes: "Yes"
+          no: "No"
+      # 🚅 super scaffolding will insert new fields above this line.
+      created_at:
+        _: &created_at Added
+        label: *created_at
+        heading: *created_at
+      updated_at:
+        _: &updated_at Updated
+        label: *updated_at
+        heading: *updated_at
+    api:
+      collection_actions: "Collection Actions for Spaces"
+      index: "List Spaces"
+      create: "Add a New Space"
+      member_actions: "Actions for an Individual Space"
+      show: "Retrieve a Space"
+      update: "Update a Space"
+      destroy: "Delete a Space"
+      fields: *fields
+    index:
+      section: "%{teams_possessive} Spaces"
+      contexts:
+        team:
+          header: Spaces
+          description: Below is a list of Spaces that have been added for %{team_name}.
+          description_empty: No Spaces have been added for %{team_name}.
+      fields: *fields
+      buttons: *buttons
+    show:
+      section: "%{space_name}"
+      header: Space Details
+      description: Below are the details we have for %{space_name}.
+      manage_description: You'll also find options for updating these details or removing %{space_name} from %{team_name} entirely.
+      fields: *fields
+      buttons: *buttons
+    form: &form
+      buttons: *buttons
+      fields: *fields
+    new:
+      section: "New Space for %{team_name}"
+      header: New Space Details
+      description: Please provide the details of the new Space you'd like to add to %{team_name}.
+      form: *form
+    edit:
+      section: "%{space_name}"
+      header: Edit Space Details
+      description: You can update the details or settings for %{space_name} below.
+      form: *form
+    notifications:
+      created: Space was successfully created.
+      updated: Space was successfully updated.
+      destroyed: Space was successfully destroyed.
+  account:
+    spaces: *spaces
+  activerecord:
+    attributes:
+      space:
+        name: *name
+        slug: *slug
+        published: *published
+        # 🚅 super scaffolding will insert new activerecord attributes above this line.
+        created_at: *created_at
+        updated_at: *updated_at
