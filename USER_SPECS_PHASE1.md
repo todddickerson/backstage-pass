@@ -241,18 +241,18 @@ MUX_TOKEN_SECRET: xxx
 ### Database Models (Phase 1)
 
 ```ruby
-# Core Models Required
-- User (Bullet Train)
-- Team (Bullet Train)
-- Membership (Bullet Train)
-- CreatorProfile (NEW)
-- Space (NEW)
-- AccessPass (NEW)
-- AccessPassExperience (NEW)
-- Experience (NEW)
-- Stream (NEW)
-- Purchase (NEW)
-- WaitlistEntry (NEW)
+# Core Models Required (with proper namespacing)
+- User (Bullet Train - global)
+- Team (Bullet Train - global)
+- Membership (Bullet Train - global)
+- Creators::Profile (NEW - namespaced supporting model)
+- Space (NEW - global primary subject)
+- AccessPass (NEW - global primary subject)
+- AccessPassExperience (NEW - global bridge model)
+- Experience (NEW - global primary subject)
+- Stream (NEW - global primary subject)
+- Billing::Purchase (NEW - namespaced supporting model)
+- AccessPasses::WaitlistEntry (NEW - namespaced supporting model)
 
 # Relationships (Simplified UX)
 Team has_one :space (validated uniqueness, future: has_many)
@@ -747,9 +747,13 @@ dependencies {
    bundle install
    ```
 
-2. **Create CreatorProfile model**
+2. **Create Creators::Profile model (namespaced)**
    ```bash
-   rails generate super_scaffold CreatorProfile User username:text_field bio:text_area
+   # FIRST: Validate namespacing
+   ruby .claude/validate-namespacing.rb "rails generate super_scaffold Creators::Profile User ..."
+   
+   # THEN: Generate
+   rails generate super_scaffold Creators::Profile User username:text_field bio:text_area
    ```
 
 3. **Create Space model (with one-per-team constraint)**

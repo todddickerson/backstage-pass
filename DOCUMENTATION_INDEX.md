@@ -3,24 +3,29 @@
 ## 📍 Current Active Documentation (Sept 2025)
 
 ### Primary Documents
-1. **[TEAM_SPACE_ARCHITECTURE.md](./TEAM_SPACE_ARCHITECTURE.md)** 🔴 **CRITICAL - READ FIRST**
+1. **[NAMESPACING_CONVENTIONS.md](./NAMESPACING_CONVENTIONS.md)** 🔴 **CRITICAL - READ BEFORE ANY MODEL**
+   - Andrew Culver's Rails namespacing best practices
+   - Primary subjects vs supporting models
+   - Validation script: `.claude/validate-namespacing.rb`
+
+2. **[TEAM_SPACE_ARCHITECTURE.md](./TEAM_SPACE_ARCHITECTURE.md)** 🔴 **CRITICAL - READ FIRST**
    - Team has_many Spaces with simplified UX (one Space per Team initially)
    - Implementation guide and code patterns
    - Future expansion path documented
 
-2. **[USER_SPECS_PHASE1.md](./USER_SPECS_PHASE1.md)** - Complete Phase 1 specifications
+3. **[USER_SPECS_PHASE1.md](./USER_SPECS_PHASE1.md)** - Complete Phase 1 specifications
    - 13 user stories with acceptance criteria
    - Technical implementation details
    - Timeline: 5.5 weeks total
 
-3. **[ARCHITECTURE_DECISIONS.md](./ARCHITECTURE_DECISIONS.md)** - Technical architecture
+4. **[ARCHITECTURE_DECISIONS.md](./ARCHITECTURE_DECISIONS.md)** - Technical architecture
    - Team vs Space decision (see TEAM_SPACE_ARCHITECTURE.md for details)
    - AccessPass model design (complex, not polymorphic)
    - CreatorProfile model (new requirement)
    - GetStream.io for chat (decision made)
    - Deferred features documented
 
-3. **[HOTWIRE_NATIVE_2025.md](./HOTWIRE_NATIVE_2025.md)** - Mobile implementation
+5. **[HOTWIRE_NATIVE_2025.md](./HOTWIRE_NATIVE_2025.md)** - Mobile implementation
    - Rails World 2025 patterns
    - <20 lines of setup code
    - BridgeComponent pattern
@@ -86,8 +91,11 @@
 # 1. Install dependencies
 bundle add stream-chat-ruby livekit-server-sdk stripe money-rails hotwire-native-rails
 
-# 2. Create first model
-rails generate super_scaffold CreatorProfile User username:text_field bio:text_area
+# 2. VALIDATE NAMESPACING FIRST!
+ruby .claude/validate-namespacing.rb "rails generate super_scaffold Creators::Profile User username:text_field"
+
+# 3. Create first model (note: Creators::Profile, not CreatorProfile)
+rails generate super_scaffold Creators::Profile User username:text_field bio:text_area
 
 # 3. Follow USER_SPECS_PHASE1.md for implementation
 ```
