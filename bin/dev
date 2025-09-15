@@ -1,10 +1,66 @@
 #!/usr/bin/env bash
 
+# Backstage Pass Development Server
+# Runs on port 3020 with ngrok at bsp.ngrok.app
+
+echo "🚀 Starting Backstage Pass Development Server"
+echo "============================================"
+echo ""
+
+# Set port for Rails (application.yml handles other vars)
+export PORT=3020
+
+# Link any necessary files
 bin/link
 
-if [ -x "$(command -v overmind)" ]
-then
+# Check if ngrok is installed
+if ! command -v ngrok &> /dev/null; then
+  echo "⚠️  WARNING: ngrok not installed!"
+  echo "   Install with: brew install ngrok"
+  echo "   Or download from: https://ngrok.com/download"
+  echo ""
+  echo "   Continuing without ngrok..."
+  echo ""
+fi
+
+# Check ngrok authentication
+if command -v ngrok &> /dev/null; then
+  if ! ngrok config check &>/dev/null 2>&1; then
+    echo "⚠️  ngrok not authenticated!"
+    echo "   Run: ngrok config add-authtoken YOUR_TOKEN"
+    echo "   Get token from: https://dashboard.ngrok.com/get-started/your-authtoken"
+    echo ""
+  fi
+fi
+
+echo "📌 Server Configuration:"
+echo "   Local:  http://localhost:$PORT"
+echo "   Ngrok:  https://bsp.ngrok.app"
+echo "   Status: http://localhost:4040 (ngrok inspector)"
+echo ""
+
+# Update application.yml with correct BASE_URL
+if [ -f "config/application.yml" ]; then
+  # Update BASE_URL to localhost:3020 for initial start
+  ruby -ryaml -e "
+    config = YAML.load_file('config/application.yml')
+    config['BASE_URL'] = 'http://localhost:$PORT'
+    File.write('config/application.yml', config.to_yaml.sub('---\n', ''))
+  " 2>/dev/null
+fi
+
+echo "🔧 Starting services..."
+echo "   Press Ctrl+C to stop all services"
+echo ""
+
+# Start with Overmind if available, otherwise use Foreman
+if [ -x "$(command -v overmind)" ]; then
+  echo "Using Overmind (tmux-based process manager)"
+  echo "Tip: Use 'overmind connect [process]' in another terminal to attach"
+  echo ""
   exec overmind start -f Procfile.dev "$@"
 else
+  echo "Using Foreman (install Overmind for better experience: gem install overmind)"
+  echo ""
   exec bundle exec foreman start -f Procfile.dev "$@"
 fi

@@ -1,0 +1,123 @@
+#!/usr/bin/env ruby
+# Enhanced ngrok URL updater that handles custom subdomains
+
+require "colorize"
+require "json"
+require "net/http"
+require "yaml"
+
+# Configuration
+NGROK_API_URL = "http://localhost:4040/api/tunnels"
+CONFIG_FILE = "config/application.yml"
+EXPECTED_SUBDOMAIN = "bsp.ngrok.app"
+PORT = 3020
+
+def fetch_ngrok_url
+  response = JSON.parse(Net::HTTP.get(URI(NGROK_API_URL)))
+  tunnels = response["tunnels"] || []
+  
+  # Find the HTTPS tunnel (prefer secure)
+  https_tunnel = tunnels.find { |t| t["public_url"]&.start_with?("https://") }
+  tunnel = https_tunnel || tunnels.first
+  
+  tunnel&.dig("public_url")
+rescue Errno::ECONNREFUSED
+  nil
+rescue => e
+  puts "Error fetching ngrok URL: #{e.message}".red
+  nil
+end
+
+def update_config(ngrok_url)
+  # Load current config
+  config_data = Psych.load_file(CONFIG_FILE)
+  
+  # Check if URL has changed
+  if config_data["BASE_URL"] == ngrok_url
+    puts "✅ ngrok URL unchanged: #{ngrok_url}".green
+    return false
+  end
+  
+  # Update config
+  config_data["BASE_URL"] = ngrok_url
+  
+  # Write updated config
+  File.open(CONFIG_FILE, "w") do |file|
+    yaml_content = Psych.dump(config_data).sub("---\n", "")
+    file.write(yaml_content)
+  end
+  
+  puts "✅ Updated BASE_URL to: #{ngrok_url}".green
+  true
+rescue Errno::ENOENT
+  puts "❌ #{CONFIG_FILE} not found".red
+  puts "   Creating from example...".yellow
+  
+  # Create from example if it doesn't exist
+  if File.exist?("#{CONFIG_FILE}.example")
+    FileUtils.cp("#{CONFIG_FILE}.example", CONFIG_FILE)
+    retry
+  else
+    puts "   No example file found either".red
+    false
+  end
+rescue => e
+  puts "❌ Error updating config: #{e.message}".red
+  false
+end
+
+def wait_for_ngrok(max_attempts = 30)
+  puts "⏳ Waiting for ngrok to start...".yellow
+  
+  max_attempts.times do |attempt|
+    ngrok_url = fetch_ngrok_url
+    
+    if ngrok_url
+      # Check if it's the expected subdomain
+      if ngrok_url.include?(EXPECTED_SUBDOMAIN)
+        puts "🎯 Using custom subdomain: #{EXPECTED_SUBDOMAIN}".green
+      else
+        puts "ℹ️  Using dynamic URL: #{ngrok_url}".yellow
+        puts "   To use custom subdomain, ensure you have:".yellow
+        puts "   1. Paid ngrok account".yellow
+        puts "   2. Reserved subdomain 'bsp'".yellow
+        puts "   3. Correct authtoken configured".yellow
+      end
+      
+      return ngrok_url
+    end
+    
+    sleep 1
+    print "." if attempt % 5 == 0
+  end
+  
+  puts ""
+  nil
+end
+
+# Main execution
+puts "🔄 Ngrok URL Updater".blue
+puts "=" * 40
+
+ngrok_url = fetch_ngrok_url || wait_for_ngrok
+
+if ngrok_url
+  if update_config(ngrok_url)
+    puts ""
+    puts "🌐 Application accessible at:".blue
+    puts "   External: #{ngrok_url}".green
+    puts "   Local:    http://localhost:#{PORT}".green
+    puts "   Inspector: http://localhost:4040".green
+    
+    # Also run the original set-ngrok-url if it exists
+    if File.exist?("bin/set-ngrok-url")
+      puts ""
+      puts "Running legacy updater...".yellow
+      system("bin/set-ngrok-url")
+    end
+  end
+else
+  puts "❌ ngrok not running or not accessible".red
+  puts "   Make sure ngrok is running on port #{PORT}:".yellow
+  puts "   ngrok http --url=#{EXPECTED_SUBDOMAIN} #{PORT}".yellow
+end
