@@ -39,15 +39,17 @@ Phase 1 MVP delivers a functional marketplace where creators can sell access pas
 
 **Acceptance Criteria:**
 - [ ] Can create creator profile with username (/@username route)
-- [ ] Can create first Space with name, description, cover image
+- [ ] Space auto-created when Team created (simplified UX)
+- [ ] Can edit Space name, description, cover image
 - [ ] Can set Space slug for public URL
 - [ ] Can configure Space brand colors and welcome message
 - [ ] Space has public sales page at /space-slug
 
 **Technical Requirements:**
 - CreatorProfile model with FriendlyId
-- Space model belongs to Team (Bullet Train context)
-- Space has_many :experiences through AccessPasses
+- Space model belongs to Team (one per Team initially)
+- Team after_create :create_default_space
+- Space validates :team_id, uniqueness: true
 - Public::SpacesController for sales pages
 
 #### STORY 2: Access Pass Creation
@@ -252,14 +254,18 @@ MUX_TOKEN_SECRET: xxx
 - Purchase (NEW)
 - WaitlistEntry (NEW)
 
-# Relationships
-Team has_many :spaces
+# Relationships (Simplified UX)
+Team has_one :space (validated uniqueness, future: has_many)
+Space belongs_to :team
 Space has_many :access_passes
 Space has_many :experiences
 AccessPass has_many :access_pass_experiences
 AccessPass has_many :experiences, through: :access_pass_experiences
 User has_many :purchases
 User has_many :access_passes, through: :purchases
+
+# Auto-creation
+Team after_create :create_default_space
 ```
 
 ### Controllers Structure
@@ -275,7 +281,7 @@ app/controllers/
 │   ├── purchased_spaces_controller.rb  # Member area
 │   ├── experiences_controller.rb       # Stream viewing
 │   ├── access_passes_controller.rb     # Manage purchases
-│   ├── spaces_controller.rb            # Creator management
+│   ├── spaces_controller.rb            # Singular resource ("Your Space")
 │   ├── streams_controller.rb           # Creator streaming
 │   └── waitlist_entries_controller.rb  # Approve/reject
 └── api/v1/
