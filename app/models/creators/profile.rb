@@ -25,16 +25,13 @@ class Creators::Profile < ApplicationRecord
   delegate :email, :name, to: :user, prefix: false
   # 🚅 add delegations above.
   
-  # FriendlyId for @username routes
-  extend FriendlyId
-  friendly_id :username, use: :slugged
-  
+  # Use username directly for @username routes (no FriendlyId needed)
   def to_param
     username
   end
   
   def profile_url
-    "/#{username}"
+    "/@#{username}"
   end
   
   # Get the user's primary space (for simplified UX)

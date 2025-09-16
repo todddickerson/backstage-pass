@@ -70,8 +70,8 @@ module DualIdSupport
         end
       end
 
-      # Fallback to standard find (use super to avoid recursion)
-      super(id)
+      # Fallback to standard find 
+      find(id)
     end
 
     # Override the standard find method to support dual IDs

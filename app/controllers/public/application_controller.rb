@@ -9,10 +9,7 @@ class Public::ApplicationController < ApplicationController
 
   private
 
-  # Override current_user to handle anonymous users
-  def current_user
-    super if user_signed_in?
-  end
+  # current_user is handled by Devise automatically
 
   # Override current_team since public routes don't have team context
   def current_team

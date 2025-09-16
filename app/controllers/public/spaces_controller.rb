@@ -1,13 +1,14 @@
-# Public::SpacesController - Handles public-facing space pages with slug-based URLs
+# Public::SpacesController - Handles public-facing space pages with root-level URLs
 # 
-# This controller provides public access to space information using human-readable
-# slug URLs for better SEO and user experience. No authentication required.
+# This controller provides public access to space pages using clean root-level
+# URLs (e.g., backstagepass.com/space-slug) for optimal branding and SEO.
+# No authentication required.
 
 class Public::SpacesController < Public::ApplicationController
-  include DualIdFinder
 
   def show
-    @space = find_resource(Space, params[:space_slug], prefer_slug: true)
+    # Direct slug lookup since we're using root-level routes
+    @space = Space.friendly.find(params[:space_slug])
     
     # Ensure the space is published for public viewing
     unless @space.published?
@@ -15,17 +16,11 @@ class Public::SpacesController < Public::ApplicationController
     end
     
     # Load related data for public display
-    @experiences = @space.experiences.published if @space.respond_to?(:experiences)
-    @total_members = @space.total_members
+    @experiences = @space.experiences if @space.respond_to?(:experiences)
+    @total_members = @space.total_members rescue 0
   end
 
   def index
     @spaces = Space.published.includes(:team, :experiences)
-  end
-
-  private
-
-  def find_resource(model_class, id, prefer_slug: false, admin_context: false)
-    super(model_class, id, prefer_slug: prefer_slug, admin_context: false)
   end
 end
