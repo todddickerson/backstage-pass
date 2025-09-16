@@ -13,7 +13,7 @@ class CreateAccessPasses < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    
+
     add_index :access_passes, :slug
     add_index :access_passes, [:space_id, :slug], unique: true
   end

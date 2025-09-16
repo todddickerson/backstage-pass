@@ -16,6 +16,18 @@ Rails.application.routes.draw do
   extending = {only: []}
 
   # IMPORTANT: Account namespace MUST come before catch-all routes
+  namespace :webhooks do
+    namespace :incoming do
+      namespace :oauth do
+        # 🚅 super scaffolding will insert new oauth provider webhooks above this line.
+      end
+    end
+  end
+
+  namespace :api do
+    draw "api/v1"
+    # 🚅 super scaffolding will insert new api versions above this line.
+  end
   namespace :account do
     shallow do
       # The account root `/` path is routed to `Account::Dashboard#index` by default. You can set it
@@ -35,7 +47,7 @@ Rails.application.routes.draw do
 
         # routes for standard user actions and resources are configured in the `bullet_train` gem, but you can add more here.
       end
-      
+
       # Creator profile management (singular resource)
       resource :creator_profile, only: [:show, :edit, :update, :create]
 

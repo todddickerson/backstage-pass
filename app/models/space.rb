@@ -21,7 +21,7 @@ class Space < ApplicationRecord
   # 🚅 add scopes above.
 
   validates :name, presence: true
-  validates :slug, presence: true, uniqueness: { scope: :team_id }
+  validates :slug, presence: true, uniqueness: {scope: :team_id}
   validates :team_id, uniqueness: true, unless: :allows_multiple_spaces?, if: :enforce_unique_space?
   # 🚅 add validations above.
 
@@ -53,8 +53,8 @@ class Space < ApplicationRecord
 
   def total_viewers
     User.joins(:access_grants)
-        .where(access_grants: { purchasable: self, status: :active })
-        .count
+      .where(access_grants: {purchasable: self, status: :active})
+      .count
   end
 
   def total_members
@@ -63,10 +63,10 @@ class Space < ApplicationRecord
 
   def can_access?(user)
     return false unless user
-    
+
     # Team members always have full access
     return true if team.users.include?(user)
-    
+
     # Space-level access grant gives access to the space (but not necessarily all experiences)
     user.access_grants.active.where(purchasable: self).exists?
   end
@@ -80,7 +80,7 @@ class Space < ApplicationRecord
 
     # Check access grant (viewer role) - but this doesn't grant content access automatically
     access_grant = user.access_grants.active.where(purchasable: self).first
-    return 'viewer' if access_grant
+    return "viewer" if access_grant
 
     nil
   end
@@ -122,9 +122,9 @@ class Space < ApplicationRecord
 
     # For viewers (including access grant holders), check specific access
     accessible_experience_ids = user.access_grants.active
-                                   .where(purchasable_type: 'Experience')
-                                   .where(purchasable_id: experience_ids)
-                                   .pluck(:purchasable_id)
+      .where(purchasable_type: "Experience")
+      .where(purchasable_id: experience_ids)
+      .pluck(:purchasable_id)
 
     # If user has space-level access grant, they can see all experiences
     if user.access_grants.active.where(purchasable: self).exists?
@@ -155,7 +155,7 @@ class Space < ApplicationRecord
     # Future enhancement: allow multiple spaces per team
     false
   end
-  
+
   def enforce_unique_space?
     # Only enforce uniqueness in production/development, not tests
     !Rails.env.test?

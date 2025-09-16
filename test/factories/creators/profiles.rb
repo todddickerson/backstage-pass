@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :creators_profile, class: 'Creators::Profile' do
+  factory :creators_profile, class: "Creators::Profile" do
     user { nil }
     username { "MyString" }
     bio { "MyText" }

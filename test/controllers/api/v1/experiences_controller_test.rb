@@ -30,9 +30,9 @@ class Api::V1::ExperiencesControllerTest < Api::Test
     # Fetch the experience in question and prepare to compare it's attributes.
     experience = Experience.find(experience_data["id"])
 
-    assert_equal_or_nil experience_data['name'], experience.name
-    assert_equal_or_nil experience_data['experience_type'], experience.experience_type
-    assert_equal_or_nil experience_data['price_cents'], experience.price_cents
+    assert_equal_or_nil experience_data["name"], experience.name
+    assert_equal_or_nil experience_data["experience_type"], experience.experience_type
+    assert_equal_or_nil experience_data["price_cents"], experience.price_cents
     # 🚅 super scaffolding will insert new fields above this line.
 
     assert_equal experience_data["space_id"], experience.space_id
@@ -91,8 +91,8 @@ class Api::V1::ExperiencesControllerTest < Api::Test
     put "/api/v1/experiences/#{@experience.id}", params: {
       access_token: access_token,
       experience: {
-        name: 'Alternative String Value',
-        experience_type: 'Alternative String Value',
+        name: "Alternative String Value",
+        experience_type: "Alternative String Value",
         # 🚅 super scaffolding will also insert new fields above this line.
       }
     }
@@ -104,8 +104,8 @@ class Api::V1::ExperiencesControllerTest < Api::Test
 
     # But we have to manually assert the value was properly updated.
     @experience.reload
-    assert_equal @experience.name, 'Alternative String Value'
-    assert_equal @experience.experience_type, 'Alternative String Value'
+    assert_equal @experience.name, "Alternative String Value"
+    assert_equal @experience.experience_type, "Alternative String Value"
     # 🚅 super scaffolding will additionally insert new fields above this line.
 
     # Also ensure we can't do that same action as another user.
