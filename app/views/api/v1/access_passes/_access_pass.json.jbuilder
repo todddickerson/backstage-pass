@@ -1,8 +1,6 @@
 json.extract! access_pass,
   :id,
-  :team_id,
-  :status,
-  :expires_at,
+  :space_id,
   # 🚅 super scaffolding will insert new fields above this line.
   :created_at,
   :updated_at

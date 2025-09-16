@@ -1,7 +1,7 @@
 <% access_pass ||= @access_pass %>
-<% team ||= @team || access_pass&.team %>
-<%= render 'account/teams/breadcrumbs', team: team %>
-<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, team, :access_passes] %>
+<% space ||= @space || access_pass&.space %>
+<%= render 'account/spaces/breadcrumbs', space: space %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, space, :access_passes] %>
 <% if access_pass&.persisted? %>
   <%= render 'account/shared/breadcrumb', label: access_pass.label_string, url: [:account, access_pass] %>
 <% end %>

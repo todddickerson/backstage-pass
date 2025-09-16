@@ -17,17 +17,32 @@ Rails.application.routes.draw do
 
   scope module: "public" do
     # To keep things organized, we put non-authenticated controllers in the `Public::` namespace.
-    # The root `/` path is routed to `Public::HomeController#index` by default. You can set it
-    # to whatever you want by doing something like this:
-    # root to: "my_new_root_controller#index"
-    
-    # Public marketplace routes using friendly slugs
-    resources :spaces, only: [:index, :show], param: :space_slug do
-      resources :experiences, only: [:show], param: :experience_slug
-    end
-    
-    # Creator profile routes (@username)
-    get "/:username", to: "creator_profiles#show", constraints: { username: /[a-zA-Z0-9_-]+/ }, as: :creator_profile
+    # The root `/` path is routed to `Public::HomeController#index` by default.
+    root to: "home#index"
+
+    # Priority routes - these take precedence over catch-all space routes
+    # Add static pages here as needed (about, terms, privacy, etc.)
+    get "about", to: "pages#about"
+    get "terms", to: "pages#terms"
+    get "privacy", to: "pages#privacy"
+
+    # Browse all spaces (marketplace index)
+    get "explore", to: "spaces#index", as: :explore_spaces
+
+    # Creator profile routes (@username) - must come before catch-all routes
+    get "/@:username", to: "creator_profiles#show", constraints: {username: /[a-zA-Z0-9_-]+/}, as: :creator_profile
+
+    # CATCH-ALL ROUTES - These must be last!
+    # Space routes at root level for clean URLs (backstagepass.com/space-slug)
+    # Access pass routes nested under spaces (backstagepass.com/space-slug/access-pass-slug)
+    get "/:space_slug/:access_pass_slug", to: "access_passes#show",
+      constraints: {space_slug: /[a-zA-Z0-9_-]+/, access_pass_slug: /[a-zA-Z0-9_-]+/},
+      as: :public_space_access_pass
+
+    # Space show page (must be after nested routes)
+    get "/:space_slug", to: "spaces#show",
+      constraints: {space_slug: /[a-zA-Z0-9_-]+/},
+      as: :public_space
   end
 
   namespace :webhooks do
@@ -62,7 +77,7 @@ Rails.application.routes.draw do
 
         # routes for standard user actions and resources are configured in the `bullet_train` gem, but you can add more here.
       end
-      
+
       # Creator profile management (singular resource)
       resource :creator_profile, only: [:show, :edit, :update, :create]
 
@@ -88,7 +103,7 @@ Rails.application.routes.draw do
           resources :experiences
         end
 
-        resources :access_passes
+        resources :access_grants
       end
     end
   end

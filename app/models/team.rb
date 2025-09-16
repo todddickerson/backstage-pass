@@ -6,7 +6,7 @@ class Team < ApplicationRecord
   # 🚅 add belongs_to associations above.
 
   has_many :spaces, dependent: :destroy
-  has_many :access_passes, dependent: :destroy
+  has_many :access_grants, dependent: :destroy
   # 🚅 add has_many associations above.
 
   # 🚅 add oauth providers above.
@@ -26,12 +26,12 @@ class Team < ApplicationRecord
   def primary_space
     spaces.first || create_default_space
   end
-  
+
   private
-  
+
   def create_default_space
     return if spaces.exists? # Don't create if space already exists
-    
+
     spaces.create!(
       name: "#{name}'s Space",
       slug: name.parameterize,
@@ -39,6 +39,6 @@ class Team < ApplicationRecord
       published: false # Creator can publish when ready
     )
   end
-  
+
   # 🚅 add methods above.
 end

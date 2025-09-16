@@ -1,0 +1,19 @@
+<% cancel_path ||= access_pass_experience.persisted? ? [:account, access_pass_experience] : [:account, @access_pass, :access_pass_experiences] %>
+
+<%= form_with model: access_pass_experience, url: (access_pass_experience.persisted? ? [:account, access_pass_experience] : [:account, @access_pass, :access_pass_experiences]), class: 'form' do |form| %>
+  <%= render "shared/limits/form", form: form, cancel_path: cancel_path do %>
+    <%= render 'account/shared/forms/errors', form: form %>
+
+    <% with_field_settings form: form do %>
+      <%= render 'shared/fields/super_select', method: :experience, html_options: {autofocus: true} %>
+      <%= render 'shared/fields/options', method: :included %>
+      <%= render 'shared/fields/number_field', method: :position %>
+      <%# 🚅 super scaffolding will insert new fields above this line. %>
+    <% end %>
+
+    <div class="buttons">
+      <%= form.submit (form.object.persisted? ? t('.buttons.update') : t('.buttons.create')), class: "button" %>
+      <%= link_to t('global.buttons.cancel'), cancel_path, class: "button-secondary" %>
+    </div>
+  <% end %>
+<% end %>

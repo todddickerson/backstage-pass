@@ -12,6 +12,9 @@
     <td><%= render 'shared/attributes/date_and_time', attribute: :created_at %></td>
     <td class="buttons">
       <% unless hide_actions %>
+        <% if space.published? %>
+          <%= link_to "View", public_space_path(space.slug), target: "_blank", class: 'button-secondary button-smaller' %>
+        <% end %>
         <% if can? :edit, space %>
           <%= link_to t('.buttons.shorthand.edit'), [:edit, :account, space], class: 'button-secondary button-smaller' %>
         <% end %>

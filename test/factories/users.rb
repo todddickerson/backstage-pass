@@ -1,8 +1,9 @@
 FactoryBot.define do
   factory :user do
     sequence(:email) { |n| "generic-user-#{n}@example.com" }
-    password { "08h4f78hrc0ohw9f8heso" }
-    password_confirmation { "08h4f78hrc0ohw9f8heso" }
+    # Use a strong password that passes breach validation
+    password { "Test@Pass123!Secure#{rand(1000..9999)}" }
+    password_confirmation { password }
     sign_in_count { 1 }
     current_sign_in_at { Time.now }
     last_sign_in_at { 1.day.ago }

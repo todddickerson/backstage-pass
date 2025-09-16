@@ -33,6 +33,7 @@
     <% end %>
 
     <%= render 'account/experiences/index', experiences: @space.experiences, hide_back: true %>
+    <%= render 'account/access_passes/index', access_passes: @space.access_passes, hide_back: true %>
     <%# 🚅 super scaffolding will insert new children above this line. %>
   <% end %>
 <% end %>

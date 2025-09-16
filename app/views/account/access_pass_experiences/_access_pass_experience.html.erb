@@ -1,0 +1,27 @@
+<% access_pass = @access_pass || @access_pass %>
+<% context ||= access_pass %>
+<% collection ||= :access_pass_experiences %>
+<% hide_actions ||= false %>
+<% hide_back ||= false %>
+
+<% with_attribute_settings object: access_pass_experience do %>
+  <tr data-id="<%= access_pass_experience.id %>">
+    <%= render "shared/tables/checkbox", object: access_pass_experience %>
+    <td><%= render 'shared/attributes/option', attribute: :experience, url: [:account, access_pass_experience] %></td>
+    <td class="text-center"><%= render 'shared/attributes/option', attribute: :included %></td>
+    <td><%= render 'shared/attributes/number', attribute: :position %></td>
+    <%# 🚅 super scaffolding will insert new fields above this line. %>
+    <td><%= render 'shared/attributes/date_and_time', attribute: :created_at %></td>
+    <td class="buttons">
+      <% unless hide_actions %>
+        <% if can? :edit, access_pass_experience %>
+          <%= link_to t('.buttons.shorthand.edit'), [:edit, :account, access_pass_experience], class: 'button-secondary button-smaller' %>
+        <% end %>
+        <% if can? :destroy, access_pass_experience %>
+          <%= button_to t('.buttons.shorthand.destroy'), [:account, access_pass_experience], method: :delete, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(access_pass_experience)) }, class: 'button-secondary button-smaller' %>
+        <% end %>
+        <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
+      <% end %>
+    </td>
+  </tr>
+<% end %>

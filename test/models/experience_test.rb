@@ -22,15 +22,15 @@ class ExperienceTest < ActiveSupport::TestCase
   end
 
   test "should recognize live streaming experience" do
-    @experience.experience_type = 'live_stream'
+    @experience.experience_type = "live_stream"
     assert @experience.live_streaming?
   end
 
   test "should format price display correctly" do
     @experience.price_cents = 999
-    assert_equal '$9.99', @experience.price_display
-    
+    assert_equal "$9.99", @experience.price_display
+
     @experience.price_cents = 0
-    assert_equal 'Free', @experience.price_display
+    assert_equal "Free", @experience.price_display
   end
 end

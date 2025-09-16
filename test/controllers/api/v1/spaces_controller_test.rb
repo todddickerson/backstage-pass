@@ -29,9 +29,9 @@ class Api::V1::SpacesControllerTest < Api::Test
     # Fetch the space in question and prepare to compare it's attributes.
     space = Space.find(space_data["id"])
 
-    assert_equal_or_nil space_data['name'], space.name
-    assert_equal_or_nil space_data['slug'], space.slug
-    assert_equal_or_nil space_data['published'], space.published
+    assert_equal_or_nil space_data["name"], space.name
+    assert_equal_or_nil space_data["slug"], space.slug
+    assert_equal_or_nil space_data["published"], space.published
     # 🚅 super scaffolding will insert new fields above this line.
 
     assert_equal space_data["team_id"], space.team_id
@@ -90,8 +90,8 @@ class Api::V1::SpacesControllerTest < Api::Test
     put "/api/v1/spaces/#{@space.id}", params: {
       access_token: access_token,
       space: {
-        name: 'Alternative String Value',
-        slug: 'Alternative String Value',
+        name: "Alternative String Value",
+        slug: "Alternative String Value",
         # 🚅 super scaffolding will also insert new fields above this line.
       }
     }
@@ -103,8 +103,8 @@ class Api::V1::SpacesControllerTest < Api::Test
 
     # But we have to manually assert the value was properly updated.
     @space.reload
-    assert_equal @space.name, 'Alternative String Value'
-    assert_equal @space.slug, 'Alternative String Value'
+    assert_equal @space.name, "Alternative String Value"
+    assert_equal @space.slug, "Alternative String Value"
     # 🚅 super scaffolding will additionally insert new fields above this line.
 
     # Also ensure we can't do that same action as another user.

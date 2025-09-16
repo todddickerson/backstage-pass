@@ -59,7 +59,7 @@
         <code class="text-sm text-green-700 bg-green-100 px-2 py-1 rounded">
           backstagepass.app/@<%= @creator_profile.username %>
         </code>
-        <button onclick="copyToClipboard('https://backstagepass.app/@<%= @creator_profile.username %>')" 
+        <button onclick="copyToClipboard('<%= request.base_url %>/@<%= @creator_profile.username %>')" 
                 class="text-green-600 hover:text-green-800">
           <%= icon "ti ti-copy", class: "w-4 h-4" %>
         </button>
@@ -73,7 +73,7 @@
           <code class="text-sm text-blue-700 bg-blue-100 px-2 py-1 rounded">
             backstagepass.app/spaces/<%= @creator_profile.primary_space.slug %>
           </code>
-          <button onclick="copyToClipboard('https://backstagepass.app/spaces/<%= @creator_profile.primary_space.slug %>')" 
+          <button onclick="copyToClipboard('<%= request.base_url %>/spaces/<%= @creator_profile.primary_space.slug %>')" 
                   class="text-blue-600 hover:text-blue-800">
             <%= icon "ti ti-copy", class: "w-4 h-4" %>
           </button>

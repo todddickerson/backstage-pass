@@ -23,20 +23,8 @@ en:
     fields: &fields
       id:
         heading: Access Pass ID
-      team_id:
-        heading: Team ID
-      status:
-        _: &status Status
-        label: *status
-        heading: *status
-        api_title: *status
-        api_description: *status
-      expires_at:
-        _: &expires_at Expires At
-        label: *expires_at
-        heading: *expires_at
-        api_title: *expires_at
-        api_description: *expires_at
+      space_id:
+        heading: Space ID
       # 🚅 super scaffolding will insert new fields above this line.
       created_at:
         _: &created_at Added
@@ -56,28 +44,28 @@ en:
       destroy: "Delete a Access Pass"
       fields: *fields
     index:
-      section: "%{teams_possessive} Access Passes"
+      section: "%{spaces_possessive} Access Passes"
       contexts:
-        team:
+        space:
           header: Access Passes
-          description: Below is a list of Access Passes that have been added for %{team_name}.
-          description_empty: No Access Passes have been added for %{team_name}.
+          description: Below is a list of Access Passes that have been added for %{space_name}.
+          description_empty: No Access Passes have been added for %{space_name}.
       fields: *fields
       buttons: *buttons
     show:
       section: "%{access_pass_name}"
       header: Access Pass Details
       description: Below are the details we have for %{access_pass_name}.
-      manage_description: You'll also find options for updating these details or removing %{access_pass_name} from %{team_name} entirely.
+      manage_description: You'll also find options for updating these details or removing %{access_pass_name} from %{space_name} entirely.
       fields: *fields
       buttons: *buttons
     form: &form
       buttons: *buttons
       fields: *fields
     new:
-      section: "New Access Pass for %{team_name}"
+      section: "New Access Pass for %{space_name}"
       header: New Access Pass Details
-      description: Please provide the details of the new Access Pass you'd like to add to %{team_name}.
+      description: Please provide the details of the new Access Pass you'd like to add to %{space_name}.
       form: *form
     edit:
       section: "%{access_pass_name}"
@@ -89,12 +77,10 @@ en:
       updated: Access Pass was successfully updated.
       destroyed: Access Pass was successfully destroyed.
   account:
-    access_passes: *access_passes
+    # 🚅 super scaffolding will insert the export for the locale view helper here.
   activerecord:
     attributes:
       access_pass:
-        status: *status
-        expires_at: *expires_at
         # 🚅 super scaffolding will insert new activerecord attributes above this line.
         created_at: *created_at
         updated_at: *updated_at

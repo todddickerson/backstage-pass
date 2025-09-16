@@ -1,0 +1,115 @@
+en:
+  access_pass_experiences: &access_pass_experiences
+    label: &label Access Pass Experiences
+    breadcrumbs:
+      label: *label
+    navigation:
+      label: *label
+      icon: fal fa-puzzle-piece
+    buttons: &buttons
+      new: Add New Access Pass Experience
+      create: Create Access Pass Experience
+      edit: Edit Access Pass Experience
+      update: Update Access Pass Experience
+      destroy: Remove Access Pass Experience
+      shorthand:
+        edit: Edit
+        destroy: Delete
+      confirmations:
+        # TODO customize for your use-case.
+        destroy: Are you sure you want to remove %{access_pass_experience_name}? This will also remove any child resources and can't be undone.
+    access_pass_experience:
+      buttons: *buttons
+    fields: &fields
+      id:
+        heading: Access Pass Experience ID
+      access_pass_id:
+        heading: Access Pass ID
+      experience:
+        _: &experience Experience
+        label: *experience
+        heading: *experience
+        api_title: *experience
+        api_description: *experience
+        placeholder: Select
+        options:
+          one: One
+          two: Two
+          three: Three
+      included:
+        _: &included Included
+        label: *included
+        heading: *included
+        api_title: *included
+        api_description: *included
+        options:
+          yes: "Yes"
+          no: "No"
+      position:
+        _: &position Position
+        label: *position
+        heading: *position
+        api_title: *position
+        api_description: *position
+      # 🚅 super scaffolding will insert new fields above this line.
+      created_at:
+        _: &created_at Added
+        label: *created_at
+        heading: *created_at
+      updated_at:
+        _: &updated_at Updated
+        label: *updated_at
+        heading: *updated_at
+    api:
+      collection_actions: "Collection Actions for Access Pass Experiences"
+      index: "List Access Pass Experiences"
+      create: "Add a New Access Pass Experience"
+      member_actions: "Actions for an Individual Access Pass Experience"
+      show: "Retrieve a Access Pass Experience"
+      update: "Update a Access Pass Experience"
+      destroy: "Delete a Access Pass Experience"
+      fields: *fields
+    index:
+      section: "%{access_passes_possessive} Access Pass Experiences"
+      contexts:
+        access_pass:
+          header: Access Pass Experiences
+          description: Below is a list of Access Pass Experiences that have been added for %{access_pass_name}.
+          description_empty: No Access Pass Experiences have been added for %{access_pass_name}.
+      fields: *fields
+      buttons: *buttons
+    show:
+      section: "%{access_pass_experience_name}"
+      header: Access Pass Experience Details
+      description: Below are the details we have for %{access_pass_experience_name}.
+      manage_description: You'll also find options for updating these details or removing %{access_pass_experience_name} from %{access_pass_name} entirely.
+      fields: *fields
+      buttons: *buttons
+    form: &form
+      buttons: *buttons
+      fields: *fields
+    new:
+      section: "New Access Pass Experience for %{access_pass_name}"
+      header: New Access Pass Experience Details
+      description: Please provide the details of the new Access Pass Experience you'd like to add to %{access_pass_name}.
+      form: *form
+    edit:
+      section: "%{access_pass_experience_name}"
+      header: Edit Access Pass Experience Details
+      description: You can update the details or settings for %{access_pass_experience_name} below.
+      form: *form
+    notifications:
+      created: Access Pass Experience was successfully created.
+      updated: Access Pass Experience was successfully updated.
+      destroyed: Access Pass Experience was successfully destroyed.
+  account:
+    access_pass_experiences: *access_pass_experiences
+  activerecord:
+    attributes:
+      access_pass_experience:
+        experience: *experience
+        included: *included
+        position: *position
+        # 🚅 super scaffolding will insert new activerecord attributes above this line.
+        created_at: *created_at
+        updated_at: *updated_at

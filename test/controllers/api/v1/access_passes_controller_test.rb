@@ -4,10 +4,11 @@ class Api::V1::AccessPassesControllerTest < Api::Test
   setup do
     # See `test/controllers/api/test.rb` for common set up for API tests.
 
-    @access_pass = build(:access_pass, team: @team)
+    @space = create(:space, team: @team)
+    @access_pass = build(:access_pass, space: @space)
     @other_access_passes = create_list(:access_pass, 3)
 
-    @another_access_pass = create(:access_pass, team: @team)
+    @another_access_pass = create(:access_pass, space: @space)
 
     # 🚅 super scaffolding will insert file-related logic above this line.
     @access_pass.save
@@ -29,16 +30,14 @@ class Api::V1::AccessPassesControllerTest < Api::Test
     # Fetch the access_pass in question and prepare to compare it's attributes.
     access_pass = AccessPass.find(access_pass_data["id"])
 
-    assert_equal_or_nil access_pass_data['status'], access_pass.status
-    assert_equal_or_nil DateTime.parse(access_pass_data['expires_at']), access_pass.expires_at
     # 🚅 super scaffolding will insert new fields above this line.
 
-    assert_equal access_pass_data["team_id"], access_pass.team_id
+    assert_equal access_pass_data["space_id"], access_pass.space_id
   end
 
   test "index" do
     # Fetch and ensure nothing is seriously broken.
-    get "/api/v1/teams/#{@team.id}/access_passes", params: {access_token: access_token}
+    get "/api/v1/spaces/#{@space.id}/access_passes", params: {access_token: access_token}
     assert_response :success
 
     # Make sure it's returning our resources.
@@ -68,18 +67,18 @@ class Api::V1::AccessPassesControllerTest < Api::Test
   test "create" do
     # Use the serializer to generate a payload, but strip some attributes out.
     params = {access_token: access_token}
-    access_pass_data = JSON.parse(build(:access_pass, team: nil).api_attributes.to_json)
-    access_pass_data.except!("id", "team_id", "created_at", "updated_at")
+    access_pass_data = JSON.parse(build(:access_pass, space: nil).api_attributes.to_json)
+    access_pass_data.except!("id", "space_id", "created_at", "updated_at")
     params[:access_pass] = access_pass_data
 
-    post "/api/v1/teams/#{@team.id}/access_passes", params: params
+    post "/api/v1/spaces/#{@space.id}/access_passes", params: params
     assert_response :success
 
     # # Ensure all the required data is returned properly.
     assert_proper_object_serialization response.parsed_body
 
     # Also ensure we can't do that same action as another user.
-    post "/api/v1/teams/#{@team.id}/access_passes",
+    post "/api/v1/spaces/#{@space.id}/access_passes",
       params: params.merge({access_token: another_access_token})
     assert_response :not_found
   end
@@ -89,7 +88,6 @@ class Api::V1::AccessPassesControllerTest < Api::Test
     put "/api/v1/access_passes/#{@access_pass.id}", params: {
       access_token: access_token,
       access_pass: {
-        status: 'Alternative String Value',
         # 🚅 super scaffolding will also insert new fields above this line.
       }
     }
@@ -101,7 +99,6 @@ class Api::V1::AccessPassesControllerTest < Api::Test
 
     # But we have to manually assert the value was properly updated.
     @access_pass.reload
-    assert_equal @access_pass.status, 'Alternative String Value'
     # 🚅 super scaffolding will additionally insert new fields above this line.
 
     # Also ensure we can't do that same action as another user.

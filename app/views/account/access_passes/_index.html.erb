@@ -1,6 +1,6 @@
 <% access_passes = access_passes.accessible_by(current_ability) %>
-<% team = @team %>
-<% context ||= team %>
+<% space = @space || @space %>
+<% context ||= space %>
 <% collection ||= :access_passes %>
 <% hide_actions ||= false %>
 <% hide_back ||= false %>
@@ -23,8 +23,6 @@
             <thead>
               <tr>
                 <%= render "shared/tables/select_all" %>
-                <th><%= t('.fields.status.heading') %></th>
-                <th><%= t('.fields.expires_at.heading') %></th>
                 <%# 🚅 super scaffolding will insert new field headers above this line. %>
                 <th><%= t('.fields.created_at.heading') %></th>
                 <th class="text-right"></th>
@@ -39,9 +37,9 @@
 
       <% box.actions do %>
         <% unless hide_actions %>
-          <% if context == team %>
-            <% if can? :create, AccessPass.new(team: team) %>
-              <%= link_to t('.buttons.new'), [:new, :account, team, :access_pass], class: "#{first_button_primary(:access_pass)} new" %>
+          <% if context == space %>
+            <% if can? :create, AccessPass.new(space: space) %>
+              <%= link_to t('.buttons.new'), [:new, :account, space, :access_pass], class: "#{first_button_primary(:access_pass)} new" %>
             <% end %>
           <% end %>
 
