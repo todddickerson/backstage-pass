@@ -1,0 +1,8 @@
+<% purchase ||= @purchase %>
+<% team ||= @team || purchase&.team %>
+<%= render 'account/teams/breadcrumbs', team: team %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, team, :billing_purchases] %>
+<% if purchase&.persisted? %>
+  <%= render 'account/shared/breadcrumb', label: purchase.label_string, url: [:account, purchase] %>
+<% end %>
+<%= render 'account/shared/breadcrumbs/actions', only_for: 'billing/purchases' %>

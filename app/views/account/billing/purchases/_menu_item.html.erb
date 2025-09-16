@@ -1,0 +1,10 @@
+<% if can? :read, Billing::Purchase.new(team: current_team) %>
+  <%= render 'account/shared/menu/item', {
+    url: main_app.polymorphic_path([:account, current_team, :billing_purchases]),
+    label: t('billing/purchases.navigation.label'),
+  } do |p| %>
+    <% p.icon do %>
+      <i class="<%= t('billing/purchases.navigation.icon') %>"></i>
+    <% end %>
+  <% end %>
+<% end %>

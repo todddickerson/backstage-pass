@@ -1,5 +1,6 @@
 default:
   models:
+    Billing::Purchase: read
     AccessPassExperience: read
     AccessPass: read
     Experience: read
@@ -26,6 +27,18 @@ viewer:
     Team: read
     Membership: read
 
+buyer:
+  # Buyers can only see what they've purchased
+  # Their actual permissions come from AccessGrant records
+  models:
+    Space: read
+    AccessPass: read
+    Experience: read
+    AccessGrant: read
+    Billing::Purchase: read
+    Team: read
+    Membership: read
+
 editor:
   models:
     Scaffolding::CompletelyConcrete::TangibleThing: manage
@@ -41,7 +54,9 @@ admin:
     - admin
     - editor
     - viewer
+    - buyer
   models:
+    Billing::Purchase: manage
     AccessPassExperience: manage
     AccessPass: manage
     Experience: manage

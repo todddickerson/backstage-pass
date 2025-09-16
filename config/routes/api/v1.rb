@@ -33,10 +33,13 @@ shallow do
 
       resources :spaces do
         resources :experiences
+        resources :access_passes do
+          resources :access_pass_experiences
+        end
       end
 
-      resources :access_passes do
-        resources :access_pass_experiences
+      namespace :billing do
+        resources :purchases
       end
     end
   end

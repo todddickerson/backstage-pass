@@ -24,7 +24,6 @@ class Creators::Profile < ApplicationRecord
 
   delegate :email, :name, to: :user, prefix: false
   # 🚅 add delegations above.
-
   # Use username directly for @username routes (no FriendlyId needed)
   def to_param
     username
