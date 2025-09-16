@@ -1,42 +1,39 @@
 # Current Task Context
 
-## 🎯 Working on Issue #8
+## 🎯 Working on Issue #7
 
-### Title: STORY 12: Native Video Streaming - LiveKit Mobile Integration
+### Title: STORY 11: Mobile App Installation - Hotwire Native Setup
 
 ### Description:
-**User Story**: As a mobile viewer I want to watch streams with native video players so that I get optimal performance and battery life
+**User Story**: As a viewer I want to download the Backstage Pass mobile app so that I can have a better streaming experience
 
 **Acceptance Criteria:**
-- [ ] Native video player launches for streams
-- [ ] Video continues in background (audio only)
-- [ ] Picture-in-picture mode supported
-- [ ] Screen rotation handled natively
-- [ ] Low latency (<2 seconds)
-- [ ] Adaptive bitrate for mobile networks
+- [ ] Can install iOS app via TestFlight
+- [ ] Can install Android app via internal testing
+- [ ] App opens to Space discovery screen
+- [ ] Can sign in with email
+- [ ] Receives push notifications for streams
 
 **Technical Requirements:**
-- LiveKit iOS SDK integration
-- LiveKit Android SDK integration
-- JavaScript bridge for player control
-- Native player UI components  
-- Background audio permissions
+- Hotwire Native iOS wrapper (Swift) - 2025 simplified approach
+- Hotwire Native Android wrapper (Kotlin) - 2025 simplified approach  
+- Push notification setup (Firebase/APNS)
+- Native authentication bridge
 
-**Bridge Components:**
-- BridgeComponent pattern for video player
-- Native/web communication for stream control
-- Platform detection for web fallback
+**Implementation:**
+- iOS: ~20 lines of code with 2025 patterns
+- Android: ~15 lines of code with 2025 patterns
+- Path configuration for both platforms
 
 **Dependencies:**
+```ruby
+# Gemfile additions
+gem 'hotwire-native-rails', '~> 1.0'
+gem 'rpush', '~> 8.0'
+gem 'device_detector', '~> 1.1'
 ```
-# iOS Package.swift
-.package(url: "https://github.com/livekit/client-sdk-swift", from: "2.0.0")
 
-# Android build.gradle  
-implementation 'io.livekit:livekit-android:2.0.0'
-```
-
-### Branch: issue-8
+### Branch: issue-7
 
 ## 📋 Implementation Checklist:
 - [ ] Review issue requirements above
@@ -65,7 +62,7 @@ git status
 git diff
 
 # When complete
-bin/gh-complete 8 "PR title describing changes"
+bin/gh-complete 7 "PR title describing changes"
 ```
 
 ## 📚 Key Documentation:
@@ -82,4 +79,4 @@ bin/gh-complete 8 "PR title describing changes"
 - Always validate namespacing before generating models
 
 ---
-*Context generated at: Tue Sep 16 13:48:45 EDT 2025*
+*Context generated at: Tue Sep 16 14:44:59 EDT 2025*
