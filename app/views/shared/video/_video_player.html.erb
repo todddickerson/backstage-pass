@@ -1,0 +1,255 @@
+<%
+  # Video Player Widget - Adaptive for web/mobile/native
+  # Uses bridge--video controller for LiveKit streaming
+  
+  # Platform detection
+  is_mobile = request.user_agent =~ /Mobile|Android|iPhone|iPad/
+  is_native = request.headers['X-Hotwire-Native'] == 'true'
+  platform = is_native ? 'native' : (is_mobile ? 'mobile' : 'web')
+  
+  # Stream data for video player
+  stream_data = {
+    stream_id: stream.id,
+    room_name: stream.room_name,
+    platform: platform,
+    can_publish: (current_user && stream.can_broadcast?(current_user)),
+    participant_identity: current_user ? "user_#{current_user.id}" : nil,
+    participant_name: current_user ? (current_user.name || current_user.email.split('@').first) : nil
+  }
+%>
+
+<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <!-- Video Player Header -->
+  <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900"><%= stream.title %></h3>
+          <div class="flex items-center space-x-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-<%= stream.live? ? 'red' : 'gray' %>-100 text-<%= stream.live? ? 'red' : 'gray' %>-800">
+              <%= stream.live? ? 'LIVE' : stream.status.humanize %>
+            </span>
+            <span data-bridge--video-target="statusIndicator" 
+                  class="status-indicator text-sm text-gray-600">
+              <%= stream.live? ? 'Ready' : 'Offline' %>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Player Controls -->
+      <div class="flex items-center space-x-2">
+        <% if current_user && stream.can_broadcast?(current_user) %>
+          <!-- Broadcaster Controls -->
+          <% if stream.live? %>
+            <button type="button" 
+                    data-action="click->bridge--video#toggleMute"
+                    class="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+              </svg>
+              Mute
+            </button>
+            <button type="button" 
+                    data-action="click->bridge--video#toggleVideo"
+                    class="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              Camera
+            </button>
+          <% end %>
+        <% end %>
+        
+        <!-- Picture-in-Picture (mobile/native) -->
+        <% if is_mobile || is_native %>
+          <button type="button" 
+                  data-action="click->bridge--video#enterPictureInPicture"
+                  class="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            PiP
+          </button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Player Container -->
+  <div class="relative bg-black" 
+       data-controller="bridge--video"
+       data-bridge--video-stream-id-value="<%= stream.id %>"
+       data-bridge--video-room-name-value="<%= stream.room_name %>"
+       data-bridge--video-platform-value="<%= platform %>"
+       data-bridge--video-can-publish-value="<%= stream_data[:can_publish] %>"
+       data-bridge--video-participant-identity-value="<%= stream_data[:participant_identity] %>"
+       data-bridge--video-participant-name-value="<%= stream_data[:participant_name] %>"
+       data-player-state="initializing">
+    
+    <!-- Video Player Target -->
+    <div data-bridge--video-target="player" 
+         class="w-full aspect-video bg-black rounded-b-lg flex items-center justify-center">
+      
+      <% if stream.live? %>
+        <!-- Loading State -->
+        <div class="text-center text-white">
+          <div class="w-16 h-16 mx-auto mb-4 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Connecting to Live Stream</h3>
+          <p class="text-sm text-gray-300">Setting up your video connection...</p>
+        </div>
+      <% else %>
+        <!-- Stream Offline -->
+        <div class="text-center text-white max-w-md">
+          <div class="w-16 h-16 mx-auto mb-4 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Stream Offline</h3>
+          <p class="text-sm text-gray-300 mb-4">
+            This stream is not currently live. 
+            <% if stream.scheduled_at&.future? %>
+              Scheduled for <%= stream.scheduled_at.strftime("%B %d, %Y at %I:%M %p") %>.
+            <% else %>
+              Check back later or enable notifications.
+            <% end %>
+          </p>
+          
+          <% if current_user && stream.can_broadcast?(current_user) && stream.scheduled? %>
+            <button type="button"
+                    data-stream-id="<%= stream.id %>"
+                    data-action="click->bridge--video#startBroadcast"
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1M9 16h6m-7 4h8a2 2 0 002-2V6a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              Start Live Stream
+            </button>
+          <% end %>
+        </div>
+      <% end %>
+      
+    </div>
+
+    <!-- Video Player Controls (overlay when active) -->
+    <div data-bridge--video-target="controls" 
+         class="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 rounded-lg p-3 opacity-0 transition-opacity duration-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <!-- Time / Quality indicator -->
+          <span class="text-white text-sm">
+            <span data-bridge--video-target="connectionQuality">HD</span>
+            • <span data-bridge--video-target="latency">Low Latency</span>
+          </span>
+        </div>
+        
+        <div class="flex items-center space-x-2">
+          <!-- Native-specific controls -->
+          <% if is_native %>
+            <button type="button" 
+                    data-action="click->bridge--video#switchCamera"
+                    class="text-white hover:text-gray-300">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </button>
+          <% end %>
+          
+          <!-- Fullscreen toggle -->
+          <button type="button" 
+                  data-action="click->bridge--video#toggleFullscreen"
+                  class="text-white hover:text-gray-300">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stream Info Footer -->
+  <div class="px-4 py-3 bg-gray-50 border-t border-gray-200">
+    <div class="flex items-center justify-between text-sm text-gray-600">
+      <div class="flex items-center space-x-4">
+        <span>
+          <span data-bridge--video-target="viewerCount" class="font-medium">0</span> viewers
+        </span>
+        <% if stream.experience %>
+          <span>
+            <%= link_to stream.experience.name, 
+                [:account, stream.experience], 
+                class: "text-blue-600 hover:text-blue-500" %>
+          </span>
+        <% end %>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+        <% if is_mobile || is_native %>
+          <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <%= platform.humanize %> Optimized
+          </span>
+        <% end %>
+        
+        <% if current_user && !stream.can_view?(current_user) %>
+          <%= link_to "Get Access Pass", 
+              [:account, stream.experience.space, :access_passes],
+              class: "inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript initialization for video token fetching -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const videoController = document.querySelector('[data-controller*="bridge--video"]');
+    if (videoController) {
+      // Fetch video connection info when component loads
+      const streamId = videoController.dataset.bridgeVideoStreamIdValue;
+      
+      <% if current_user && stream.can_view?(current_user) && stream.live? %>
+        // Fetch video token for authenticated users with access
+        fetch(`/account/streams/${streamId}/video_token`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Update video controller with connection info
+            Object.assign(videoController.dataset, {
+              bridgeVideoRoomUrlValue: data.room_url,
+              bridgeVideoAccessTokenValue: data.access_token,
+              bridgeVideoRoomNameValue: data.room_name,
+              bridgeVideoParticipantIdentityValue: data.participant_identity,
+              bridgeVideoParticipantNameValue: data.participant_name
+            });
+            
+            // Trigger connection
+            videoController.dispatchEvent(new CustomEvent('videoTokenReceived', { detail: data }));
+          } else {
+            console.error('Failed to get video token:', data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching video token:', error);
+        });
+      <% end %>
+    }
+  });
+</script>

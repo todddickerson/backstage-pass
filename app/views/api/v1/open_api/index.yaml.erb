@@ -29,6 +29,7 @@ components:
     <%= automatic_components_for Billing::Purchase %>
     <%= automatic_components_for Stream %>
     <%= automatic_components_for Streaming::ChatRoom %>
+    <%= automatic_components_for AccessPasses::WaitlistEntry %>
     <%# 🚅 super scaffolding will insert new components above this line. %>
   parameters:
     id:
@@ -71,4 +72,5 @@ paths:
   <%= automatic_paths_for Billing::Purchase, Team %>
   <%= automatic_paths_for Stream, Experience %>
   <%= automatic_paths_for Streaming::ChatRoom, Stream %>
+  <%= automatic_paths_for AccessPasses::WaitlistEntry, AccessPass %>
   <%# 🚅 super scaffolding will insert new paths above this line. %>

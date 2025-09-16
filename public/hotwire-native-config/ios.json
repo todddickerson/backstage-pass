@@ -1,0 +1,102 @@
+{
+  "settings": {
+    "enable_debug_logging": false,
+    "screenshots_enabled": false
+  },
+  "rules": [
+    {
+      "patterns": [
+        "/users/sign_in",
+        "/users/sign_up",
+        "/users/sign_out"
+      ],
+      "properties": {
+        "presentation": "replace",
+        "context": "modal"
+      }
+    },
+    {
+      "patterns": [
+        "/account/streams/.*/live",
+        "/streams/.*/live",
+        "/*/experiences/.*/streams/.*/live"
+      ],
+      "properties": {
+        "presentation": "replace",
+        "context": "default",
+        "native_controller": "LiveStreamController"
+      }
+    },
+    {
+      "patterns": [
+        "/account/spaces/.*/access_passes/new",
+        "/*/access_passes/new",
+        "/checkout"
+      ],
+      "properties": {
+        "presentation": "modal",
+        "context": "modal",
+        "pull_to_dismiss": false
+      }
+    },
+    {
+      "patterns": [
+        ".*\\.(pdf|doc|docx|xls|xlsx|zip|rar)"
+      ],
+      "properties": {
+        "presentation": "external"
+      }
+    },
+    {
+      "patterns": [
+        "/account/users/edit",
+        "/account/teams/.*/edit",
+        "/account/spaces/.*/edit"
+      ],
+      "properties": {
+        "presentation": "modal",
+        "context": "modal",
+        "pull_to_dismiss": true
+      }
+    },
+    {
+      "patterns": [
+        "/explore",
+        "/",
+        "/account/dashboard"
+      ],
+      "properties": {
+        "presentation": "replace",
+        "context": "default",
+        "clear_snapshot_cache": true
+      }
+    }
+  ],
+  "bridges": {
+    "video": {
+      "enabled": true,
+      "features": {
+        "background_audio": true,
+        "picture_in_picture": true,
+        "airplay": true,
+        "adaptive_bitrate": true
+      }
+    },
+    "authentication": {
+      "enabled": true,
+      "biometric": true,
+      "keychain": true
+    },
+    "push_notifications": {
+      "enabled": true,
+      "permission_prompt_delay": 86400,
+      "foreground_presentation": "banner"
+    },
+    "sharing": {
+      "enabled": true
+    },
+    "haptics": {
+      "enabled": true
+    }
+  }
+}

@@ -1,0 +1,27 @@
+<% access_pass = @access_pass || @access_pass %>
+<% context ||= access_pass %>
+<% collection ||= :waitlist_entries %>
+<% hide_actions ||= false %>
+<% hide_back ||= false %>
+
+<% with_attribute_settings object: waitlist_entry do %>
+  <tr data-id="<%= waitlist_entry.id %>">
+    <%= render "shared/tables/checkbox", object: waitlist_entry %>
+    <td><%= render 'shared/attributes/email', attribute: :email, url: [:account, waitlist_entry] %></td>
+    <td><%= render 'shared/attributes/text', attribute: :first_name %></td>
+    <td><%= render 'shared/attributes/text', attribute: :last_name %></td>
+    <%# 🚅 super scaffolding will insert new fields above this line. %>
+    <td><%= render 'shared/attributes/date_and_time', attribute: :created_at %></td>
+    <td class="buttons">
+      <% unless hide_actions %>
+        <% if can? :edit, waitlist_entry %>
+          <%= link_to t('.buttons.shorthand.edit'), [:edit, :account, waitlist_entry], class: 'button-secondary button-smaller' %>
+        <% end %>
+        <% if can? :destroy, waitlist_entry %>
+          <%= button_to t('.buttons.shorthand.destroy'), [:account, waitlist_entry], method: :delete, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(waitlist_entry)) }, class: 'button-secondary button-smaller' %>
+        <% end %>
+        <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
+      <% end %>
+    </td>
+  </tr>
+<% end %>

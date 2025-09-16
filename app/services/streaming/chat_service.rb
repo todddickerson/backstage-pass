@@ -1,28 +1,27 @@
+require 'stream-chat'
+
 module Streaming
   class ChatService
     attr_reader :client
 
     def initialize
       @client = StreamChat::Client.new(
-        api_key: ENV['GETSTREAM_API_KEY'],
-        api_secret: ENV['GETSTREAM_API_SECRET']
+        ENV['GETSTREAM_API_KEY'],
+        ENV['GETSTREAM_API_SECRET']
       )
     end
 
     # Create a chat room for a stream or experience
     def create_chat_room(chatroom_id:, name:, created_by_user_id:, metadata: {})
       channel_data = {
-        name: name,
-        created_by_id: created_by_user_id,
-        custom: metadata
+        'name' => name,
+        'created_by_id' => created_by_user_id,
+        'custom' => metadata
       }
 
-      client.create_channel_type(
-        name: 'livestream',
-        **channel_data
-      )
-
-      client.channel('livestream', chatroom_id, channel_data)
+      # Note: Channel types like 'livestream' are pre-defined in GetStream.io
+      # We just create channel instances, not channel types
+      client.channel('livestream', channel_id: chatroom_id, data: channel_data)
     end
 
     # Generate user token for authentication

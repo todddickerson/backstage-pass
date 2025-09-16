@@ -205,6 +205,9 @@ end
 group :development, :test do
   # A great debugger.
   gem "pry"
+  
+  # Generate fake data for seeds and tests
+  gem "faker"
 end
 
 group :production do
@@ -275,8 +278,10 @@ gem "livekit-server-sdk"
 gem "mux_ruby"
 gem "stream-chat-ruby"  # GetStream.io chat integration
 
-# Mobile
+# Mobile / Hotwire Native
 gem "turbo-native-initializer"
+# gem "rpush", "~> 8.0"  # Push notifications - Not Rails 8 compatible yet
+gem "device_detector", "~> 1.1"  # Device detection for mobile apps
 
 # Marketplace Features
 gem "money-rails", "~> 1.15"
@@ -286,7 +291,13 @@ gem "friendly_id", "~> 5.5"
 # gem 'ruby-openai'  # Already uncommented in optional section above
 gem "streamio-ffmpeg"
 
+# Security
+gem "secure_headers", "~> 6.5"  # Security headers middleware
+gem "rack-attack", "~> 6.7"      # Rate limiting and throttling
+
 # Development Tools
 group :development do
   gem "bullet"  # N+1 query detection
+  gem "brakeman", require: false  # Security vulnerability scanner
+  gem "bundler-audit", require: false  # Check for vulnerable gem versions
 end

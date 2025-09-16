@@ -29,3 +29,25 @@
 <%= capybara_lockstep if defined?(Capybara::Lockstep) %>
 
 <% # put your application-specific additions below to avoid merge conflicts later. %>
+
+<% # Mobile app detection and configuration %>
+<% if hotwire_native_app? %>
+  <meta name="hotwire-native-version" content="1.0">
+  <meta name="hotwire-native-config" content="<%= "/hotwire-native-config/#{platform}.json" %>">
+  
+  <% # iOS specific %>
+  <% if ios_app? %>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <% end %>
+  
+  <% # Android specific %>
+  <% if android_app? %>
+    <meta name="theme-color" content="#1a1a1a">
+  <% end %>
+<% elsif mobile_app? %>
+  <% # Mobile web specific %>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<% end %>
