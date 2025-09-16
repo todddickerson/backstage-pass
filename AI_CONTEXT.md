@@ -1,43 +1,36 @@
 # Current Task Context
 
-## 🎯 Working on Issue #9
+## 🎯 Working on Issue #4
 
-### Title: GetStream.io Chat Integration - Real-time Chat System
+### Title: STORY 3: Live Stream Hosting - Stream Model with LiveKit
 
 ### Description:
-**Feature**: Integrate GetStream.io for robust chat functionality across web and mobile
+**User Story**: As a creator I want to host live streams for my paying audience so that I can deliver exclusive content
 
-**Requirements:**
-- [ ] GetStream.io setup and configuration
-- [ ] Chat rooms for each live stream
-- [ ] Real-time messaging during streams
-- [ ] Moderation tools for creators
-- [ ] Mobile chat integration
-- [ ] Message history and persistence
+**Acceptance Criteria:**
+- [ ] Can schedule a stream with title and description
+- [ ] Can go live with webcam and screen share
+- [ ] Can see viewer count and chat
+- [ ] Can moderate chat (delete messages, ban users)
+- [ ] Can end stream and it saves as recording
+- [ ] Only users with valid Access Pass can view
 
-**Technical Implementation:**
-- GetStream.io JavaScript SDK for web
-- Native chat components for mobile
-- Creator moderation interface
-- Access control (only AccessPass holders can chat)
+**Technical Requirements:**
+- LiveKit integration for WebRTC streaming (NOT GetStream.io for video)
+- GetStream.io for chat functionality
+- Stream model with status states (NOT NAMESPACED - primary subject)
+- Recording to Cloudflare R2
 
-**Integration Points:**
-- Stream model integration with chat rooms
-- User authentication with GetStream tokens
-- Mobile bridge for chat functionality
+**Super Scaffold Commands:**
+```bash
+# FIRST: Validate namespacing
+ruby .claude/validate-namespacing.rb "rails generate super_scaffold Stream Experience ..."
 
-**Dependencies:**
-```ruby
-gem 'stream-chat-ruby'
+# Create Stream model
+rails generate super_scaffold Stream Experience title:text_field description:trix_editor scheduled_at:date_and_time_field status:options{scheduled,live,ended}
 ```
 
-**Environment Variables:**
-```yaml
-GETSTREAM_API_KEY: xxx
-GETSTREAM_API_SECRET: xxx  
-```
-
-### Branch: issue-9
+### Branch: issue-4
 
 ## 📋 Implementation Checklist:
 - [ ] Review issue requirements above
@@ -66,7 +59,7 @@ git status
 git diff
 
 # When complete
-bin/gh-complete 9 "PR title describing changes"
+bin/gh-complete 4 "PR title describing changes"
 ```
 
 ## 📚 Key Documentation:
@@ -83,4 +76,4 @@ bin/gh-complete 9 "PR title describing changes"
 - Always validate namespacing before generating models
 
 ---
-*Context generated at: Tue Sep 16 13:16:03 EDT 2025*
+*Context generated at: Tue Sep 16 13:21:33 EDT 2025*
