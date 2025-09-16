@@ -1,4 +1,8 @@
 en:
+  account:
+    teams:
+      breadcrumbs:
+        dashboard: Dashboard
   teams:
     fields:
       _:

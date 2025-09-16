@@ -107,6 +107,144 @@ class Account::StreamsController < Account::ApplicationController
     end
   end
 
+  # GET /account/streams/:id/video_token
+  def video_token
+    unless @stream.can_view?(current_user)
+      render json: { 
+        success: false, 
+        message: "Access Pass required to view stream" 
+      }, status: :forbidden
+      return
+    end
+
+    livekit_service = Streaming::LivekitService.new
+    connection_info = livekit_service.generate_mobile_connection_info(@stream, current_user)
+    
+    render json: {
+      success: true,
+      **connection_info
+    }
+  rescue => e
+    Rails.logger.error "Failed to generate video token: #{e.message}"
+    render json: { 
+      success: false, 
+      message: "Unable to generate video token" 
+    }, status: :internal_server_error
+  end
+
+  # POST /account/streams/:id/start_stream
+  def start_stream
+    unless @stream.can_broadcast?(current_user)
+      render json: { 
+        success: false, 
+        message: "Not authorized to broadcast this stream" 
+      }, status: :forbidden
+      return
+    end
+
+    if @stream.live?
+      render json: { 
+        success: false, 
+        message: "Stream is already live" 
+      }, status: :unprocessable_entity
+      return
+    end
+
+    livekit_service = Streaming::LivekitService.new
+    
+    begin
+      # Create LiveKit room
+      room = livekit_service.create_room(@stream)
+      
+      # Update stream status
+      @stream.update!(status: :live)
+      
+      # Generate broadcaster token
+      connection_info = livekit_service.generate_mobile_connection_info(@stream, current_user)
+      
+      render json: {
+        success: true,
+        message: "Stream started successfully",
+        room_name: room.name,
+        **connection_info
+      }
+    rescue => e
+      Rails.logger.error "Failed to start stream: #{e.message}"
+      render json: { 
+        success: false, 
+        message: "Failed to start stream: #{e.message}" 
+      }, status: :internal_server_error
+    end
+  end
+
+  # POST /account/streams/:id/stop_stream
+  def stop_stream
+    unless @stream.can_broadcast?(current_user)
+      render json: { 
+        success: false, 
+        message: "Not authorized to control this stream" 
+      }, status: :forbidden
+      return
+    end
+
+    unless @stream.live?
+      render json: { 
+        success: false, 
+        message: "Stream is not currently live" 
+      }, status: :unprocessable_entity
+      return
+    end
+
+    livekit_service = Streaming::LivekitService.new
+    
+    begin
+      # Delete LiveKit room
+      livekit_service.delete_room(@stream)
+      
+      # Update stream status
+      @stream.update!(status: :ended)
+      
+      render json: {
+        success: true,
+        message: "Stream stopped successfully"
+      }
+    rescue => e
+      Rails.logger.error "Failed to stop stream: #{e.message}"
+      render json: { 
+        success: false, 
+        message: "Failed to stop stream: #{e.message}" 
+      }, status: :internal_server_error
+    end
+  end
+
+  # GET /account/streams/:id/room_info
+  def room_info
+    unless @stream.can_view?(current_user)
+      render json: { 
+        success: false, 
+        message: "Access Pass required to view stream" 
+      }, status: :forbidden
+      return
+    end
+
+    livekit_service = Streaming::LivekitService.new
+    room_info = livekit_service.get_room_info(@stream)
+    participants = livekit_service.get_room_participants(@stream)
+    
+    render json: {
+      success: true,
+      room_info: room_info,
+      participants: participants,
+      participant_count: participants&.length || 0
+    }
+  rescue => e
+    Rails.logger.error "Failed to get room info: #{e.message}"
+    render json: { 
+      success: false, 
+      message: "Unable to get room information" 
+    }, status: :internal_server_error
+  end
+
   private
 
   if defined?(Api::V1::ApplicationController)
