@@ -286,7 +286,13 @@ gem "friendly_id", "~> 5.5"
 # gem 'ruby-openai'  # Already uncommented in optional section above
 gem "streamio-ffmpeg"
 
+# Security
+gem "secure_headers", "~> 6.5"  # Security headers middleware
+gem "rack-attack", "~> 6.7"      # Rate limiting and throttling
+
 # Development Tools
 group :development do
   gem "bullet"  # N+1 query detection
+  gem "brakeman", require: false  # Security vulnerability scanner
+  gem "bundler-audit", require: false  # Check for vulnerable gem versions
 end
