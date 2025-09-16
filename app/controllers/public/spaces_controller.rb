@@ -5,10 +5,11 @@
 # No authentication required.
 
 class Public::SpacesController < Public::ApplicationController
+
   def show
     # Direct slug lookup since we're using root-level routes
     @space = Space.friendly.find(params[:space_slug])
-
+    
     # Ensure the space is published for public viewing
     unless @space.published?
       raise ActiveRecord::RecordNotFound, "Space not found or not published"
