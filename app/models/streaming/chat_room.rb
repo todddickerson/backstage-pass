@@ -15,10 +15,9 @@ class Streaming::ChatRoom < ApplicationRecord
 
   # 🚅 add scopes above.
 
-  validates :channel_id, presence: true, uniqueness: true
+  validates :channel_id, uniqueness: true, allow_blank: true
   # 🚅 add validations above.
 
-  before_create :create_getstream_channel
   after_destroy :cleanup_getstream_channel
   # 🚅 add callbacks above.
 
@@ -93,13 +92,6 @@ class Streaming::ChatRoom < ApplicationRecord
   end
 
   private
-
-  def create_getstream_channel
-    return true if channel_id.present?
-    
-    # Will be called after the record is saved in create_chat_channel!
-    true
-  end
 
   def cleanup_getstream_channel
     return unless channel_id.present?

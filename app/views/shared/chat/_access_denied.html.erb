@@ -1,0 +1,80 @@
+<%# 
+  Chat Access Denied Partial
+  
+  Shown when user doesn't have permission to access chat
+-%>
+
+<div id="chat-widget" class="chat-access-denied bg-red-50 border border-red-200 rounded-lg p-6">
+  <div class="flex items-start gap-4">
+    <!-- Icon -->
+    <div class="flex-shrink-0">
+      <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z">
+        </path>
+      </svg>
+    </div>
+    
+    <!-- Content -->
+    <div class="flex-1">
+      <h3 class="font-semibold text-red-900 mb-2">Chat Access Restricted</h3>
+      <p class="text-red-800 mb-4"><%= message %></p>
+      
+      <!-- Action buttons based on the issue -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <% if message.include?("Authentication required") %>
+          <%= link_to "Sign In", new_user_session_path, 
+              class: "inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors" %>
+          
+        <% elsif message.include?("Access Pass required") %>
+          <%= link_to "Get Access Pass", [:account, stream.experience.space, :access_passes], 
+              class: "inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors" %>
+          
+        <% elsif message.include?("banned") %>
+          <div class="text-sm text-red-700">
+            <p class="mb-2">If you believe this was a mistake, please contact:</p>
+            <ul class="list-disc list-inside space-y-1">
+              <li>Stream creator: <strong><%= stream.experience.space.team.name %></strong></li>
+              <li>Support team through the main website</li>
+            </ul>
+          </div>
+          
+        <% else %>
+          <%= link_to "Back to Stream", [:account, stream], 
+              class: "inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors" %>
+        <% end %>
+        
+        <!-- Refresh button -->
+        <button onclick="window.location.reload()" 
+                class="inline-flex items-center px-4 py-2 border border-red-300 bg-white text-red-700 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Additional help text -->
+  <div class="mt-4 pt-4 border-t border-red-200">
+    <details class="text-sm text-red-700">
+      <summary class="cursor-pointer font-medium hover:text-red-900">Why can't I access the chat?</summary>
+      <div class="mt-2 space-y-2">
+        <p><strong>Chat access requires:</strong></p>
+        <ul class="list-disc list-inside space-y-1 ml-4">
+          <li>A valid user account (sign in required)</li>
+          <li>An active Access Pass for this creator's content</li>
+          <li>Good standing (no chat violations or bans)</li>
+        </ul>
+        
+        <% unless message.include?("banned") %>
+          <p class="mt-3">
+            <strong>Need help?</strong> 
+            Contact <a href="mailto:support@backstagepass.app" class="underline hover:text-red-900">support@backstagepass.app</a>
+          </p>
+        <% end %>
+      </div>
+    </details>
+  </div>
+</div>

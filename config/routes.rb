@@ -72,6 +72,12 @@ Rails.application.routes.draw do
         resources :spaces do
           resources :experiences do
             resources :streams do
+              member do
+                post :join_chat
+                delete :leave_chat
+                get :chat_token
+              end
+              
               namespace :streaming do
                 resources :chat_rooms
               end

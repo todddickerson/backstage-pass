@@ -1,0 +1,188 @@
+<%# 
+  Chat Widget Partial
+  
+  Usage:
+  <%= render 'shared/chat/chat_widget', 
+      stream: @stream, 
+      current_user: current_user,
+      show_user_list: true,
+      show_moderation: can?(:moderate, @stream) %>
+-%>
+
+<%
+  # Default values
+  show_user_list ||= false
+  show_moderation ||= false
+  
+  # Get or create chat room for this stream
+  chat_room = stream.chat_room
+  
+  # Ensure channel is created in GetStream.io
+  unless chat_room.channel_id.present?
+    chat_room.create_chat_channel!
+    chat_room.reload
+  end
+  
+  # Generate user token with proper access control
+  begin
+    chat_controller = Account::StreamsController.new
+    chat_controller.instance_variable_set(:@stream, stream)
+    chat_controller.instance_variable_set(:@current_user, current_user)
+    
+    # Use the access control method to generate token
+    user_token = chat_controller.send(:generate_chat_token_for_user, current_user, stream)
+    
+    # Only upsert user if token generation succeeded
+    if user_token
+      chat_service = Streaming::ChatService.new
+      chat_service.upsert_user(current_user)
+    else
+      # Access denied - token will be fetched via AJAX instead
+      user_token = "FETCH_VIA_API"
+    end
+  rescue => e
+    Rails.logger.error "Failed to generate chat token: #{e.message}"
+    user_token = "FETCH_VIA_API"
+  end
+  
+  # Determine if user can moderate
+  can_moderate = stream.can_broadcast?(current_user)
+%>
+
+<div class="chat-widget bg-white border border-gray-200 rounded-lg shadow-lg"
+     data-controller="chat"
+     data-chat-api-key-value="<%= ENV['GETSTREAM_API_KEY'] %>"
+     data-chat-user-id-value="<%= current_user.id %>"
+     data-chat-user-token-value="<%= user_token %>"
+     data-chat-channel-id-value="<%= chat_room.channel_id %>"
+     data-chat-channel-type-value="livestream"
+     data-chat-user-name-value="<%= current_user.name || current_user.email.split('@').first %>"
+     data-chat-user-image-value="<%= current_user.profile_photo_url if current_user.respond_to?(:profile_photo_url) %>"
+     data-chat-can-moderate-value="<%= can_moderate %>">
+  
+  <!-- Chat Header -->
+  <div class="chat-header flex items-center justify-between p-4 border-b border-gray-200">
+    <div class="flex items-center gap-2">
+      <h3 class="font-semibold text-gray-900">Stream Chat</h3>
+      <div class="chat-status text-sm text-yellow-600">Connecting...</div>
+    </div>
+    
+    <% if show_user_list %>
+      <button class="text-sm text-gray-500 hover:text-gray-700" 
+              onclick="this.closest('.chat-widget').querySelector('.chat-sidebar').classList.toggle('hidden')">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.284-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.284.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      </button>
+    <% end %>
+  </div>
+
+  <div class="chat-body flex" style="height: 400px;">
+    <!-- Main Chat Area -->
+    <div class="chat-main flex-1 flex flex-col">
+      <!-- Messages Container -->
+      <div class="chat-messages flex-1 overflow-y-auto p-2 space-y-1" 
+           data-chat-target="messages"
+           style="max-height: 300px;">
+        <!-- Messages will be populated by JavaScript -->
+        <div class="text-center text-gray-500 text-sm py-4">
+          Loading chat messages...
+        </div>
+      </div>
+
+      <!-- Message Input -->
+      <div class="chat-input border-t border-gray-200 p-3">
+        <form data-action="submit->chat#sendMessage" class="flex gap-2">
+          <input type="text" 
+                 data-chat-target="input"
+                 data-action="keypress->chat#handleKeyPress"
+                 placeholder="Type your message..."
+                 class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                 maxlength="500">
+          
+          <button type="submit"
+                  data-chat-target="sendButton"
+                  class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <% if show_user_list %>
+      <!-- User List Sidebar -->
+      <div class="chat-sidebar w-48 border-l border-gray-200 bg-gray-50 hidden">
+        <div class="p-3 border-b border-gray-200">
+          <h4 class="font-medium text-sm text-gray-900">Viewers</h4>
+        </div>
+        <div class="chat-user-list overflow-y-auto" 
+             data-chat-target="userList"
+             style="max-height: 300px;">
+          <!-- User list will be populated by JavaScript -->
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if show_moderation && can_moderate %>
+    <!-- Moderation Panel -->
+    <div class="chat-moderation border-t border-gray-200 p-3 bg-gray-50"
+         data-chat-target="moderationPanel">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium text-gray-700">Moderation Tools</span>
+        <div class="flex gap-2">
+          <button class="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"
+                  onclick="alert('Slow mode feature coming soon!')">
+            Slow Mode
+          </button>
+          <button class="text-xs px-2 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200"
+                  onclick="alert('Clear chat feature coming soon!')">
+            Clear Chat
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
+
+<!-- Chat Styles -->
+<style>
+  .chat-widget.chat-connecting .chat-status {
+    @apply text-yellow-600;
+  }
+  
+  .chat-widget.chat-connected .chat-status {
+    @apply text-green-600;
+  }
+  
+  .chat-widget.chat-error .chat-status {
+    @apply text-red-600;
+  }
+  
+  .chat-message:hover .moderation-actions {
+    @apply opacity-100;
+  }
+  
+  .moderation-actions {
+    @apply opacity-0 transition-opacity;
+  }
+  
+  /* Ensure chat scrollbar is styled */
+  .chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .chat-messages::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+  
+  .chat-messages::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 rounded;
+  }
+  
+  .chat-messages::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+  }
+</style>

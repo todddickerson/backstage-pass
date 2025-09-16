@@ -1,0 +1,255 @@
+<%# 
+  Mobile Chat Interface
+  
+  Optimized UI for mobile devices with touch-friendly controls
+-%>
+
+<div class="mobile-chat-interface bg-white border border-gray-200 rounded-lg shadow-lg">
+  <!-- Chat Header -->
+  <div class="chat-header flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+    <div class="flex items-center gap-3">
+      <div class="w-3 h-3 bg-green-500 rounded-full chat-indicator"></div>
+      <h3 class="font-semibold text-gray-900">Live Chat</h3>
+      <div class="chat-status text-sm text-yellow-600">Connecting...</div>
+    </div>
+    
+    <!-- Mobile controls -->
+    <div class="flex items-center gap-2">
+      <button class="p-2 text-gray-500 hover:text-gray-700 chat-minimize"
+              onclick="this.closest('.mobile-chat-interface').classList.toggle('minimized')">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat Body -->
+  <div class="chat-body">
+    <!-- Messages Container -->
+    <div class="chat-messages overflow-y-auto bg-white" 
+         data-bridge--chat-target="messages"
+         style="height: 300px; max-height: 40vh;">
+      
+      <!-- Welcome message -->
+      <div class="p-4 text-center text-gray-500 text-sm border-b border-gray-100">
+        <div class="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-full text-xs">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+            </path>
+          </svg>
+          Chat is loading...
+        </div>
+      </div>
+    </div>
+
+    <!-- Message Input -->
+    <div class="chat-input border-t border-gray-200 bg-gray-50">
+      <form data-action="submit->bridge--chat#sendMessage" class="flex items-end gap-2 p-3">
+        <!-- Input area -->
+        <div class="flex-1 relative">
+          <textarea data-bridge--chat-target="input"
+                    data-action="keypress->bridge--chat#handleKeyPress"
+                    placeholder="Type your message..."
+                    rows="1"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-full bg-white resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    style="min-height: 44px; max-height: 120px; font-size: 16px;"
+                    maxlength="500"></textarea>
+          
+          <!-- Character counter (for longer messages) -->
+          <div class="absolute bottom-1 right-3 text-xs text-gray-400 character-count hidden">
+            <span class="current">0</span>/<span class="max">500</span>
+          </div>
+        </div>
+        
+        <!-- Send button -->
+        <button type="submit"
+                data-bridge--chat-target="sendButton"
+                class="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Moderation Panel (for creators, hidden by default) -->
+  <% if can_moderate %>
+    <div class="chat-moderation border-t border-gray-200 bg-gray-50 p-3 hidden"
+         data-bridge--chat-target="moderationPanel">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-gray-700">Moderation</span>
+        <button class="text-xs text-gray-500 toggle-moderation">Hide</button>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-2">
+        <button class="px-3 py-2 text-xs bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200 transition-colors"
+                onclick="alert('Slow mode coming soon!')">
+          <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Slow Mode
+        </button>
+        
+        <button class="px-3 py-2 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors"
+                onclick="alert('Clear chat coming soon!')">
+          <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          Clear
+        </button>
+      </div>
+    </div>
+    
+    <!-- Moderation toggle -->
+    <button class="w-full py-2 text-xs text-gray-500 border-t border-gray-200 bg-gray-50 hover:bg-gray-100 moderation-toggle"
+            onclick="const panel = this.parentElement.querySelector('.chat-moderation'); panel.classList.toggle('hidden'); this.textContent = panel.classList.contains('hidden') ? 'Show Moderation' : 'Hide Moderation'">
+      Show Moderation
+    </button>
+  <% end %>
+</div>
+
+<!-- Mobile Chat JavaScript Enhancements -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const chatInterface = document.querySelector('.mobile-chat-interface')
+  if (!chatInterface) return
+  
+  const textarea = chatInterface.querySelector('textarea')
+  const sendButton = chatInterface.querySelector('[data-bridge--chat-target="sendButton"]')
+  const characterCount = chatInterface.querySelector('.character-count')
+  
+  if (textarea) {
+    // Auto-resize textarea
+    textarea.addEventListener('input', function() {
+      this.style.height = 'auto'
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px'
+      
+      // Update character count
+      if (characterCount) {
+        const current = this.value.length
+        characterCount.querySelector('.current').textContent = current
+        
+        if (current > 400) {
+          characterCount.classList.remove('hidden')
+          characterCount.classList.add('text-orange-500')
+        } else if (current > 450) {
+          characterCount.classList.add('text-red-500')
+        } else {
+          characterCount.classList.add('hidden')
+          characterCount.classList.remove('text-orange-500', 'text-red-500')
+        }
+      }
+      
+      // Enable/disable send button
+      if (sendButton) {
+        sendButton.disabled = !this.value.trim()
+      }
+    })
+    
+    // Handle enter key (send on enter, shift+enter for new line)
+    textarea.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        if (this.value.trim() && sendButton && !sendButton.disabled) {
+          sendButton.click()
+        }
+      }
+    })
+  }
+  
+  // Handle chat minimization on mobile
+  const minimizeBtn = chatInterface.querySelector('.chat-minimize')
+  if (minimizeBtn) {
+    minimizeBtn.addEventListener('click', function() {
+      chatInterface.classList.toggle('minimized')
+      
+      // Update icon
+      const icon = this.querySelector('svg path')
+      if (chatInterface.classList.contains('minimized')) {
+        icon.setAttribute('d', 'M5 15l7-7 7 7') // Up arrow
+      } else {
+        icon.setAttribute('d', 'M19 9l-7 7-7-7') // Down arrow
+      }
+    })
+  }
+})
+</script>
+
+<!-- Mobile Chat Styles -->
+<style>
+  .mobile-chat-interface.minimized .chat-body {
+    display: none;
+  }
+  
+  .mobile-chat-interface.minimized {
+    height: auto;
+  }
+  
+  /* Touch-friendly message bubbles */
+  .chat-message {
+    padding: 12px 16px;
+    margin: 4px 0;
+    border-radius: 12px;
+    max-width: 85%;
+    word-wrap: break-word;
+  }
+  
+  .chat-message.own-message {
+    background: #007AFF;
+    color: white;
+    margin-left: auto;
+    margin-right: 16px;
+  }
+  
+  .chat-message:not(.own-message) {
+    background: #F2F2F7;
+    color: #000;
+    margin-left: 16px;
+    margin-right: auto;
+  }
+  
+  /* Smooth scrolling for messages */
+  .chat-messages {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Loading state */
+  .chat-indicator {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: .5;
+    }
+  }
+  
+  /* Mobile viewport optimizations */
+  @media (max-width: 768px) {
+    .mobile-chat-interface {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      border-radius: 16px 16px 0 0;
+      max-height: 70vh;
+      z-index: 1000;
+    }
+    
+    .mobile-chat-interface.minimized {
+      max-height: 60px;
+    }
+    
+    .chat-messages {
+      height: 250px;
+      max-height: 35vh;
+    }
+  }
+</style>
