@@ -1,0 +1,26 @@
+<% stream = @stream || @stream %>
+<% context ||= stream %>
+<% collection ||= :streaming_chat_rooms %>
+<% hide_actions ||= false %>
+<% hide_back ||= false %>
+
+<% with_attribute_settings object: chat_room do %>
+  <tr data-id="<%= chat_room.id %>">
+    <%= render "shared/tables/checkbox", object: chat_room %>
+    <td><%= render 'shared/attributes/text', attribute: :stream_id, url: [:account, chat_room] %></td>
+    <td><%= render 'shared/attributes/text', attribute: :channel_id %></td>
+    <%# 🚅 super scaffolding will insert new fields above this line. %>
+    <td><%= render 'shared/attributes/date_and_time', attribute: :created_at %></td>
+    <td class="buttons">
+      <% unless hide_actions %>
+        <% if can? :edit, chat_room %>
+          <%= link_to t('.buttons.shorthand.edit'), [:edit, :account, chat_room], class: 'button-secondary button-smaller' %>
+        <% end %>
+        <% if can? :destroy, chat_room %>
+          <%= button_to t('.buttons.shorthand.destroy'), [:account, chat_room], method: :delete, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(chat_room)) }, class: 'button-secondary button-smaller' %>
+        <% end %>
+        <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
+      <% end %>
+    </td>
+  </tr>
+<% end %>

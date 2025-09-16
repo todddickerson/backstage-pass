@@ -70,7 +70,13 @@ Rails.application.routes.draw do
         end
 
         resources :spaces do
-          resources :experiences
+          resources :experiences do
+            resources :streams do
+              namespace :streaming do
+                resources :chat_rooms
+              end
+            end
+          end
           resources :access_passes do
             resources :access_pass_experiences
           end
