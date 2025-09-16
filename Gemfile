@@ -273,6 +273,7 @@ end
 # Streaming Infrastructure
 gem "livekit-server-sdk"
 gem "mux_ruby"
+gem "stream-chat-ruby"  # GetStream.io chat integration
 
 # Mobile
 gem "turbo-native-initializer"

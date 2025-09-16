@@ -1,0 +1,8 @@
+<% chat_room ||= @chat_room %>
+<% stream ||= @stream || chat_room&.stream %>
+<%= render 'account/streams/breadcrumbs', stream: stream %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, stream, :streaming_chat_rooms] %>
+<% if chat_room&.persisted? %>
+  <%= render 'account/shared/breadcrumb', label: chat_room.label_string, url: [:account, chat_room] %>
+<% end %>
+<%= render 'account/shared/breadcrumbs/actions', only_for: 'streaming/chat_rooms' %>

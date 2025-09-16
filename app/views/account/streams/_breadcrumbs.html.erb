@@ -1,0 +1,8 @@
+<% stream ||= @stream %>
+<% experience ||= @experience || stream&.experience %>
+<%= render 'account/experiences/breadcrumbs', experience: experience %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, experience, :streams] %>
+<% if stream&.persisted? %>
+  <%= render 'account/shared/breadcrumb', label: stream.label_string, url: [:account, stream] %>
+<% end %>
+<%= render 'account/shared/breadcrumbs/actions', only_for: 'streams' %>
