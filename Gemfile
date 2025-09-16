@@ -278,8 +278,10 @@ gem "livekit-server-sdk"
 gem "mux_ruby"
 gem "stream-chat-ruby"  # GetStream.io chat integration
 
-# Mobile
+# Mobile / Hotwire Native
 gem "turbo-native-initializer"
+# gem "rpush", "~> 8.0"  # Push notifications - Not Rails 8 compatible yet
+gem "device_detector", "~> 1.1"  # Device detection for mobile apps
 
 # Marketplace Features
 gem "money-rails", "~> 1.15"
