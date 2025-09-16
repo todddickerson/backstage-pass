@@ -14,17 +14,10 @@ class AccessGrant < ApplicationRecord
 
   # 🚅 add has_one associations above.
 
-<<<<<<< HEAD
-  scope :active, -> { where(status: :active).where('expires_at > ? OR expires_at IS NULL', Time.current) }
-  scope :expired, -> { where('expires_at <= ?', Time.current) }
-  scope :for_spaces, -> { where(purchasable_type: 'Space') }
-  scope :for_experiences, -> { where(purchasable_type: 'Experience') }
-=======
   scope :active, -> { where(status: :active).where("expires_at > ? OR expires_at IS NULL", Time.current) }
   scope :expired, -> { where("expires_at <= ?", Time.current) }
   scope :for_spaces, -> { where(purchasable_type: "Space") }
   scope :for_experiences, -> { where(purchasable_type: "Experience") }
->>>>>>> main
   # 🚅 add scopes above.
 
   validates :status, presence: true
@@ -41,16 +34,6 @@ class AccessGrant < ApplicationRecord
   # 🚅 add delegations above.
 
   enum :status, {
-<<<<<<< HEAD
-    active: 'active',
-    expired: 'expired',
-    cancelled: 'cancelled',
-    refunded: 'refunded'
-  }
-
-  def active?
-    status&.to_s == 'active' && (expires_at.nil? || expires_at > Time.current)
-=======
     active: "active",
     expired: "expired",
     cancelled: "cancelled",
@@ -59,7 +42,6 @@ class AccessGrant < ApplicationRecord
 
   def active?
     status&.to_s == "active" && (expires_at.nil? || expires_at > Time.current)
->>>>>>> main
   end
 
   def space
@@ -74,15 +56,9 @@ class AccessGrant < ApplicationRecord
 
   def description
     case purchasable_type
-<<<<<<< HEAD
-    when 'Space'
-      "Full access to #{purchasable.name}"
-    when 'Experience'
-=======
     when "Space"
       "Full access to #{purchasable.name}"
     when "Experience"
->>>>>>> main
       "Access to #{purchasable.name} experience"
     else
       "Access grant"
@@ -91,15 +67,9 @@ class AccessGrant < ApplicationRecord
 
   def target_team
     case purchasable_type
-<<<<<<< HEAD
-    when 'Space'
-      purchasable.team
-    when 'Experience'
-=======
     when "Space"
       purchasable.team
     when "Experience"
->>>>>>> main
       purchasable.space.team
     else
       team
@@ -113,52 +83,32 @@ class AccessGrant < ApplicationRecord
   private
 
   def set_default_status
-<<<<<<< HEAD
-    self.status = 'active' if status.blank?
-=======
     self.status = "active" if status.blank?
->>>>>>> main
   end
 
   def create_team_membership
     return unless active?
     return if membership_for_user # Don't create duplicate memberships
 
-<<<<<<< HEAD
     # Create membership with buyer role
     target_team.memberships.create!(
       user: user,
-      role_ids: ['buyer'],
-      source: 'access_pass'
-=======
-    viewer_role = Role.find_by(key: "viewer")
-    target_team.memberships.create!(
-      user: user,
-      role_ids: [viewer_role.id],
+      role_ids: ["buyer"],
       source: "access_pass"
->>>>>>> main
     )
   end
 
   def sync_membership_status
     membership = membership_for_user
     return unless membership
-<<<<<<< HEAD
-    return unless membership.source == 'access_pass'
-=======
     return unless membership.source == "access_pass"
->>>>>>> main
 
     if active?
       # Reactivate membership if it was disabled
       # Note: Don't downgrade existing admin/editor roles
-<<<<<<< HEAD
       if membership.role_ids.blank? || membership.role_ids.empty?
-        membership.update!(role_ids: ['buyer'])
+        membership.update!(role_ids: ["buyer"])
       end
-=======
-      membership.update!(role: "viewer") if membership.role.blank?
->>>>>>> main
     else
       # For granted access, we might want to keep them but mark differently
       # or remove them entirely depending on business logic
