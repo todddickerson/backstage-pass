@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   draw "devise"
   draw "sidekiq"
   draw "avo"
+  
+  # Hotwire Native configuration endpoint
+  get "/hotwire-native-config/:platform", to: "hotwire_native#configuration", as: :hotwire_native_config
 
   # `collection_actions` is automatically super scaffolded to your routes file when creating certain objects.
   # This is helpful to have around when working with shallow routes and complicated model namespacing. We don't use this
