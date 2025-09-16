@@ -7,7 +7,7 @@
 - Architecture, onboarding, and workflow briefs reside in `docs/` and root guides like `DOCUMENTATION_INDEX.md` and `claude.md`.
 
 ## Build, Test, and Development Commands
-- Run `bash .claude/pre-flight.sh`, `bin/gh-sync`, and `rake claude:status` to sync environment and task queue.
+- Run `bash .claude/pre-flight.sh`, `bin/gh-sync`, and `rake claude:status` to sync tasks.
 - `bin/setup` installs gems, Yarn packages, and seeds databases; rerun after dependency updates.
 - `bin/dev` launches Rails on port 3020 with Sidekiq, esbuild, Tailwind, and ngrok via `Procfile.dev`.
 - `bin/rails db:migrate db:seed` keeps schema and seeded data aligned after scaffolding.
