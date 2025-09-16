@@ -41,6 +41,13 @@ shallow do
         end
         resources :access_passes do
           resources :access_pass_experiences
+          scope module: 'access_passes' do
+            resources :waitlist_entries, only: collection_actions
+          end
+        end
+
+        namespace :access_passes do
+          resources :waitlist_entries, except: collection_actions
         end
       end
 

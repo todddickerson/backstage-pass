@@ -1,0 +1,8 @@
+<% waitlist_entry ||= @waitlist_entry %>
+<% access_pass ||= @access_pass || waitlist_entry&.access_pass %>
+<%= render 'account/access_passes/breadcrumbs', access_pass: access_pass %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, access_pass, :waitlist_entries] %>
+<% if waitlist_entry&.persisted? %>
+  <%= render 'account/shared/breadcrumb', label: waitlist_entry.label_string, url: [:account, waitlist_entry] %>
+<% end %>
+<%= render 'account/shared/breadcrumbs/actions', only_for: 'access_passes/waitlist_entries' %>
