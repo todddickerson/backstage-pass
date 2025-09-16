@@ -1,5 +1,6 @@
 default:
   models:
+    AccessPasses::WaitlistEntry: read
     Streaming::ChatRoom: read
     Stream: read
     Billing::Purchase: read
@@ -58,6 +59,7 @@ admin:
     - viewer
     - buyer
   models:
+    AccessPasses::WaitlistEntry: manage
     Streaming::ChatRoom: manage
     Stream: manage
     Billing::Purchase: manage

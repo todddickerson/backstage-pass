@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
   include Controllers::Base
   include SecurityHeaders
+  include DeviceDetection
 
   protect_from_forgery with: :exception, prepend: true
   

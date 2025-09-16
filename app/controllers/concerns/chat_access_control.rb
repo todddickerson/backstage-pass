@@ -2,13 +2,19 @@ module ChatAccessControl
   extend ActiveSupport::Concern
 
   included do
-    before_action :verify_chat_access, only: [:show, :join_chat, :send_message]
+    before_action :verify_chat_access, only: [:show, :join_chat, :leave_chat, :chat_token]
   end
 
   private
 
   def verify_chat_access
-    @stream = Stream.find(params[:id] || params[:stream_id])
+    # Use obfuscated_id for finding records per Bullet Train override
+    @stream = Stream.find_by_obfuscated_id(params[:id] || params[:stream_id])
+    
+    unless @stream
+      respond_to_chat_access_denied("Stream not found")
+      return false
+    end
     
     unless current_user
       respond_to_chat_access_denied("Authentication required")
@@ -99,15 +105,9 @@ module ChatAccessControl
     return nil unless role
     
     # Generate token with role-based permissions
-    token_data = {
-      user_id: user.id.to_s,
-      role: role,
-      exp: 24.hours.from_now.to_i, # Token expires in 24 hours
-      stream_id: stream.id,
-      space_id: stream.experience.space.id
-    }
-    
-    chat_service.generate_user_token(user.id.to_s, token_data)
+    # GetStream.io tokens are simple JWTs with user_id
+    # Additional data should be stored in user metadata
+    chat_service.generate_user_token(user.id.to_s)
   end
 
   # Middleware to add user to chat room with proper role

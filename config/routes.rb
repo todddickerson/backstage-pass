@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   draw "devise"
   draw "sidekiq"
   draw "avo"
+  
+  # Hotwire Native configuration endpoint
+  get "/hotwire-native-config/:platform", to: "hotwire_native#configuration", as: :hotwire_native_config
 
   # `collection_actions` is automatically super scaffolded to your routes file when creating certain objects.
   # This is helpful to have around when working with shallow routes and complicated model namespacing. We don't use this
@@ -16,13 +19,6 @@ Rails.application.routes.draw do
   extending = {only: []}
 
   # IMPORTANT: Account namespace MUST come before catch-all routes
-  namespace :webhooks do
-    namespace :incoming do
-      namespace :oauth do
-        # 🚅 super scaffolding will insert new oauth provider webhooks above this line.
-      end
-    end
-  end
 
   namespace :api do
     draw "api/v1"
@@ -76,6 +72,10 @@ Rails.application.routes.draw do
                 post :join_chat
                 delete :leave_chat
                 get :chat_token
+                get :video_token
+                post :start_stream
+                post :stop_stream
+                get :room_info
               end
               
               namespace :streaming do
@@ -85,6 +85,18 @@ Rails.application.routes.draw do
           end
           resources :access_passes do
             resources :access_pass_experiences
+            scope module: 'access_passes' do
+              resources :waitlist_entries, only: collection_actions
+            end
+          end
+
+          namespace :access_passes do
+            resources :waitlist_entries, except: collection_actions do
+              member do
+                post :approve
+                post :reject
+              end
+            end
           end
         end
 
@@ -102,11 +114,6 @@ Rails.application.routes.draw do
         # 🚅 super scaffolding will insert new oauth provider webhooks above this line.
       end
     end
-  end
-
-  namespace :api do
-    draw "api/v1"
-    # 🚅 super scaffolding will insert new api versions above this line.
   end
   
   # PUBLIC ROUTES - These come after account/api/webhooks to ensure proper priority
@@ -137,13 +144,30 @@ Rails.application.routes.draw do
     # CATCH-ALL ROUTES - These must be absolutely last!
     # Space routes at root level for clean URLs (backstagepass.com/space-slug)
     # Access pass routes nested under spaces (backstagepass.com/space-slug/access-pass-slug)
-    get "/:space_slug/:access_pass_slug", to: "access_passes#show", 
-        constraints: { space_slug: /[a-zA-Z0-9_-]+/, access_pass_slug: /[a-zA-Z0-9_-]+/ },
-        as: :public_space_access_pass
     
-    # Space show page (must be after nested routes)
-    get "/:space_slug", to: "spaces#show", 
-        constraints: { space_slug: /[a-zA-Z0-9_-]+/ },
-        as: :public_space
+    # Define reserved paths that should NOT be treated as space slugs
+    # This prevents system routes from being caught by the catch-all
+    RESERVED_PATHS = %w[
+      users admin api account webhooks rails assets packs sidekiq avo
+      explore about terms privacy
+    ].freeze
+    
+    # Constraint to check if a path should be treated as a space slug
+    valid_space_slug = lambda do |request|
+      slug = request.path_parameters[:space_slug]
+      slug.present? && !RESERVED_PATHS.include?(slug) && !slug.start_with?('_')
+    end
+    
+    # Access pass nested under space (must come before single space route)
+    constraints(valid_space_slug) do
+      get "/:space_slug/:access_pass_slug", to: "access_passes#show", 
+          constraints: { access_pass_slug: /[a-zA-Z0-9_-]+/ },
+          as: :public_space_access_pass
+    end
+    
+    # Space show page (must be absolutely last)  
+    constraints(valid_space_slug) do
+      get "/:space_slug", to: "spaces#show", as: :public_space
+    end
   end
 end
