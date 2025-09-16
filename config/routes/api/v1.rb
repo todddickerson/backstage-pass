@@ -35,7 +35,9 @@ shallow do
         resources :experiences
       end
 
-      resources :access_passes
+      resources :access_passes do
+        resources :access_pass_experiences
+      end
     end
   end
 end

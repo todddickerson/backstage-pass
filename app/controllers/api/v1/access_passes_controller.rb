@@ -4,9 +4,9 @@
 # We wrap this class in an `if` statement to circumvent this issue.
 if defined?(Api::V1::ApplicationController)
   class Api::V1::AccessPassesController < Api::V1::ApplicationController
-    account_load_and_authorize_resource :access_pass, through: :team, through_association: :access_passes
+    account_load_and_authorize_resource :access_pass, through: :space, through_association: :access_passes
 
-    # GET /api/v1/teams/:team_id/access_passes
+    # GET /api/v1/spaces/:space_id/access_passes
     def index
     end
 
@@ -14,7 +14,7 @@ if defined?(Api::V1::ApplicationController)
     def show
     end
 
-    # POST /api/v1/teams/:team_id/access_passes
+    # POST /api/v1/spaces/:space_id/access_passes
     def create
       if @access_pass.save
         render :show, status: :created, location: [:api, :v1, @access_pass]
@@ -44,8 +44,6 @@ if defined?(Api::V1::ApplicationController)
       def access_pass_params
         strong_params = params.require(:access_pass).permit(
           *permitted_fields,
-          :status,
-          :expires_at,
           # 🚅 super scaffolding will insert new fields above this line.
           *permitted_arrays,
           # 🚅 super scaffolding will insert new arrays above this line.

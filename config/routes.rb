@@ -103,7 +103,7 @@ Rails.application.routes.draw do
           resources :experiences
         end
 
-        resources :access_passes
+        resources :access_grants
       end
     end
   end

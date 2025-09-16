@@ -7,8 +7,10 @@ class Experience < ApplicationRecord
   belongs_to :space
   # 🚅 add belongs_to associations above.
 
-  has_many :access_passes, as: :purchasable, dependent: :destroy
+  has_many :access_grants, as: :purchasable, dependent: :destroy
   has_many :streams, dependent: :destroy
+  has_many :access_pass_experiences, dependent: :destroy
+  has_many :access_passes, through: :access_pass_experiences
   # 🚅 add has_many associations above.
 
   has_one :team, through: :space

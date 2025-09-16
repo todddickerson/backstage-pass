@@ -8,8 +8,9 @@ class Space < ApplicationRecord
   # 🚅 add belongs_to associations above.
 
   has_many :experiences, dependent: :destroy
-  has_many :access_passes, as: :purchasable, dependent: :destroy
+  has_many :access_grants, as: :purchasable, dependent: :destroy
   has_many :all_streams, through: :experiences, source: :streams
+  has_many :access_passes, dependent: :destroy
   # 🚅 add has_many associations above.
 
   has_rich_text :description
@@ -51,8 +52,8 @@ class Space < ApplicationRecord
   end
 
   def total_viewers
-    User.joins(:access_passes)
-        .where(access_passes: { purchasable: self, status: :active })
+    User.joins(:access_grants)
+        .where(access_grants: { purchasable: self, status: :active })
         .count
   end
 
@@ -66,8 +67,8 @@ class Space < ApplicationRecord
     # Team members always have full access
     return true if team.users.include?(user)
     
-    # Space-level access pass gives access to the space (but not necessarily all experiences)
-    user.access_passes.active.where(purchasable: self).exists?
+    # Space-level access grant gives access to the space (but not necessarily all experiences)
+    user.access_grants.active.where(purchasable: self).exists?
   end
 
   def role_for_user(user)
@@ -77,9 +78,9 @@ class Space < ApplicationRecord
     membership = team.memberships.find_by(user: user)
     return membership.role if membership
 
-    # Check access pass (viewer role) - but this doesn't grant content access automatically
-    access_pass = user.access_passes.active.where(purchasable: self).first
-    return 'viewer' if access_pass
+    # Check access grant (viewer role) - but this doesn't grant content access automatically
+    access_grant = user.access_grants.active.where(purchasable: self).first
+    return 'viewer' if access_grant
 
     nil
   end
@@ -103,14 +104,14 @@ class Space < ApplicationRecord
     # Admin/Editor team members can view all experiences (core team)
     return true if user_can_manage?(user)
 
-    # Viewers (including access pass holders) need specific content access
-    # Check for specific experience access pass
-    has_experience_pass = user.access_passes.active.where(purchasable: experience).exists?
-    return true if has_experience_pass
+    # Viewers (including access grant holders) need specific content access
+    # Check for specific experience access grant
+    has_experience_grant = user.access_grants.active.where(purchasable: experience).exists?
+    return true if has_experience_grant
 
-    # Check for space-level access pass (grants access to all experiences in space)
-    has_space_pass = user.access_passes.active.where(purchasable: self).exists?
-    return true if has_space_pass
+    # Check for space-level access grant (grants access to all experiences in space)
+    has_space_grant = user.access_grants.active.where(purchasable: self).exists?
+    return true if has_space_grant
 
     false
   end
@@ -119,14 +120,14 @@ class Space < ApplicationRecord
     # Admin/Editor team members see everything
     return experiences if user_can_manage?(user)
 
-    # For viewers (including access pass holders), check specific access
-    accessible_experience_ids = user.access_passes.active
+    # For viewers (including access grant holders), check specific access
+    accessible_experience_ids = user.access_grants.active
                                    .where(purchasable_type: 'Experience')
                                    .where(purchasable_id: experience_ids)
                                    .pluck(:purchasable_id)
 
-    # If user has space-level access pass, they can see all experiences
-    if user.access_passes.active.where(purchasable: self).exists?
+    # If user has space-level access grant, they can see all experiences
+    if user.access_grants.active.where(purchasable: self).exists?
       return experiences
     end
 

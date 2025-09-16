@@ -1,5 +1,6 @@
 default:
   models:
+    AccessPassExperience: read
     AccessPass: read
     Experience: read
     Space: read
@@ -41,6 +42,7 @@ admin:
     - editor
     - viewer
   models:
+    AccessPassExperience: manage
     AccessPass: manage
     Experience: manage
     Space: manage

@@ -1,0 +1,8 @@
+<% access_pass_experience ||= @access_pass_experience %>
+<% access_pass ||= @access_pass || access_pass_experience&.access_pass %>
+<%= render 'account/access_passes/breadcrumbs', access_pass: access_pass %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, access_pass, :access_pass_experiences] %>
+<% if access_pass_experience&.persisted? %>
+  <%= render 'account/shared/breadcrumb', label: access_pass_experience.label_string, url: [:account, access_pass_experience] %>
+<% end %>
+<%= render 'account/shared/breadcrumbs/actions', only_for: 'access_pass_experiences' %>

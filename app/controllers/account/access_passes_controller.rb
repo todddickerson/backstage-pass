@@ -1,8 +1,8 @@
 class Account::AccessPassesController < Account::ApplicationController
-  account_load_and_authorize_resource :access_pass, through: :team, through_association: :access_passes
+  account_load_and_authorize_resource :access_pass, through: :space, through_association: :access_passes
 
-  # GET /account/teams/:team_id/access_passes
-  # GET /account/teams/:team_id/access_passes.json
+  # GET /account/spaces/:space_id/access_passes
+  # GET /account/spaces/:space_id/access_passes.json
   def index
     delegate_json_to_api
   end
@@ -13,7 +13,7 @@ class Account::AccessPassesController < Account::ApplicationController
     delegate_json_to_api
   end
 
-  # GET /account/teams/:team_id/access_passes/new
+  # GET /account/spaces/:space_id/access_passes/new
   def new
   end
 
@@ -21,8 +21,8 @@ class Account::AccessPassesController < Account::ApplicationController
   def edit
   end
 
-  # POST /account/teams/:team_id/access_passes
-  # POST /account/teams/:team_id/access_passes.json
+  # POST /account/spaces/:space_id/access_passes
+  # POST /account/spaces/:space_id/access_passes.json
   def create
     respond_to do |format|
       if @access_pass.save
@@ -54,7 +54,7 @@ class Account::AccessPassesController < Account::ApplicationController
   def destroy
     @access_pass.destroy
     respond_to do |format|
-      format.html { redirect_to [:account, @team, :access_passes], notice: I18n.t("access_passes.notifications.destroyed") }
+      format.html { redirect_to [:account, @space, :access_passes], notice: I18n.t("access_passes.notifications.destroyed") }
       format.json { head :no_content }
     end
   end
@@ -66,7 +66,6 @@ class Account::AccessPassesController < Account::ApplicationController
   end
 
   def process_params(strong_params)
-    assign_date_and_time(strong_params, :expires_at)
     # 🚅 super scaffolding will insert processing for new fields above this line.
   end
 end

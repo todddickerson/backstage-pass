@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_15_193438) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_16_140025) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
-  create_table "access_passes", force: :cascade do |t|
+  create_table "access_grants", force: :cascade do |t|
     t.bigint "team_id", null: false
     t.string "status"
     t.datetime "expires_at"
@@ -23,9 +23,36 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_15_193438) do
     t.bigint "user_id", null: false
     t.string "purchasable_type", null: false
     t.bigint "purchasable_id", null: false
+    t.bigint "access_pass_id"
+    t.index ["access_pass_id"], name: "index_access_grants_on_access_pass_id"
     t.index ["purchasable_type", "purchasable_id"], name: "index_access_passes_on_purchasable"
-    t.index ["team_id"], name: "index_access_passes_on_team_id"
-    t.index ["user_id"], name: "index_access_passes_on_user_id"
+    t.index ["team_id"], name: "index_access_grants_on_team_id"
+    t.index ["user_id"], name: "index_access_grants_on_user_id"
+  end
+
+  create_table "access_pass_experiences", force: :cascade do |t|
+    t.bigint "access_pass_id", null: false
+    t.bigint "experience_id", null: false
+    t.boolean "included", default: true
+    t.integer "position"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["access_pass_id"], name: "index_access_pass_experiences_on_access_pass_id"
+    t.index ["experience_id"], name: "index_access_pass_experiences_on_experience_id"
+  end
+
+  create_table "access_passes", force: :cascade do |t|
+    t.bigint "space_id", null: false
+    t.string "name"
+    t.text "description"
+    t.string "pricing_type"
+    t.integer "price_cents"
+    t.integer "stock_limit"
+    t.boolean "waitlist_enabled"
+    t.boolean "published"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["space_id"], name: "index_access_passes_on_space_id"
   end
 
   create_table "account_onboarding_invitation_lists", force: :cascade do |t|
@@ -397,8 +424,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_15_193438) do
     t.index ["team_id"], name: "index_webhooks_outgoing_events_on_team_id"
   end
 
-  add_foreign_key "access_passes", "teams"
-  add_foreign_key "access_passes", "users"
+  add_foreign_key "access_grants", "access_passes"
+  add_foreign_key "access_grants", "teams"
+  add_foreign_key "access_grants", "users"
+  add_foreign_key "access_pass_experiences", "access_passes"
+  add_foreign_key "access_pass_experiences", "experiences"
+  add_foreign_key "access_passes", "spaces"
   add_foreign_key "account_onboarding_invitation_lists", "teams"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"

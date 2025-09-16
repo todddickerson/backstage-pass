@@ -4,113 +4,92 @@ class AccessPass < ApplicationRecord
 
   # 🚅 add attribute accessors above.
 
-  belongs_to :team
-  belongs_to :user
-  belongs_to :purchasable, polymorphic: true
+  belongs_to :space
   # 🚅 add belongs_to associations above.
 
+  has_many :access_grants  # Track who purchased this product
+  has_many :buyers, through: :access_grants, source: :user  # Users who bought this
+  has_many :access_pass_experiences, dependent: :destroy
+  has_many :experiences, through: :access_pass_experiences  # What's included in this pass
   # 🚅 add has_many associations above.
 
+  has_rich_text :description
   # 🚅 add has_one associations above.
 
-  scope :active, -> { where(status: :active).where('expires_at > ? OR expires_at IS NULL', Time.current) }
-  scope :expired, -> { where('expires_at <= ?', Time.current) }
-  scope :for_spaces, -> { where(purchasable_type: 'Space') }
-  scope :for_experiences, -> { where(purchasable_type: 'Experience') }
+  scope :published, -> { where(published: true) }
+  scope :available, -> { published.where('stock_limit IS NULL OR stock_limit > 0') }
   # 🚅 add scopes above.
 
-  validates :status, presence: true
-  validates :user_id, presence: true
-  validates :purchasable_id, presence: true
-  validates :purchasable_type, presence: true
+  validates :name, presence: true
+  validates :pricing_type, presence: true
+  validates :price_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :slug, presence: true, uniqueness: { scope: :space_id }
   # 🚅 add validations above.
 
-  before_validation :set_default_status
-  after_create :create_team_membership
-  after_update :sync_membership_status
+  before_validation :generate_slug, if: -> { slug.blank? && name.present? }
   # 🚅 add callbacks above.
 
   # 🚅 add delegations above.
 
-  enum :status, {
-    active: 'active',
-    expired: 'expired',
-    cancelled: 'cancelled',
-    refunded: 'refunded'
+  # Pricing types enum
+  enum :pricing_type, {
+    free: 'free',
+    one_time: 'one_time',
+    monthly: 'monthly',
+    yearly: 'yearly'
   }
 
-  def active?
-    status&.to_s == 'active' && (expires_at.nil? || expires_at > Time.current)
-  end
+  # FriendlyId for URL slugs
+  extend FriendlyId
+  friendly_id :slug, use: :slugged
 
-  def space
-    purchasable.is_a?(Space) ? purchasable : purchasable.space
-  end
+  # Monetize price
+  # monetize :price_cents
 
-  def grants_access_to?(resource)
-    return true if purchasable == resource
-    return true if purchasable.is_a?(Space) && resource.respond_to?(:space) && resource.space == purchasable
-    false
-  end
-
-  def description
-    case purchasable_type
-    when 'Space'
-      "Full access to #{purchasable.name}"
-    when 'Experience'
-      "Access to #{purchasable.name} experience"
+  def price_display
+    return 'Free' if pricing_type == 'free' || price_cents.zero?
+    
+    price_str = "$#{(price_cents / 100.0).round(2)}"
+    
+    case pricing_type
+    when 'monthly'
+      "#{price_str}/month"
+    when 'yearly'
+      "#{price_str}/year"
     else
-      "Access pass"
+      price_str
     end
   end
 
-  def target_team
-    case purchasable_type
-    when 'Space'
-      purchasable.team
-    when 'Experience'
-      purchasable.space.team
-    else
-      team
-    end
+  def recurring?
+    %w[monthly yearly].include?(pricing_type)
   end
 
-  def membership_for_user
-    target_team.memberships.find_by(user: user)
+  def free?
+    pricing_type == 'free' || price_cents.zero?
+  end
+
+  def available?
+    published? && (stock_limit.nil? || stock_limit > 0)
+  end
+
+  def unlimited_stock?
+    stock_limit.nil?
+  end
+
+  def stock_remaining
+    return nil if unlimited_stock?
+    stock_limit
+  end
+
+  def public_url
+    "/#{space.slug}/#{slug}"
   end
 
   private
 
-  def set_default_status
-    self.status = 'active' if status.blank?
-  end
-
-  def create_team_membership
-    return unless active?
-    return if membership_for_user # Don't create duplicate memberships
-
-    viewer_role = Role.find_by(key: 'viewer')
-    target_team.memberships.create!(
-      user: user,
-      role_ids: [viewer_role.id],
-      source: 'access_pass'
-    )
-  end
-
-  def sync_membership_status
-    membership = membership_for_user
-    return unless membership
-    return unless membership.source == 'access_pass'
-
-    if active?
-      # Reactivate membership if it was disabled
-      # Note: Don't downgrade existing admin/editor roles
-      membership.update!(role: 'viewer') if membership.role.blank?
-    else
-      # For purchased memberships, we might want to keep them but mark differently
-      # or remove them entirely depending on business logic
-      # For now, let's keep the membership but could add a status field later
-    end
+  def generate_slug
+    self.slug = name.parameterize
   end
   # 🚅 add methods above.
 end

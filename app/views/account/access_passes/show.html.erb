@@ -11,8 +11,6 @@
 
         <% box.body do %>
           <% with_attribute_settings object: @access_pass, strategy: :label do %>
-            <%= render 'shared/attributes/text', attribute: :status %>
-            <%= render 'shared/attributes/date_and_time', attribute: :expires_at %>
             <%# 🚅 super scaffolding will insert new fields above this line. %>
           <% end %>
         <% end %>
@@ -21,7 +19,7 @@
           <%= link_to t('.buttons.edit'), [:edit, :account, @access_pass], class: first_button_primary if can? :edit, @access_pass %>
           <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
           <%= button_to t('.buttons.destroy'), [:account, @access_pass], method: :delete, class: first_button_primary, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(@access_pass)) } if can? :destroy, @access_pass %>
-          <%= link_to t('global.buttons.back'), [:account, @team, :access_passes], class: first_button_primary %>
+          <%= link_to t('global.buttons.back'), [:account, @space, :access_passes], class: first_button_primary %>
         <% end %>
 
         <% box.raw_footer do %>
@@ -30,6 +28,7 @@
       <% end %>
     <% end %>
 
+    <%= render 'account/access_pass_experiences/index', access_pass_experiences: @access_pass.access_pass_experiences, hide_back: true %>
     <%# 🚅 super scaffolding will insert new children above this line. %>
   <% end %>
 <% end %>
