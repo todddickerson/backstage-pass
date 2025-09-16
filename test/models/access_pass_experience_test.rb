@@ -1,12 +1,6 @@
 require "test_helper"
 
 class AccessPassExperienceTest < ActiveSupport::TestCase
-<<<<<<< HEAD
-  # test "the truth" do
-  #   assert true
-  # end
-end
-=======
   setup do
     @user = FactoryBot.create(:onboarded_user)
     @team = @user.current_team
@@ -89,4 +83,3 @@ end
     assert_includes @experience.access_passes, @access_pass
   end
 end
->>>>>>> main
