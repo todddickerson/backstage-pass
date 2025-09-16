@@ -1,9 +1,9 @@
 class Public::ApplicationController < ApplicationController
   layout "public"
-  
+
   # Skip authentication for public routes
   skip_before_action :authenticate_user!, raise: false
-  
+
   # Public routes don't need team context
   skip_before_action :set_current_team, raise: false
 

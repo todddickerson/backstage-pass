@@ -1,12 +1,13 @@
 FactoryBot.define do
   factory :access_pass do
     association :space
-    name { "MyString" }
-    description { "MyText" }
-    pricing_type { "MyString" }
-    price_cents { 1 }
-    stock_limit { 1 }
+    name { "Premium Access Pass" }
+    description { "Get full access to all experiences" }
+    pricing_type { "one_time" }
+    price_cents { 9900 }
+    stock_limit { 100 }
     waitlist_enabled { false }
-    published { false }
+    published { true }
+    slug { name.parameterize if name.present? }
   end
 end

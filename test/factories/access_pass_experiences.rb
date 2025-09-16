@@ -1,8 +1,8 @@
 FactoryBot.define do
   factory :access_pass_experience do
     association :access_pass
-    experience { "MyString" }
-    included { false }
+    association :experience
+    included { true }
     position { 1 }
   end
 end

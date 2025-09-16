@@ -29,7 +29,7 @@ class Experience < ApplicationRecord
 
   validates :name, presence: true
   validates :experience_type, presence: true
-  validates :price_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :price_cents, presence: true, numericality: {greater_than_or_equal_to: 0}
   # 🚅 add validations above.
 
   # 🚅 add callbacks above.
@@ -39,7 +39,7 @@ class Experience < ApplicationRecord
   # monetize :price_cents
 
   def live_streaming?
-    experience_type == 'live_stream'
+    experience_type == "live_stream"
   end
 
   def requires_real_time?
@@ -47,7 +47,7 @@ class Experience < ApplicationRecord
   end
 
   def price_display
-    price_cents.zero? ? 'Free' : "$#{(price_cents / 100.0).round(2)}"
+    price_cents.zero? ? "Free" : "$#{(price_cents / 100.0).round(2)}"
   end
 
   def user_can_manage?(user)

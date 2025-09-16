@@ -1,5 +1,5 @@
 # DualIdFinder: Controller concern for handling both FriendlyId slugs and obfuscated IDs
-# 
+#
 # This concern provides helper methods for controllers to find records using either
 # slug-based or obfuscated ID lookups depending on the context.
 #
@@ -41,18 +41,18 @@ module DualIdFinder
   # Check if an ID looks like a slug vs an obfuscated ID
   def looks_like_slug?(id)
     return false if id.blank?
-    
+
     # Slugs typically contain hyphens and lowercase letters
     # Obfuscated IDs are typically mixed case without hyphens
-    id.include?('-') && id.downcase == id
+    id.include?("-") && id.downcase == id
   end
 
   # Check if an ID looks like an obfuscated ID
   def looks_like_obfuscated_id?(id)
     return false if id.blank?
-    
+
     # Obfuscated IDs are typically 6+ chars, mixed case, no hyphens
-    id.length >= 6 && id.match?(/[A-Z]/) && id.match?(/[a-z]/) && !id.include?('-')
+    id.length >= 6 && id.match?(/[A-Z]/) && id.match?(/[a-z]/) && !id.include?("-")
   end
 
   # Generate the appropriate URL parameter for a record

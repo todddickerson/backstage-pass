@@ -14,29 +14,31 @@ class AccessPass < ApplicationRecord
   # 🚅 add has_many associations above.
 
   has_rich_text :description
+  has_one :team, through: :space
   # 🚅 add has_one associations above.
 
   scope :published, -> { where(published: true) }
-  scope :available, -> { published.where('stock_limit IS NULL OR stock_limit > 0') }
+  scope :available, -> { published.where("stock_limit IS NULL OR stock_limit > 0") }
   # 🚅 add scopes above.
 
   validates :name, presence: true
   validates :pricing_type, presence: true
-  validates :price_cents, presence: true, numericality: { greater_than_or_equal_to: 0 }
-  validates :slug, presence: true, uniqueness: { scope: :space_id }
+  validates :price_cents, presence: true, numericality: {greater_than_or_equal_to: 0}
+  validates :slug, presence: true, uniqueness: {scope: :space_id}
   # 🚅 add validations above.
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
   # 🚅 add callbacks above.
 
+  delegate :team, to: :space
   # 🚅 add delegations above.
 
   # Pricing types enum
   enum :pricing_type, {
-    free: 'free',
-    one_time: 'one_time',
-    monthly: 'monthly',
-    yearly: 'yearly'
+    free: "free",
+    one_time: "one_time",
+    monthly: "monthly",
+    yearly: "yearly"
   }
 
   # FriendlyId for URL slugs
@@ -47,14 +49,14 @@ class AccessPass < ApplicationRecord
   # monetize :price_cents
 
   def price_display
-    return 'Free' if pricing_type == 'free' || price_cents.zero?
-    
+    return "Free" if pricing_type == "free" || price_cents.zero?
+
     price_str = "$#{(price_cents / 100.0).round(2)}"
-    
+
     case pricing_type
-    when 'monthly'
+    when "monthly"
       "#{price_str}/month"
-    when 'yearly'
+    when "yearly"
       "#{price_str}/year"
     else
       price_str
@@ -66,7 +68,7 @@ class AccessPass < ApplicationRecord
   end
 
   def free?
-    pricing_type == 'free' || price_cents.zero?
+    pricing_type == "free" || price_cents.zero?
   end
 
   def available?
@@ -79,7 +81,8 @@ class AccessPass < ApplicationRecord
 
   def stock_remaining
     return nil if unlimited_stock?
-    stock_limit
+    # Account for actual sales by counting active grants
+    stock_limit - access_grants.active.count
   end
 
   def public_url

@@ -1,5 +1,5 @@
 # DualIdSupport: Enables models to use both FriendlyId slugs and Bullet Train obfuscated IDs
-# 
+#
 # This concern resolves the conflict between FriendlyId and ObfuscatesId by:
 # 1. Allowing FriendlyId to handle public-facing URLs with human-readable slugs
 # 2. Providing obfuscated IDs for admin interfaces and secure operations
@@ -8,7 +8,7 @@
 # Usage:
 #   class Space < ApplicationRecord
 #     include DualIdSupport
-#     
+#
 #     extend FriendlyId
 #     friendly_id :slug, use: :slugged
 #   end
@@ -65,12 +65,12 @@ module DualIdSupport
         begin
           decoded_id = decode_id(id)
           return find(decoded_id) if decoded_id.present?
-        rescue StandardError
+        rescue
           # Continue to standard find
         end
       end
 
-      # Fallback to standard find 
+      # Fallback to standard find
       find(id)
     end
 
@@ -79,12 +79,12 @@ module DualIdSupport
     def find(*ids)
       # If we get multiple IDs, use the default behavior
       return super if ids.length != 1
-      
+
       id = ids.first
-      
+
       # If it's already a numeric ID, use default behavior
       return super if id.is_a?(Integer) || (id.to_s =~ /\A\d+\z/)
-      
+
       # For non-numeric IDs, try our enhanced lookup
       find_by_any_id(id)
     end
@@ -95,7 +95,7 @@ module DualIdSupport
         begin
           decoded_id = decode_id(id)
           return super(decoded_id) if decoded_id.present?
-        rescue StandardError
+        rescue
           # Fall through to other methods
         end
       end

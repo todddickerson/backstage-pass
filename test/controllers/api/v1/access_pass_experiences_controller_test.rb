@@ -31,9 +31,9 @@ class Api::V1::AccessPassExperiencesControllerTest < Api::Test
     # Fetch the access_pass_experience in question and prepare to compare it's attributes.
     access_pass_experience = AccessPassExperience.find(access_pass_experience_data["id"])
 
-    assert_equal_or_nil access_pass_experience_data['experience'], access_pass_experience.experience
-    assert_equal_or_nil access_pass_experience_data['included'], access_pass_experience.included
-    assert_equal_or_nil access_pass_experience_data['position'], access_pass_experience.position
+    assert_equal_or_nil access_pass_experience_data["experience"], access_pass_experience.experience
+    assert_equal_or_nil access_pass_experience_data["included"], access_pass_experience.included
+    assert_equal_or_nil access_pass_experience_data["position"], access_pass_experience.position
     # 🚅 super scaffolding will insert new fields above this line.
 
     assert_equal access_pass_experience_data["access_pass_id"], access_pass_experience.access_pass_id

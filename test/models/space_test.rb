@@ -33,7 +33,7 @@ class SpaceTest < ActiveSupport::TestCase
     space = create(:space)
     team_member = create(:user)
     space.team.memberships.create!(user: team_member, role_ids: [])
-    
+
     assert space.can_access?(team_member)
   end
 end

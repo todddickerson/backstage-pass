@@ -61,7 +61,7 @@ class Account::AccessGrantsController < Account::ApplicationController
 
   private
 
-  if defined?(Api::V1::ApplicationController)
+  if defined?(Api::V1::ApplicationController) && defined?(Api::V1::AccessGrantsController)
     include strong_parameters_from_api
   end
 

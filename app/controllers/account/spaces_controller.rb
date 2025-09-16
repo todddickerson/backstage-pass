@@ -1,6 +1,6 @@
 class Account::SpacesController < Account::ApplicationController
   include DualIdFinder
-  
+
   account_load_and_authorize_resource :space, through: :team, through_association: :spaces
 
   # GET /account/teams/:team_id/spaces

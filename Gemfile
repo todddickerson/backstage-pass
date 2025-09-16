@@ -267,25 +267,25 @@ gem "ruby-openai"
 
 # Testing
 group :development, :test do
-  gem 'webdrivers'
+  gem "webdrivers"
 end
 
 # Streaming Infrastructure
-gem 'livekit-server-sdk'
-gem 'mux_ruby'
+gem "livekit-server-sdk"
+gem "mux_ruby"
 
 # Mobile
-gem 'turbo-native-initializer'
+gem "turbo-native-initializer"
 
 # Marketplace Features
-gem 'money-rails', '~> 1.15'
-gem 'friendly_id', '~> 5.5'
+gem "money-rails", "~> 1.15"
+gem "friendly_id", "~> 5.5"
 
 # AI/Processing
 # gem 'ruby-openai'  # Already uncommented in optional section above
-gem 'streamio-ffmpeg'
+gem "streamio-ffmpeg"
 
 # Development Tools
 group :development do
-  gem 'bullet'  # N+1 query detection
+  gem "bullet"  # N+1 query detection
 end
