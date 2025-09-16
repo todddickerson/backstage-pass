@@ -1,0 +1,24 @@
+<% cancel_path ||= purchase.persisted? ? [:account, purchase] : [:account, @team, :billing_purchases] %>
+
+<%= form_with model: purchase, url: (purchase.persisted? ? [:account, purchase] : [:account, @team, :billing_purchases]), class: 'form' do |form| %>
+  <%= render "shared/limits/form", form: form, cancel_path: cancel_path do %>
+    <%= render 'account/shared/forms/errors', form: form %>
+
+    <% with_field_settings form: form do %>
+      <%= render 'shared/fields/super_select', method: :user_id, options: {autofocus: true}, html_options: {autofocus: true},
+        choices: @purchase.valid_users.map { |user| [user.label_string, user.id] } %>
+      <%= render 'shared/fields/super_select', method: :access_pass_id, options: {}, html_options: {},
+        choices: @purchase.valid_access_passes.map { |access_pass| [access_pass.label_string, access_pass.id] } %>
+      <%= render 'shared/fields/number_field', method: :amount_cents %>
+      <%= render 'shared/fields/text_field', method: :stripe_charge_id %>
+      <%= render 'shared/fields/text_field', method: :stripe_payment_intent_id %>
+      <%= render 'shared/fields/options', method: :status %>
+      <%# 🚅 super scaffolding will insert new fields above this line. %>
+    <% end %>
+
+    <div class="buttons">
+      <%= form.submit (form.object.persisted? ? t('.buttons.update') : t('.buttons.create')), class: "button" %>
+      <%= link_to t('global.buttons.cancel'), cancel_path, class: "button-secondary" %>
+    </div>
+  <% end %>
+<% end %>

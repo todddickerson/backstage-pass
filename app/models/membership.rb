@@ -18,5 +18,15 @@ class Membership < ApplicationRecord
 
   # 🚅 add delegations above.
 
+  # Check if this membership is a buyer role
+  def buyer?
+    role_ids.include?('buyer')
+  end
+
+  # Check if this membership can manage team settings
+  def can_manage_team?
+    admin? || editor?
+  end
+
   # 🚅 add methods above.
 end

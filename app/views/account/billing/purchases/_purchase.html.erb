@@ -1,0 +1,30 @@
+<% team = @team || @team %>
+<% context ||= team %>
+<% collection ||= :billing_purchases %>
+<% hide_actions ||= false %>
+<% hide_back ||= false %>
+
+<% with_attribute_settings object: purchase do %>
+  <tr data-id="<%= purchase.id %>">
+    <%= render "shared/tables/checkbox", object: purchase %>
+    <td><%= render 'shared/attributes/belongs_to', attribute: :user, url: [:account, purchase] %></td>
+    <td><%= render 'shared/attributes/belongs_to', attribute: :access_pass %></td>
+    <td><%= render 'shared/attributes/number', attribute: :amount_cents %></td>
+    <td><%= render 'shared/attributes/text', attribute: :stripe_charge_id %></td>
+    <td><%= render 'shared/attributes/text', attribute: :stripe_payment_intent_id %></td>
+    <td><%= render 'shared/attributes/option', attribute: :status %></td>
+    <%# 🚅 super scaffolding will insert new fields above this line. %>
+    <td><%= render 'shared/attributes/date_and_time', attribute: :created_at %></td>
+    <td class="buttons">
+      <% unless hide_actions %>
+        <% if can? :edit, purchase %>
+          <%= link_to t('.buttons.shorthand.edit'), [:edit, :account, purchase], class: 'button-secondary button-smaller' %>
+        <% end %>
+        <% if can? :destroy, purchase %>
+          <%= button_to t('.buttons.shorthand.destroy'), [:account, purchase], method: :delete, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(purchase)) }, class: 'button-secondary button-smaller' %>
+        <% end %>
+        <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
+      <% end %>
+    </td>
+  </tr>
+<% end %>

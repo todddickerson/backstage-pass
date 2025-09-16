@@ -38,6 +38,10 @@ shallow do
       resources :access_passes do
         resources :access_pass_experiences
       end
+
+      namespace :billing do
+        resources :purchases
+      end
     end
   end
 end

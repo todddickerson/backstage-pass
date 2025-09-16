@@ -1,0 +1,170 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Back to Space Link -->
+  <div class="mb-4">
+    <%= link_to public_space_path(@access_pass.space.slug), class: "inline-flex items-center text-gray-600 hover:text-gray-900" do %>
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+      </svg>
+      Back to <%= @access_pass.space.name %>
+    <% end %>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Content -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
+          <h1 class="text-3xl font-bold mb-2"><%= @access_pass.name %></h1>
+          <p class="text-purple-100">by <%= @access_pass.space.name %></p>
+        </div>
+
+        <!-- Description -->
+        <div class="p-6">
+          <% if @access_pass.description.present? %>
+            <div class="prose max-w-none">
+              <%= @access_pass.description %>
+            </div>
+          <% else %>
+            <p class="text-gray-500 italic">No description available.</p>
+          <% end %>
+        </div>
+
+        <!-- What's Included -->
+        <% if @access_pass.access_pass_experiences.any? %>
+          <div class="border-t px-6 py-4">
+            <h2 class="text-lg font-semibold mb-3">What's Included</h2>
+            <ul class="space-y-2">
+              <% @access_pass.access_pass_experiences.includes(:experience).each do |ape| %>
+                <li class="flex items-start">
+                  <svg class="w-5 h-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  <div>
+                    <span class="font-medium"><%= ape.experience.name %></span>
+                    <% if ape.experience.description.present? %>
+                      <p class="text-sm text-gray-600 mt-1"><%= truncate(ape.experience.description, length: 100) %></p>
+                    <% end %>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <!-- Additional Details -->
+        <div class="border-t px-6 py-4">
+          <h2 class="text-lg font-semibold mb-3">Details</h2>
+          <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Access Type</dt>
+              <dd class="mt-1 text-sm text-gray-900">
+                <% case @access_pass.pricing_type %>
+                <% when 'free' %>
+                  Free Access
+                <% when 'one_time' %>
+                  One-time Purchase
+                <% when 'monthly' %>
+                  Monthly Subscription
+                <% when 'yearly' %>
+                  Yearly Subscription
+                <% end %>
+              </dd>
+            </div>
+            
+            <% if @access_pass.stock_limit.present? %>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Available Spots</dt>
+                <dd class="mt-1 text-sm text-gray-900">
+                  <%= @access_pass.stock_limit - @access_pass.access_grants.count %> of <%= @access_pass.stock_limit %>
+                </dd>
+              </div>
+            <% end %>
+            
+            <% if @access_pass.waitlist_enabled? %>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Waitlist</dt>
+                <dd class="mt-1 text-sm text-gray-900">Available</dd>
+              </div>
+            <% end %>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-lg shadow-lg p-6 sticky top-4">
+        <!-- Price -->
+        <div class="mb-6 text-center">
+          <% case @access_pass.pricing_type %>
+          <% when 'free' %>
+            <div class="text-3xl font-bold text-green-600">FREE</div>
+            <div class="text-gray-500 text-sm mt-1">No payment required</div>
+          <% when 'one_time' %>
+            <div class="text-3xl font-bold">$<%= @access_pass.price_cents / 100.0 %></div>
+            <div class="text-gray-500 text-sm mt-1">One-time payment</div>
+          <% when 'monthly' %>
+            <div class="text-3xl font-bold">$<%= @access_pass.price_cents / 100.0 %></div>
+            <div class="text-gray-500 text-sm mt-1">per month</div>
+          <% when 'yearly' %>
+            <div class="text-3xl font-bold">$<%= @access_pass.price_cents / 100.0 %></div>
+            <div class="text-gray-500 text-sm mt-1">per year</div>
+          <% end %>
+        </div>
+
+        <!-- Purchase Button -->
+        <% if user_signed_in? %>
+          <% if current_user.access_grants.active.where(access_pass: @access_pass).exists? %>
+            <!-- Already has access -->
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <svg class="w-8 h-8 text-green-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              <p class="text-green-800 font-semibold">You have access!</p>
+              <p class="text-green-600 text-sm mt-1">Enjoy your content</p>
+            </div>
+          <% elsif @access_pass.stock_limit.present? && @access_pass.access_grants.count >= @access_pass.stock_limit %>
+            <!-- Sold out -->
+            <% if @access_pass.waitlist_enabled? %>
+              <%= link_to "Join Waitlist", "#", class: "w-full bg-gray-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-gray-700 transition duration-200 block" %>
+            <% else %>
+              <div class="bg-gray-100 border border-gray-300 rounded-lg p-4 text-center">
+                <p class="text-gray-700 font-semibold">Sold Out</p>
+                <p class="text-gray-500 text-sm mt-1">No spots available</p>
+              </div>
+            <% end %>
+          <% else %>
+            <!-- Can purchase -->
+            <%= link_to new_space_access_pass_purchase_path(@access_pass.space.slug, @access_pass.slug), class: "w-full bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-blue-700 transition duration-200 block" do %>
+              <% if @access_pass.pricing_type == 'free' %>
+                Get Free Access
+              <% else %>
+                Get Access Now
+              <% end %>
+            <% end %>
+          <% end %>
+        <% else %>
+          <!-- Not signed in -->
+          <%= link_to new_user_session_path, class: "w-full bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold text-center hover:bg-blue-700 transition duration-200 block" do %>
+            Sign In to Get Access
+          <% end %>
+        <% end %>
+
+        <!-- Guarantee -->
+        <div class="mt-6 pt-6 border-t text-center">
+          <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          <p class="text-sm text-gray-600">
+            <% if @access_pass.pricing_type != 'free' %>
+              Secure payment via Stripe
+            <% else %>
+              Instant access, no card required
+            <% end %>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

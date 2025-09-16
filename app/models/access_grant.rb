@@ -90,10 +90,10 @@ class AccessGrant < ApplicationRecord
     return unless active?
     return if membership_for_user # Don't create duplicate memberships
 
-    viewer_role = Role.find_by(key: 'viewer')
+    # Create membership with buyer role
     target_team.memberships.create!(
       user: user,
-      role_ids: [viewer_role.id],
+      role_ids: ['buyer'],
       source: 'access_pass'
     )
   end
@@ -106,7 +106,9 @@ class AccessGrant < ApplicationRecord
     if active?
       # Reactivate membership if it was disabled
       # Note: Don't downgrade existing admin/editor roles
-      membership.update!(role: 'viewer') if membership.role.blank?
+      if membership.role_ids.blank? || membership.role_ids.empty?
+        membership.update!(role_ids: ['buyer'])
+      end
     else
       # For granted access, we might want to keep them but mark differently
       # or remove them entirely depending on business logic

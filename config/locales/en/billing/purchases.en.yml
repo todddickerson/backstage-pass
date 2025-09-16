@@ -1,0 +1,137 @@
+en:
+  billing/purchases: &purchases
+    label: &label Purchases
+    breadcrumbs:
+      label: *label
+    navigation:
+      label: *label
+      icon: fal fa-puzzle-piece
+    buttons: &buttons
+      new: Add New Purchase
+      create: Create Purchase
+      edit: Edit Purchase
+      update: Update Purchase
+      destroy: Remove Purchase
+      shorthand:
+        edit: Edit
+        destroy: Delete
+      confirmations:
+        # TODO customize for your use-case.
+        destroy: Are you sure you want to remove %{purchase_name}? This will also remove any child resources and can't be undone.
+    purchase:
+      buttons: *buttons
+    fields: &fields
+      id:
+        heading: Purchase ID
+      team_id:
+        heading: Team ID
+      user_id: &user
+        _: &user_id User
+        label: *user_id
+        heading: *user_id
+        api_title: *user_id
+        api_description: *user_id
+        placeholder: Select
+      user: *user
+      access_pass_id: &access_pass
+        _: &access_pass_id Access Pass
+        label: *access_pass_id
+        heading: *access_pass_id
+        api_title: *access_pass_id
+        api_description: *access_pass_id
+        placeholder: None
+      access_pass: *access_pass
+      amount_cents:
+        _: &amount_cents Amount Cents
+        label: *amount_cents
+        heading: *amount_cents
+        api_title: *amount_cents
+        api_description: *amount_cents
+      stripe_charge_id:
+        _: &stripe_charge_id Stripe Charge ID
+        label: *stripe_charge_id
+        heading: *stripe_charge_id
+        api_title: *stripe_charge_id
+        api_description: *stripe_charge_id
+      stripe_payment_intent_id:
+        _: &stripe_payment_intent_id Stripe Payment Intent ID
+        label: *stripe_payment_intent_id
+        heading: *stripe_payment_intent_id
+        api_title: *stripe_payment_intent_id
+        api_description: *stripe_payment_intent_id
+      status:
+        _: &status Status
+        label: *status
+        heading: *status
+        api_title: *status
+        api_description: *status
+        options:
+          one: One
+          two: Two
+          three: Three
+      # 🚅 super scaffolding will insert new fields above this line.
+      created_at:
+        _: &created_at Added
+        label: *created_at
+        heading: *created_at
+      updated_at:
+        _: &updated_at Updated
+        label: *updated_at
+        heading: *updated_at
+    api:
+      collection_actions: "Collection Actions for Purchases"
+      index: "List Purchases"
+      create: "Add a New Purchase"
+      member_actions: "Actions for an Individual Purchase"
+      show: "Retrieve a Purchase"
+      update: "Update a Purchase"
+      destroy: "Delete a Purchase"
+      fields: *fields
+    index:
+      section: "%{teams_possessive} Purchases"
+      contexts:
+        team:
+          header: Purchases
+          description: Below is a list of Purchases that have been added for %{team_name}.
+          description_empty: No Purchases have been added for %{team_name}.
+      fields: *fields
+      buttons: *buttons
+    show:
+      section: "%{purchase_name}"
+      header: Purchase Details
+      description: Below are the details we have for %{purchase_name}.
+      manage_description: You'll also find options for updating these details or removing %{purchase_name} from %{team_name} entirely.
+      fields: *fields
+      buttons: *buttons
+    form: &form
+      buttons: *buttons
+      fields: *fields
+    new:
+      section: "New Purchase for %{team_name}"
+      header: New Purchase Details
+      description: Please provide the details of the new Purchase you'd like to add to %{team_name}.
+      form: *form
+    edit:
+      section: "%{purchase_name}"
+      header: Edit Purchase Details
+      description: You can update the details or settings for %{purchase_name} below.
+      form: *form
+    notifications:
+      created: Purchase was successfully created.
+      updated: Purchase was successfully updated.
+      destroyed: Purchase was successfully destroyed.
+  account:
+    billing:
+      purchases: *purchases
+  activerecord:
+    attributes:
+      billing/purchase:
+        user_id: *user_id
+        access_pass_id: *access_pass_id
+        amount_cents: *amount_cents
+        stripe_charge_id: *stripe_charge_id
+        stripe_payment_intent_id: *stripe_payment_intent_id
+        status: *status
+        # 🚅 super scaffolding will insert new activerecord attributes above this line.
+        created_at: *created_at
+        updated_at: *updated_at
