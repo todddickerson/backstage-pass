@@ -1,0 +1,56 @@
+#!/bin/bash
+set -e
+
+# Production Docker entrypoint for Backstage Pass
+# Handles database setup and migrations
+
+echo "🚀 Starting Backstage Pass in production mode..."
+
+# Remove a potentially pre-existing server.pid for Rails
+if [ -f tmp/pids/server.pid ]; then
+  echo "Removing stale server.pid..."
+  rm tmp/pids/server.pid
+fi
+
+# Wait for database to be ready (optional but recommended)
+if [ -n "$DATABASE_URL" ]; then
+  echo "⏳ Waiting for database to be ready..."
+  
+  # Extract database host from DATABASE_URL
+  DB_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\):.*/\1/p')
+  DB_PORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p')
+  
+  if [ -n "$DB_HOST" ] && [ -n "$DB_PORT" ]; then
+    while ! nc -z $DB_HOST $DB_PORT; do
+      echo "   Database is not ready yet. Waiting..."
+      sleep 2
+    done
+    echo "✅ Database is ready!"
+  fi
+fi
+
+# Run database migrations if this is the web service
+if [ "$1" == "bundle" ] && [ "$2" == "exec" ] && [[ "$3" == *"puma"* ]]; then
+  echo "📦 Checking database status..."
+  
+  # Check if database exists, create if not
+  bundle exec rails db:prepare || {
+    echo "⚠️  Database setup failed, trying to create..."
+    bundle exec rails db:create
+    bundle exec rails db:schema:load
+    bundle exec rails db:seed
+  }
+  
+  # Run any pending migrations
+  echo "🔄 Running database migrations..."
+  bundle exec rails db:migrate
+  
+  # Clear cache
+  echo "🧹 Clearing cache..."
+  bundle exec rails cache:clear || true
+  
+  echo "✅ Application setup complete!"
+fi
+
+# Execute the main container command
+exec "$@"

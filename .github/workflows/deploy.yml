@@ -1,0 +1,167 @@
+name: Deploy to Railway (MVP)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  RAILS_ENV: production
+  RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+  BUNDLER_VERSION: 2.4.22
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: backstage_pass_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3.0'
+        bundler-cache: true
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'yarn'
+    
+    - name: Install dependencies
+      run: |
+        gem install bundler -v ${{ env.BUNDLER_VERSION }}
+        bundle install --jobs 4 --retry 3
+        yarn install --frozen-lockfile
+    
+    - name: Set up database
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/backstage_pass_test
+        REDIS_URL: redis://localhost:6379/1
+        RAILS_ENV: test
+      run: |
+        bundle exec rails db:create
+        bundle exec rails db:schema:load
+    
+    - name: Precompile assets
+      run: bundle exec rails assets:precompile
+    
+    - name: Run tests
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/backstage_pass_test
+        REDIS_URL: redis://localhost:6379/1
+        RAILS_ENV: test
+        BULLET_ENABLED: false
+      run: |
+        bundle exec rails test
+    
+    - name: Run security audit
+      run: |
+        bundle exec bundler-audit check --update
+        bundle exec brakeman -q -w2
+
+  deploy-railway:
+    name: Deploy to Railway
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install Railway CLI
+      run: npm install -g @railway/cli
+    
+    - name: Deploy to Railway
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      run: |
+        railway up --detach
+    
+    - name: Wait for deployment
+      run: sleep 60
+    
+    - name: Run database migrations
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      run: |
+        railway run rails db:migrate
+    
+    - name: Health check
+      run: |
+        # Get the domain from Railway (if available)
+        DOMAIN=$(railway domain 2>/dev/null | head -1 || echo "")
+        if [ -n "$DOMAIN" ]; then
+          echo "Checking health at: $DOMAIN/health"
+          for i in {1..10}; do
+            if curl -f -s "$DOMAIN/health" >/dev/null; then
+              echo "✅ Health check passed!"
+              break
+            else
+              echo "⏳ Health check attempt $i failed, retrying..."
+              sleep 30
+            fi
+          done
+        else
+          echo "⚠️ Could not determine Railway domain, skipping health check"
+        fi
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+  notify:
+    name: Deployment Notification
+    needs: [deploy-railway]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Send deployment notification
+      uses: 8398a7/action-slack@v3
+      if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+      with:
+        status: ${{ needs.deploy-railway.result }}
+        text: |
+          Railway Deployment: ${{ needs.deploy-railway.result }}
+          Commit: ${{ github.sha }}
+          Author: ${{ github.actor }}
+          Branch: ${{ github.ref }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

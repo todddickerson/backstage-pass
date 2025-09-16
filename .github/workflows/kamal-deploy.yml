@@ -1,0 +1,232 @@
+name: Deploy with Kamal 2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  RAILS_ENV: production
+  RUBY_VERSION: 3.3.0
+  NODE_VERSION: 20
+  
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: backstage_pass_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ env.RUBY_VERSION }}
+        bundler-cache: true
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'yarn'
+    
+    - name: Install dependencies
+      run: |
+        bundle install --jobs 4 --retry 3
+        yarn install --frozen-lockfile
+    
+    - name: Set up database
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/backstage_pass_test
+        REDIS_URL: redis://localhost:6379/1
+        RAILS_ENV: test
+      run: |
+        bundle exec rails db:create
+        bundle exec rails db:schema:load
+    
+    - name: Run tests
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/backstage_pass_test
+        REDIS_URL: redis://localhost:6379/1
+        RAILS_ENV: test
+        RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+      run: |
+        bundle exec rails test
+    
+    - name: Run security audit
+      run: |
+        bundle exec bundler-audit check --update
+        bundle exec brakeman -q -w2
+
+  build:
+    name: Build Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: backstagepass/app
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile.production
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=registry,ref=backstagepass/app:buildcache
+        cache-to: type=registry,ref=backstagepass/app:buildcache,mode=max
+        build-args: |
+          RUBY_VERSION=${{ env.RUBY_VERSION }}
+          NODE_VERSION=${{ env.NODE_VERSION }}
+          RAILS_ENV=production
+          RAILS_MASTER_KEY=${{ secrets.RAILS_MASTER_KEY }}
+
+  deploy:
+    name: Deploy with Kamal
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ env.RUBY_VERSION }}
+    
+    - name: Install Kamal
+      run: gem install kamal
+    
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+        chmod 644 ~/.ssh/known_hosts
+    
+    - name: Create secrets file
+      run: |
+        mkdir -p .kamal
+        cat > .kamal/secrets << EOF
+        KAMAL_REGISTRY_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
+        RAILS_MASTER_KEY=${{ secrets.RAILS_MASTER_KEY }}
+        SECRET_KEY_BASE=${{ secrets.SECRET_KEY_BASE }}
+        DATABASE_URL=${{ secrets.DATABASE_URL }}
+        REDIS_URL=${{ secrets.REDIS_URL }}
+        POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+        LIVEKIT_API_KEY=${{ secrets.LIVEKIT_API_KEY }}
+        LIVEKIT_API_SECRET=${{ secrets.LIVEKIT_API_SECRET }}
+        LIVEKIT_HOST=${{ secrets.LIVEKIT_HOST }}
+        MUX_TOKEN_ID=${{ secrets.MUX_TOKEN_ID }}
+        MUX_TOKEN_SECRET=${{ secrets.MUX_TOKEN_SECRET }}
+        GETSTREAM_API_KEY=${{ secrets.GETSTREAM_API_KEY }}
+        GETSTREAM_API_SECRET=${{ secrets.GETSTREAM_API_SECRET }}
+        STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+        STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+        STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
+        HONEYBADGER_API_KEY=${{ secrets.HONEYBADGER_API_KEY }}
+        ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=${{ secrets.ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY }}
+        ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=${{ secrets.ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY }}
+        ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=${{ secrets.ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT }}
+        EOF
+    
+    - name: Deploy with Kamal
+      run: |
+        export $(cat .kamal/secrets | xargs)
+        kamal deploy --skip-push
+    
+    - name: Run migrations
+      run: |
+        export $(cat .kamal/secrets | xargs)
+        kamal app exec 'bin/rails db:migrate'
+    
+    - name: Health check
+      run: |
+        sleep 30
+        curl -f https://backstagepass.app/health || exit 1
+    
+    - name: Clean up
+      if: always()
+      run: |
+        rm -rf .kamal/secrets
+        rm -rf ~/.ssh/id_rsa
+
+  notify:
+    name: Deployment Notification
+    needs: [test, build, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Notify Slack
+      if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: |
+          Kamal Deployment: ${{ needs.deploy.result || 'skipped' }}
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Author: ${{ github.actor }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}

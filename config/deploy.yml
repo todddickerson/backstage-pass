@@ -1,0 +1,185 @@
+# Kamal 2 deployment configuration
+# Deploy with: kamal deploy
+
+# Name of your application
+service: backstage-pass
+
+# Docker image name
+image: backstagepass/app
+
+# Deployment servers
+servers:
+  web:
+    hosts:
+      - 165.232.149.131  # Replace with your production server IP
+    labels:
+      traefik.http.routers.backstage-pass.rule: Host(`backstagepass.app`) || Host(`www.backstagepass.app`)
+      traefik.http.routers.backstage-pass.tls: true
+      traefik.http.routers.backstage-pass.tls.certresolver: letsencrypt
+      traefik.http.routers.backstage-pass.entrypoints: websecure
+      traefik.http.routers.backstage-pass.middlewares: redirect-www
+      traefik.http.middlewares.redirect-www.redirectregex.regex: ^https://www\.(.*)
+      traefik.http.middlewares.redirect-www.redirectregex.replacement: https://$${1}
+      traefik.http.middlewares.redirect-www.redirectregex.permanent: true
+    options:
+      network: "backstage-network"
+  
+  worker:
+    hosts:
+      - 165.232.149.131  # Can be same server or different
+    cmd: bundle exec sidekiq -C config/sidekiq.yml
+    options:
+      network: "backstage-network"
+
+# Credentials for your image host
+registry:
+  # Use Docker Hub
+  server: docker.io
+  username: backstagepass
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+  
+  # Or use GitHub Container Registry
+  # server: ghcr.io
+  # username: todddickerson
+  # password:
+  #   - GITHUB_TOKEN
+
+# Environment configuration
+env:
+  clear:
+    BASE_URL: https://backstagepass.app
+    APPLICATION_HOST: backstagepass.app
+    RAILS_ENV: production
+    NODE_ENV: production
+    RAILS_LOG_TO_STDOUT: true
+    RAILS_SERVE_STATIC_FILES: true
+    WEB_CONCURRENCY: 2
+    RAILS_MAX_THREADS: 5
+    
+  secret:
+    - RAILS_MASTER_KEY
+    - DATABASE_URL
+    - REDIS_URL
+    - SECRET_KEY_BASE
+    - LIVEKIT_API_KEY
+    - LIVEKIT_API_SECRET
+    - LIVEKIT_HOST
+    - MUX_TOKEN_ID
+    - MUX_TOKEN_SECRET
+    - GETSTREAM_API_KEY
+    - GETSTREAM_API_SECRET
+    - STRIPE_PUBLISHABLE_KEY
+    - STRIPE_SECRET_KEY
+    - STRIPE_WEBHOOK_SECRET
+    - SENDGRID_API_KEY
+    - HONEYBADGER_API_KEY
+    - ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY
+    - ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY
+    - ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT
+
+# Use a persistent volume for storage
+volumes:
+  - "/data/backstage-pass/storage:/rails/storage"
+  - "/data/backstage-pass/public/uploads:/rails/public/uploads"
+
+# Asset bridging for zero-downtime deployments
+asset_path: /rails/public/assets
+
+# Configure Traefik as the reverse proxy
+traefik:
+  options:
+    publish:
+      - "443:443"
+    volume:
+      - "/letsencrypt/acme.json:/letsencrypt/acme.json"
+    network: "backstage-network"
+  args:
+    entrypoints.web.address: ":80"
+    entrypoints.websecure.address: ":443"
+    entrypoints.web.http.redirections.entrypoint.to: websecure
+    entrypoints.web.http.redirections.entrypoint.scheme: https
+    certificatesresolvers.letsencrypt.acme.email: "admin@backstagepass.app"
+    certificatesresolvers.letsencrypt.acme.storage: "/letsencrypt/acme.json"
+    certificatesresolvers.letsencrypt.acme.httpchallenge: true
+    certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint: web
+
+# Accessories (databases, caches, etc.)
+accessories:
+  postgres:
+    image: postgres:15
+    host: 165.232.149.131
+    port: 5432
+    env:
+      clear:
+        POSTGRES_USER: backstage_pass
+        POSTGRES_DB: backstage_pass_production
+      secret:
+        - POSTGRES_PASSWORD
+    files:
+      - config/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    directories:
+      - data:/var/lib/postgresql/data
+    options:
+      network: "backstage-network"
+  
+  redis:
+    image: redis:7-alpine
+    host: 165.232.149.131
+    port: 6379
+    cmd: redis-server --appendonly yes
+    directories:
+      - data:/data
+    options:
+      network: "backstage-network"
+
+# Healthcheck configuration
+healthcheck:
+  path: /health
+  port: 3000
+  max_attempts: 10
+  interval: 3
+
+# Configure how many old containers to retain
+retain_containers: 3
+
+# SSH configuration
+ssh:
+  user: deploy
+
+# Builder configuration
+builder:
+  multiarch: false
+  context: "."
+  dockerfile: "Dockerfile.production"
+  cache:
+    type: registry
+    options: mode=max
+  args:
+    RUBY_VERSION: 3.3.0
+    NODE_VERSION: 20
+    RAILS_ENV: production
+    BUNDLE_WITHOUT: "development:test"
+
+# Logging
+logging:
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "10"
+
+# Deployment hooks
+hooks:
+  pre-connect:
+    - bin/rails log:clear
+  
+  pre-build:
+    - bin/rails test
+    - bundle exec brakeman -q
+  
+  pre-deploy:
+    - bin/rails db:prepare
+  
+  post-deploy:
+    - bin/rails db:migrate
+    - bin/rails cache:clear

@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  # Health check endpoint for deployment monitoring
+  get "health", to: "health#show", as: :health_check
+  
   # See `config/routes/*.rb` to customize these configurations.
   draw "concerns"
   draw "devise"

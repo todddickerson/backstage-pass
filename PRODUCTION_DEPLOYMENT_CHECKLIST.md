@@ -1,5 +1,47 @@
 # Production Deployment Checklist - Backstage Pass
 
+## 🚂 Primary Deployment: Railway (MVP)
+
+**Railway is our primary deployment platform for MVP** - it's simple, fast, and handles infrastructure automatically.
+
+### Quick Railway Setup
+1. **Connect GitHub**: Link this repo to Railway at https://railway.app
+2. **Auto-deployment**: Railway deploys automatically on push to main
+3. **Add services**: PostgreSQL and Redis from Railway marketplace
+4. **Set environment variables**: Use Railway dashboard or CLI
+5. **Custom domain**: Add your domain in Railway dashboard
+
+### Railway CLI Commands
+```bash
+# Install CLI
+npm install -g @railway/cli
+
+# Login and link project
+railway login
+railway link
+
+# Deploy manually
+railway up
+
+# Manage environment variables
+railway variables set KEY=value
+
+# View logs
+railway logs
+
+# Run Rails console
+railway run rails console
+
+# Database commands
+railway run rails db:migrate
+railway run rails db:seed
+```
+
+## 🐳 Alternative: Kamal 2 (Future/Production Scale)
+
+See [Issue #23](https://github.com/todddickerson/backstage-pass/issues/23) for Kamal 2 evaluation.
+Kamal 2 setup is included in this repo but not prioritized for MVP.
+
 ## 🔐 Environment Variables Required
 
 ### Core Rails Configuration
@@ -189,7 +231,31 @@ APNS_ENVIRONMENT=production
 
 ### 1. Hosting Platform
 
-#### Option A: Heroku (Easiest)
+#### Option A: Railway (Recommended for MVP) ⭐
+```bash
+# Install Railway CLI
+npm install -g @railway/cli
+
+# Login and link project
+railway login
+railway link
+
+# Deploy
+railway up
+
+# Add PostgreSQL and Redis from Railway marketplace
+# Configure environment variables via Railway dashboard
+```
+
+**Why Railway for MVP:**
+- ✅ Automatic deployments on git push
+- ✅ Built-in PostgreSQL and Redis
+- ✅ Automatic SSL certificates
+- ✅ Simple environment variable management
+- ✅ Preview environments for pull requests
+- ✅ No DevOps overhead
+
+#### Option B: Heroku (Alternative)
 ```bash
 # Install Heroku CLI
 heroku create backstage-pass-production
@@ -204,22 +270,13 @@ heroku addons:create heroku-postgresql:standard-0
 # Add Redis
 heroku addons:create heroku-redis:premium-0
 
-# Add scheduler for cron jobs
-heroku addons:create scheduler:standard
-
 # Scale dynos
 heroku ps:scale web=2 worker=1
 ```
 
-#### Option B: Railway (Modern Alternative)
-1. Connect GitHub repo at https://railway.app
-2. Add PostgreSQL service
-3. Add Redis service
-4. Configure environment variables
-5. Set up custom domain
-
-#### Option C: Render.com
-Similar to Railway with automatic SSL and preview environments
+#### Option C: Kamal 2 (Future/Scale)
+See [Issue #23](https://github.com/todddickerson/backstage-pass/issues/23) for evaluation.
+Best for high-traffic production with custom server management.
 
 ### 2. CDN Setup (Cloudflare)
 1. Add domain to Cloudflare

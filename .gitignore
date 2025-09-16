@@ -94,3 +94,10 @@ erd.pdf
 CLAUDE.md
 
 # 🚅 add your files to ignore here.
+
+# Kamal deployment secrets
+.kamal/secrets
+!.kamal/secrets.example
+
+# Docker/deployment artifacts  
+.dockerignore.production

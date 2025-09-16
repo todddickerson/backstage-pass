@@ -1,0 +1,114 @@
+# syntax=docker/dockerfile:1
+# Multi-stage production Dockerfile optimized for Kamal 2 deployment
+
+ARG RUBY_VERSION=3.3.0
+ARG NODE_VERSION=20
+
+# Base image with Ruby and essential dependencies
+FROM ruby:$RUBY_VERSION-slim AS base
+
+# Rails app lives here
+WORKDIR /rails
+
+# Set production environment
+ENV RAILS_ENV="production" \
+    BUNDLE_DEPLOYMENT="1" \
+    BUNDLE_PATH="/usr/local/bundle" \
+    BUNDLE_WITHOUT="development:test" \
+    BUNDLE_JOBS="4" \
+    BUNDLE_RETRY="3"
+
+# Update gems and install essential packages
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    curl \
+    libpq5 \
+    libjemalloc2 && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Throw-away build stage to reduce size of final image
+FROM base AS build
+
+# Install build dependencies
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    build-essential \
+    git \
+    libpq-dev \
+    pkg-config \
+    python3 \
+    gnupg2 \
+    wget
+
+# Install Node.js
+ARG NODE_VERSION
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g yarn
+
+# Copy Gemfile and install gems
+COPY Gemfile Gemfile.lock ./
+RUN bundle install && \
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
+
+# Copy package.json and install node packages
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
+
+# Copy application code
+COPY . .
+
+# Precompile bootsnap and assets
+RUN bundle exec bootsnap precompile --gemfile && \
+    bundle exec bootsnap precompile app/ lib/
+
+# Precompile assets
+RUN SECRET_KEY_BASE_DUMMY=1 \
+    RAILS_MASTER_KEY=dummy \
+    bundle exec rails assets:precompile
+
+# Clean up node_modules after asset compilation
+RUN rm -rf node_modules
+
+# Final production image
+FROM base
+
+# Install runtime dependencies for Active Storage and image processing
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    imagemagick \
+    libvips \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Copy built artifacts from build stage
+COPY --from=build /usr/local/bundle /usr/local/bundle
+COPY --from=build /rails /rails
+
+# Create non-root user for security
+RUN useradd rails --create-home --shell /bin/bash && \
+    chown -R rails:rails /rails && \
+    chmod -R 755 /rails/bin
+
+# Switch to non-root user
+USER rails:rails
+
+# Set environment variables for jemalloc (memory optimization)
+ENV LD_PRELOAD="libjemalloc.so.2" \
+    MALLOC_CONF="dirty_decay_ms:1000,narenas:2,background_thread:true"
+
+# Ensure binaries are executable
+RUN chmod +x /rails/bin/*
+
+# Entrypoint prepares database and runs migrations
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+
+# Expose port 3000
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+# Default command starts Puma server
+CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
