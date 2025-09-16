@@ -1,43 +1,42 @@
 # Current Task Context
 
-## 🎯 Working on Issue #9
+## 🎯 Working on Issue #8
 
-### Title: GetStream.io Chat Integration - Real-time Chat System
+### Title: STORY 12: Native Video Streaming - LiveKit Mobile Integration
 
 ### Description:
-**Feature**: Integrate GetStream.io for robust chat functionality across web and mobile
+**User Story**: As a mobile viewer I want to watch streams with native video players so that I get optimal performance and battery life
 
-**Requirements:**
-- [ ] GetStream.io setup and configuration
-- [ ] Chat rooms for each live stream
-- [ ] Real-time messaging during streams
-- [ ] Moderation tools for creators
-- [ ] Mobile chat integration
-- [ ] Message history and persistence
+**Acceptance Criteria:**
+- [ ] Native video player launches for streams
+- [ ] Video continues in background (audio only)
+- [ ] Picture-in-picture mode supported
+- [ ] Screen rotation handled natively
+- [ ] Low latency (<2 seconds)
+- [ ] Adaptive bitrate for mobile networks
 
-**Technical Implementation:**
-- GetStream.io JavaScript SDK for web
-- Native chat components for mobile
-- Creator moderation interface
-- Access control (only AccessPass holders can chat)
+**Technical Requirements:**
+- LiveKit iOS SDK integration
+- LiveKit Android SDK integration
+- JavaScript bridge for player control
+- Native player UI components  
+- Background audio permissions
 
-**Integration Points:**
-- Stream model integration with chat rooms
-- User authentication with GetStream tokens
-- Mobile bridge for chat functionality
+**Bridge Components:**
+- BridgeComponent pattern for video player
+- Native/web communication for stream control
+- Platform detection for web fallback
 
 **Dependencies:**
-```ruby
-gem 'stream-chat-ruby'
+```
+# iOS Package.swift
+.package(url: "https://github.com/livekit/client-sdk-swift", from: "2.0.0")
+
+# Android build.gradle  
+implementation 'io.livekit:livekit-android:2.0.0'
 ```
 
-**Environment Variables:**
-```yaml
-GETSTREAM_API_KEY: xxx
-GETSTREAM_API_SECRET: xxx  
-```
-
-### Branch: issue-9
+### Branch: issue-8
 
 ## 📋 Implementation Checklist:
 - [ ] Review issue requirements above
@@ -66,7 +65,7 @@ git status
 git diff
 
 # When complete
-bin/gh-complete 9 "PR title describing changes"
+bin/gh-complete 8 "PR title describing changes"
 ```
 
 ## 📚 Key Documentation:
@@ -83,4 +82,4 @@ bin/gh-complete 9 "PR title describing changes"
 - Always validate namespacing before generating models
 
 ---
-*Context generated at: Tue Sep 16 13:34:04 EDT 2025*
+*Context generated at: Tue Sep 16 13:48:45 EDT 2025*
