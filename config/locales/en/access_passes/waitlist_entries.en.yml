@@ -1,0 +1,156 @@
+en:
+  access_passes/waitlist_entries: &waitlist_entries
+    label: &label Waitlist Entries
+    breadcrumbs:
+      label: *label
+    navigation:
+      label: *label
+      icon: fal fa-puzzle-piece
+    buttons: &buttons
+      new: Add New Waitlist Entry
+      create: Create Waitlist Entry
+      edit: Edit Waitlist Entry
+      update: Update Waitlist Entry
+      destroy: Remove Waitlist Entry
+      approve: Approve Application
+      reject: Reject Application
+      shorthand:
+        edit: Edit
+        destroy: Delete
+      confirmations:
+        # TODO customize for your use-case.
+        destroy: Are you sure you want to remove %{waitlist_entry_name}? This will also remove any child resources and can't be undone.
+        approve: Are you sure you want to approve this application?
+        reject: Are you sure you want to reject this application?
+    waitlist_entry:
+      buttons: *buttons
+    fields: &fields
+      id:
+        heading: Waitlist Entry ID
+      access_pass_id:
+        heading: Access Pass ID
+      email:
+        _: &email Email
+        label: *email
+        heading: *email
+        api_title: *email
+        api_description: *email
+      first_name:
+        _: &first_name First Name
+        label: *first_name
+        heading: *first_name
+        api_title: *first_name
+        api_description: *first_name
+      last_name:
+        _: &last_name Last Name
+        label: *last_name
+        heading: *last_name
+        api_title: *last_name
+        api_description: *last_name
+      answers:
+        _: &answers Answers
+        label: *answers
+        heading: *answers
+        api_title: *answers
+        api_description: *answers
+      status:
+        _: &status Status
+        label: *status
+        heading: *status
+        api_title: *status
+        api_description: *status
+        options:
+          pending: Pending
+          approved: Approved
+          rejected: Rejected
+      notes:
+        _: &notes Notes
+        label: *notes
+        heading: *notes
+        api_title: *notes
+        api_description: *notes
+      approved_at:
+        _: &approved_at Approved At
+        label: *approved_at
+        heading: *approved_at
+        api_title: *approved_at
+        api_description: *approved_at
+      rejected_at:
+        _: &rejected_at Rejected At
+        label: *rejected_at
+        heading: *rejected_at
+        api_title: *rejected_at
+        api_description: *rejected_at
+      # 🚅 super scaffolding will insert new fields above this line.
+      created_at:
+        _: &created_at Added
+        label: *created_at
+        heading: *created_at
+      updated_at:
+        _: &updated_at Updated
+        label: *updated_at
+        heading: *updated_at
+    api:
+      collection_actions: "Collection Actions for Waitlist Entries"
+      index: "List Waitlist Entries"
+      create: "Add a New Waitlist Entry"
+      member_actions: "Actions for an Individual Waitlist Entry"
+      show: "Retrieve a Waitlist Entry"
+      update: "Update a Waitlist Entry"
+      destroy: "Delete a Waitlist Entry"
+      fields: *fields
+    index:
+      section: "%{access_passes_possessive} Waitlist Entries"
+      contexts:
+        access_pass:
+          header: Waitlist Entries
+          description: Below is a list of Waitlist Entries that have been added for %{access_pass_name}.
+          description_empty: No Waitlist Entries have been added for %{access_pass_name}.
+      fields: *fields
+      buttons: *buttons
+    show:
+      section: "%{waitlist_entry_name}"
+      header: Waitlist Entry Details
+      description: Below are the details we have for %{waitlist_entry_name}.
+      manage_description: You'll also find options for updating these details or removing %{waitlist_entry_name} from %{access_pass_name} entirely.
+      fields: *fields
+      buttons: *buttons
+    form: &form
+      buttons: *buttons
+      fields: *fields
+    new:
+      section: "New Waitlist Entry for %{access_pass_name}"
+      header: New Waitlist Entry Details
+      description: Please provide the details of the new Waitlist Entry you'd like to add to %{access_pass_name}.
+      form: *form
+    edit:
+      section: "%{waitlist_entry_name}"
+      header: Edit Waitlist Entry Details
+      description: You can update the details or settings for %{waitlist_entry_name} below.
+      form: *form
+    notifications:
+      created: Waitlist Entry was successfully created.
+      updated: Waitlist Entry was successfully updated.
+      destroyed: Waitlist Entry was successfully destroyed.
+      approved: Application has been approved and email sent.
+      rejected: Application has been rejected.
+      approval_failed: Failed to approve application.
+      rejection_failed: Failed to reject application.
+      already_processed: This application has already been processed.
+  account:
+    access_passes:
+      waitlist_entries: *waitlist_entries
+  activerecord:
+    attributes:
+      access_passes/waitlist_entry:
+        email: *email
+        first_name: *first_name
+        last_name: *last_name
+        answers: *answers
+        status: *status
+        notes: *notes
+        approved_at: *approved_at
+        rejected_at: *rejected_at
+        # 🚅 super scaffolding will insert new activerecord attributes above this line.
+        created_at: *created_at
+        updated_at: *updated_at

@@ -1,0 +1,19 @@
+Congratulations! You've been approved!
+
+Hi <%= @waitlist_entry.full_name %>,
+
+Great news! Your application for <%= @access_pass.name %> at <%= @space.name %> has been approved.
+
+You can now purchase your access pass and start enjoying all the benefits.
+
+Get Your Access Pass: <%= @access_pass.public_url %>
+
+<% if @waitlist_entry.notes.present? %>
+A message from the creator:
+<%= @waitlist_entry.notes %>
+<% end %>
+
+If you have any questions, please don't hesitate to reach out to us.
+
+---
+© <%= Date.current.year %> Backstage Pass. All rights reserved.

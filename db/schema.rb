@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_16_172538) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_16_185803) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -28,6 +28,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_172538) do
     t.index ["purchasable_type", "purchasable_id"], name: "index_access_passes_on_purchasable"
     t.index ["team_id"], name: "index_access_grants_on_team_id"
     t.index ["user_id"], name: "index_access_grants_on_user_id"
+  end
+
+  create_table "access_pass_experiences", force: :cascade do |t|
+    t.bigint "access_pass_id", null: false
+    t.bigint "experience_id", null: false
+    t.boolean "included", default: true
+    t.integer "position"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "access_passes", force: :cascade do |t|
@@ -48,6 +57,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_172538) do
     t.index ["slug"], name: "index_access_passes_on_slug"
     t.index ["space_id", "slug"], name: "index_access_passes_on_space_id_and_slug", unique: true
     t.index ["space_id"], name: "index_access_passes_on_space_id"
+  end
+
+  create_table "access_passes_waitlist_entries", force: :cascade do |t|
+    t.bigint "access_pass_id", null: false
+    t.string "email"
+    t.string "first_name"
+    t.string "last_name"
+    t.text "answers"
+    t.string "status"
+    t.text "notes"
+    t.datetime "approved_at"
+    t.datetime "rejected_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["access_pass_id"], name: "index_access_passes_waitlist_entries_on_access_pass_id"
   end
 
   create_table "account_onboarding_invitation_lists", force: :cascade do |t|
@@ -458,7 +482,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_172538) do
   add_foreign_key "access_grants", "access_passes"
   add_foreign_key "access_grants", "teams"
   add_foreign_key "access_grants", "users"
+  add_foreign_key "access_pass_experiences", "access_passes", name: "access_pass_experiences_access_pass_id_fkey"
+  add_foreign_key "access_pass_experiences", "experiences", name: "access_pass_experiences_experience_id_fkey"
   add_foreign_key "access_passes", "spaces"
+  add_foreign_key "access_passes_waitlist_entries", "access_passes"
   add_foreign_key "account_onboarding_invitation_lists", "teams"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"

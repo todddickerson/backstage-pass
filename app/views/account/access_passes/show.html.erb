@@ -29,6 +29,7 @@
     <% end %>
 
     <%= render 'account/access_pass_experiences/index', access_pass_experiences: @access_pass.access_pass_experiences, hide_back: true %>
+    <%= render 'account/access_passes/waitlist_entries/index', waitlist_entries: @access_pass.waitlist_entries, hide_back: true %>
     <%# 🚅 super scaffolding will insert new children above this line. %>
   <% end %>
 <% end %>
