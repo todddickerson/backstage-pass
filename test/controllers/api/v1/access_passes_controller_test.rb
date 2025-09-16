@@ -5,10 +5,10 @@ class Api::V1::AccessPassesControllerTest < Api::Test
     # See `test/controllers/api/test.rb` for common set up for API tests.
 
     @space = create(:space, team: @team)
-    @access_pass = build(:access_pass, space: @space)
+    @access_pass = build(:access_pass, space: @space, name: "Test Access Pass")
     @other_access_passes = create_list(:access_pass, 3)
 
-    @another_access_pass = create(:access_pass, space: @space)
+    @another_access_pass = create(:access_pass, space: @space, name: "Another Test Access Pass")
 
     # 🚅 super scaffolding will insert file-related logic above this line.
     @access_pass.save
@@ -65,10 +65,15 @@ class Api::V1::AccessPassesControllerTest < Api::Test
   end
 
   test "create" do
-    # Use the serializer to generate a payload, but strip some attributes out.
+    # Use proper factory attributes for creating
     params = {access_token: access_token}
-    access_pass_data = JSON.parse(build(:access_pass, space: nil).api_attributes.to_json)
-    access_pass_data.except!("id", "space_id", "created_at", "updated_at")
+    access_pass_data = {
+      name: "New Test Access Pass",
+      description: "A test access pass for creation",
+      pricing_type: "one_time",
+      price_cents: 1999,
+      published: true
+    }
     params[:access_pass] = access_pass_data
 
     post "/api/v1/spaces/#{@space.id}/access_passes", params: params
@@ -88,6 +93,7 @@ class Api::V1::AccessPassesControllerTest < Api::Test
     put "/api/v1/access_passes/#{@access_pass.id}", params: {
       access_token: access_token,
       access_pass: {
+        name: "Updated Test Access Pass"
         # 🚅 super scaffolding will also insert new fields above this line.
       }
     }

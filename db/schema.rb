@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_16_140025) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_16_144706) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -52,6 +52,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_140025) do
     t.boolean "published"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "slug"
+    t.string "stripe_product_id"
+    t.string "stripe_monthly_price_id"
+    t.string "stripe_yearly_price_id"
+    t.index ["slug"], name: "index_access_passes_on_slug"
+    t.index ["space_id", "slug"], name: "index_access_passes_on_space_id_and_slug", unique: true
     t.index ["space_id"], name: "index_access_passes_on_space_id"
   end
 
@@ -123,6 +129,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_140025) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["addressable_type", "addressable_id"], name: "index_addresses_on_addressable"
+  end
+
+  create_table "billing_purchases", force: :cascade do |t|
+    t.bigint "team_id", null: false
+    t.bigint "user_id", null: false
+    t.bigint "access_pass_id"
+    t.integer "amount_cents"
+    t.string "stripe_charge_id"
+    t.string "stripe_payment_intent_id"
+    t.string "status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["access_pass_id"], name: "index_billing_purchases_on_access_pass_id"
+    t.index ["team_id"], name: "index_billing_purchases_on_team_id"
+    t.index ["user_id"], name: "index_billing_purchases_on_user_id"
   end
 
   create_table "creators_profiles", force: :cascade do |t|
@@ -346,6 +367,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_140025) do
     t.integer "failed_attempts", default: 0, null: false
     t.string "unlock_token"
     t.datetime "locked_at"
+    t.string "stripe_customer_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["platform_agent_of_id"], name: "index_users_on_platform_agent_of_id"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
@@ -433,6 +455,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_140025) do
   add_foreign_key "account_onboarding_invitation_lists", "teams"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "billing_purchases", "access_passes"
+  add_foreign_key "billing_purchases", "teams"
+  add_foreign_key "billing_purchases", "users"
   add_foreign_key "creators_profiles", "users"
   add_foreign_key "experiences", "spaces"
   add_foreign_key "integrations_stripe_installations", "oauth_stripe_accounts"

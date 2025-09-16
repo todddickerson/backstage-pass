@@ -44,6 +44,14 @@ if defined?(Api::V1::ApplicationController)
       def access_pass_params
         strong_params = params.require(:access_pass).permit(
           *permitted_fields,
+          :name,
+          :description,
+          :pricing_type,
+          :price_cents,
+          :stock_limit,
+          :waitlist_enabled,
+          :published,
+          :slug,
           # 🚅 super scaffolding will insert new fields above this line.
           *permitted_arrays,
           # 🚅 super scaffolding will insert new arrays above this line.

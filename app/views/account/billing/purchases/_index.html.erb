@@ -1,0 +1,67 @@
+<% purchases = purchases.accessible_by(current_ability) %>
+<% team = @team %>
+<% context ||= team %>
+<% collection ||= :billing_purchases %>
+<% hide_actions ||= false %>
+<% hide_back ||= false %>
+
+<% pagy ||= nil %>
+<% pagy, purchases = pagy(purchases, page_param: :purchases_page) unless pagy %>
+
+<%= action_model_select_controller do %>
+  <% cable_ready_updates_for context, collection do %>
+    <%= render 'account/shared/box', pagy: pagy do |box| %>
+      <% box.title t(".contexts.#{context.class.name.underscore}.header") %>
+      <% box.description do %>
+        <%= t(".contexts.#{context.class.name.underscore}.description#{"_empty" unless purchases.any?}") %>
+        <%= render "shared/limits/index", model: purchases.model %>
+      <% end %>
+
+      <% box.table do %>
+        <% if purchases.any? %>
+          <table class="table">
+            <thead>
+              <tr>
+                <%= render "shared/tables/select_all" %>
+                <th><%= t('.fields.user.heading') %></th>
+                <th><%= t('.fields.access_pass.heading') %></th>
+                <th><%= t('.fields.amount_cents.heading') %></th>
+                <th><%= t('.fields.stripe_charge_id.heading') %></th>
+                <th><%= t('.fields.stripe_payment_intent_id.heading') %></th>
+                <th><%= t('.fields.status.heading') %></th>
+                <%# 🚅 super scaffolding will insert new field headers above this line. %>
+                <th><%= t('.fields.created_at.heading') %></th>
+                <th class="text-right"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= render partial: 'account/billing/purchases/purchase', collection: purchases %>
+            </tbody>
+          </table>
+        <% end %>
+      <% end %>
+
+      <% box.actions do %>
+        <% unless hide_actions %>
+          <% if context == team %>
+            <% if can? :create, Billing::Purchase.new(team: team) %>
+              <%= link_to t('.buttons.new'), [:new, :account, team, :billing_purchase], class: "#{first_button_primary(:billing_purchase)} new" %>
+            <% end %>
+          <% end %>
+
+          <%# 🚅 super scaffolding will insert new targets one parent action model buttons above this line. %>
+          <%# 🚅 super scaffolding will insert new bulk action model buttons above this line. %>
+          <%= render "shared/bulk_action_select" if purchases.any? %>
+
+          <% unless hide_back %>
+            <%= link_to t('global.buttons.back'), [:account, context], class: "#{first_button_primary(:billing_purchase)} back" %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% box.raw_footer do %>
+        <%# 🚅 super scaffolding will insert new action model index views above this line. %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

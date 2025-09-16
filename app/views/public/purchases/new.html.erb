@@ -1,0 +1,246 @@
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+  <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+      <h1 class="text-2xl font-bold mb-2">Complete Your Purchase</h1>
+      <p class="text-blue-100">You're purchasing: <%= @access_pass.name %></p>
+    </div>
+
+    <!-- Access Pass Details -->
+    <div class="p-6 border-b">
+      <div class="flex justify-between items-start">
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900"><%= @access_pass.name %></h2>
+          <p class="text-gray-600 mt-1"><%= @access_pass.space.name %></p>
+          <% if @access_pass.description.present? %>
+            <p class="text-sm text-gray-500 mt-2"><%= @access_pass.description %></p>
+          <% end %>
+        </div>
+        <div class="text-right">
+          <% case @access_pass.pricing_type %>
+          <% when 'free' %>
+            <span class="text-2xl font-bold text-green-600">FREE</span>
+          <% when 'one_time' %>
+            <span class="text-2xl font-bold text-gray-900">$<%= @access_pass.price_cents / 100.0 %></span>
+            <span class="text-sm text-gray-500 block">One-time payment</span>
+          <% when 'monthly' %>
+            <span class="text-2xl font-bold text-gray-900">$<%= @access_pass.price_cents / 100.0 %></span>
+            <span class="text-sm text-gray-500 block">per month</span>
+          <% when 'yearly' %>
+            <span class="text-2xl font-bold text-gray-900">$<%= @access_pass.price_cents / 100.0 %></span>
+            <span class="text-sm text-gray-500 block">per year</span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Form -->
+    <div class="p-6">
+      <% if @access_pass.pricing_type == 'free' %>
+        <!-- Free Access Pass - No Payment Required -->
+        <%= form_with url: space_access_pass_purchase_path(@access_pass.space.slug, @access_pass.slug), local: false, data: { turbo: false } do |form| %>
+          <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+            <p class="text-green-800">
+              <svg class="inline-block w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+              </svg>
+              This is a free access pass! Click below to get instant access.
+            </p>
+          </div>
+          
+          <%= form.submit "Get Free Access", class: "w-full bg-green-600 text-white rounded-lg px-4 py-3 font-semibold hover:bg-green-700 transition duration-200" %>
+        <% end %>
+      <% else %>
+        <!-- Paid Access Pass - Stripe Elements -->
+        <form id="payment-form" data-stripe-key="<%= @stripe_publishable_key %>" data-setup-intent="<%= @setup_intent&.client_secret %>">
+          <div class="space-y-4">
+            <!-- Card Element -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Card Information
+              </label>
+              <div id="payment-element" class="p-3 border border-gray-300 rounded-lg">
+                <!-- Stripe Elements will be inserted here -->
+              </div>
+              <div id="card-errors" role="alert" class="text-red-600 text-sm mt-2"></div>
+            </div>
+
+            <!-- Billing Details -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Name on Card
+                </label>
+                <input type="text" id="cardholder-name" value="<%= current_user.full_name %>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input type="email" id="cardholder-email" value="<%= current_user.email %>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" required>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button id="submit-button" type="submit" class="w-full bg-blue-600 text-white rounded-lg px-4 py-3 font-semibold hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span id="button-text">
+                <% if @access_pass.pricing_type == 'one_time' %>
+                  Pay $<%= @access_pass.price_cents / 100.0 %>
+                <% else %>
+                  Subscribe for $<%= @access_pass.price_cents / 100.0 %>/<%= @access_pass.pricing_type == 'monthly' ? 'mo' : 'yr' %>
+                <% end %>
+              </span>
+              <span id="spinner" class="hidden">
+                <svg class="animate-spin inline-block w-4 h-4 ml-2" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </span>
+            </button>
+          </div>
+        </form>
+      <% end %>
+    </div>
+
+    <!-- Security Notice -->
+    <div class="bg-gray-50 px-6 py-4">
+      <p class="text-xs text-gray-600 text-center">
+        <svg class="inline-block w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+        </svg>
+        Secure payment powered by Stripe
+      </p>
+    </div>
+  </div>
+</div>
+
+<% if @access_pass.pricing_type != 'free' %>
+  <!-- Stripe Elements JavaScript -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('payment-form');
+      const stripeKey = form.dataset.stripeKey;
+      const setupIntentSecret = form.dataset.setupIntent;
+      
+      if (!stripeKey) {
+        console.error('Stripe publishable key not found');
+        return;
+      }
+      
+      // Initialize Stripe
+      const stripe = Stripe(stripeKey);
+      
+      // Create Payment Element
+      const elements = stripe.elements();
+      const paymentElement = elements.create('payment', {
+        layout: 'tabs'
+      });
+      paymentElement.mount('#payment-element');
+      
+      // Handle form submission
+      form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const submitButton = document.getElementById('submit-button');
+        const buttonText = document.getElementById('button-text');
+        const spinner = document.getElementById('spinner');
+        
+        // Disable button and show spinner
+        submitButton.disabled = true;
+        buttonText.classList.add('hidden');
+        spinner.classList.remove('hidden');
+        
+        try {
+          <% if @access_pass.pricing_type == 'one_time' %>
+            // One-time payment
+            const { error, paymentIntent } = await stripe.confirmPayment({
+              elements,
+              confirmParams: {
+                return_url: '<%= space_url(@access_pass.space.slug) %>',
+              },
+              redirect: 'if_required'
+            });
+            
+            if (!error && paymentIntent.status === 'succeeded') {
+              // Payment succeeded, submit form to create purchase record
+              const hiddenForm = document.createElement('form');
+              hiddenForm.method = 'POST';
+              hiddenForm.action = '<%= space_access_pass_purchase_path(@access_pass.space.slug, @access_pass.slug) %>';
+              
+              const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+              const csrfInput = document.createElement('input');
+              csrfInput.type = 'hidden';
+              csrfInput.name = 'authenticity_token';
+              csrfInput.value = csrfToken;
+              hiddenForm.appendChild(csrfInput);
+              
+              const intentInput = document.createElement('input');
+              intentInput.type = 'hidden';
+              intentInput.name = 'payment_intent_id';
+              intentInput.value = paymentIntent.id;
+              hiddenForm.appendChild(intentInput);
+              
+              document.body.appendChild(hiddenForm);
+              hiddenForm.submit();
+            } else if (error) {
+              // Show error to customer
+              const errorDiv = document.getElementById('card-errors');
+              errorDiv.textContent = error.message;
+              submitButton.disabled = false;
+              buttonText.classList.remove('hidden');
+              spinner.classList.add('hidden');
+            }
+          <% else %>
+            // Subscription payment - use SetupIntent
+            const { error, setupIntent } = await stripe.confirmSetup({
+              elements,
+              confirmParams: {
+                return_url: '<%= space_url(@access_pass.space.slug) %>',
+              },
+              redirect: 'if_required'
+            });
+            
+            if (!error && setupIntent.status === 'succeeded') {
+              // Setup succeeded, submit form to create subscription
+              const hiddenForm = document.createElement('form');
+              hiddenForm.method = 'POST';
+              hiddenForm.action = '<%= space_access_pass_purchase_path(@access_pass.space.slug, @access_pass.slug) %>';
+              
+              const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+              const csrfInput = document.createElement('input');
+              csrfInput.type = 'hidden';
+              csrfInput.name = 'authenticity_token';
+              csrfInput.value = csrfToken;
+              hiddenForm.appendChild(csrfInput);
+              
+              const methodInput = document.createElement('input');
+              methodInput.type = 'hidden';
+              methodInput.name = 'payment_method_id';
+              methodInput.value = setupIntent.payment_method;
+              hiddenForm.appendChild(methodInput);
+              
+              document.body.appendChild(hiddenForm);
+              hiddenForm.submit();
+            } else if (error) {
+              // Show error to customer
+              const errorDiv = document.getElementById('card-errors');
+              errorDiv.textContent = error.message;
+              submitButton.disabled = false;
+              buttonText.classList.remove('hidden');
+              spinner.classList.add('hidden');
+            }
+          <% end %>
+        } catch (err) {
+          console.error('Payment error:', err);
+          const errorDiv = document.getElementById('card-errors');
+          errorDiv.textContent = 'An unexpected error occurred. Please try again.';
+          submitButton.disabled = false;
+          buttonText.classList.remove('hidden');
+          spinner.classList.add('hidden');
+        }
+      });
+    });
+  </script>
+<% end %>

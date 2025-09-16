@@ -40,4 +40,8 @@ class Public::AccessPassesController < Public::ApplicationController
     
     # TODO: Implement Stripe checkout flow
   end
+<<<<<<< HEAD
 end
+=======
+end
+>>>>>>> main

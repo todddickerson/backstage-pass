@@ -43,16 +43,6 @@ class Space < ApplicationRecord
     "#{ENV.fetch('BASE_URL', 'http://localhost:3020')}/#{slug}"
   end
 
-  # Public URL for this space (root level)
-  def public_url
-    "/#{slug}"
-  end
-
-  # Full URL including domain
-  def full_public_url
-    "#{ENV.fetch("BASE_URL", "http://localhost:3020")}/#{slug}"
-  end
-
   def live_experiences
     experiences.where(experience_type: :live_stream)
   end
