@@ -1,5 +1,7 @@
 default:
   models:
+    Streaming::ChatRoom: read
+    Stream: read
     Billing::Purchase: read
     AccessPassExperience: read
     AccessPass: read
@@ -56,6 +58,8 @@ admin:
     - viewer
     - buyer
   models:
+    Streaming::ChatRoom: manage
+    Stream: manage
     Billing::Purchase: manage
     AccessPassExperience: manage
     AccessPass: manage

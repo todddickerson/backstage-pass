@@ -1,0 +1,112 @@
+en:
+  streams: &streams
+    label: &label Streams
+    breadcrumbs:
+      label: *label
+    navigation:
+      label: *label
+      icon: fal fa-puzzle-piece
+    buttons: &buttons
+      new: Add New Stream
+      create: Create Stream
+      edit: Edit Stream
+      update: Update Stream
+      destroy: Remove Stream
+      shorthand:
+        edit: Edit
+        destroy: Delete
+      confirmations:
+        # TODO customize for your use-case.
+        destroy: Are you sure you want to remove %{stream_name}? This will also remove any child resources and can't be undone.
+    stream:
+      buttons: *buttons
+    fields: &fields
+      id:
+        heading: Stream ID
+      experience_id:
+        heading: Experience ID
+      title:
+        _: &title Title
+        label: *title
+        heading: *title
+        api_title: *title
+        api_description: *title
+      description:
+        _: &description Description
+        label: *description
+        heading: *description
+        api_title: *description
+        api_description: *description
+      scheduled_at:
+        _: &scheduled_at Scheduled At
+        label: *scheduled_at
+        heading: *scheduled_at
+        api_title: *scheduled_at
+        api_description: *scheduled_at
+      status:
+        _: &status Status
+        label: *status
+        heading: *status
+        api_title: *status
+        api_description: *status
+      # 🚅 super scaffolding will insert new fields above this line.
+      created_at:
+        _: &created_at Added
+        label: *created_at
+        heading: *created_at
+      updated_at:
+        _: &updated_at Updated
+        label: *updated_at
+        heading: *updated_at
+    api:
+      collection_actions: "Collection Actions for Streams"
+      index: "List Streams"
+      create: "Add a New Stream"
+      member_actions: "Actions for an Individual Stream"
+      show: "Retrieve a Stream"
+      update: "Update a Stream"
+      destroy: "Delete a Stream"
+      fields: *fields
+    index:
+      section: "%{experiences_possessive} Streams"
+      contexts:
+        experience:
+          header: Streams
+          description: Below is a list of Streams that have been added for %{experience_name}.
+          description_empty: No Streams have been added for %{experience_name}.
+      fields: *fields
+      buttons: *buttons
+    show:
+      section: "%{stream_name}"
+      header: Stream Details
+      description: Below are the details we have for %{stream_name}.
+      manage_description: You'll also find options for updating these details or removing %{stream_name} from %{experience_name} entirely.
+      fields: *fields
+      buttons: *buttons
+    form: &form
+      buttons: *buttons
+      fields: *fields
+    new:
+      section: "New Stream for %{experience_name}"
+      header: New Stream Details
+      description: Please provide the details of the new Stream you'd like to add to %{experience_name}.
+      form: *form
+    edit:
+      section: "%{stream_name}"
+      header: Edit Stream Details
+      description: You can update the details or settings for %{stream_name} below.
+      form: *form
+    notifications:
+      created: Stream was successfully created.
+      updated: Stream was successfully updated.
+      destroyed: Stream was successfully destroyed.
+  account:
+    streams: *streams
+  activerecord:
+    attributes:
+      stream:
+        scheduled_at: *scheduled_at
+        status: *status
+        # 🚅 super scaffolding will insert new activerecord attributes above this line.
+        created_at: *created_at
+        updated_at: *updated_at

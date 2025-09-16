@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_16_144706) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_16_172538) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -28,17 +28,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_144706) do
     t.index ["purchasable_type", "purchasable_id"], name: "index_access_passes_on_purchasable"
     t.index ["team_id"], name: "index_access_grants_on_team_id"
     t.index ["user_id"], name: "index_access_grants_on_user_id"
-  end
-
-  create_table "access_pass_experiences", force: :cascade do |t|
-    t.bigint "access_pass_id", null: false
-    t.bigint "experience_id", null: false
-    t.boolean "included", default: true
-    t.integer "position"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["access_pass_id"], name: "index_access_pass_experiences_on_access_pass_id"
-    t.index ["experience_id"], name: "index_access_pass_experiences_on_experience_id"
   end
 
   create_table "access_passes", force: :cascade do |t|
@@ -323,6 +312,26 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_144706) do
     t.index ["team_id"], name: "index_spaces_on_team_id"
   end
 
+  create_table "streaming_chat_rooms", force: :cascade do |t|
+    t.bigint "stream_id", null: false
+    t.string "channel_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["channel_id"], name: "index_streaming_chat_rooms_on_channel_id", unique: true
+    t.index ["stream_id"], name: "index_streaming_chat_rooms_on_stream_id"
+  end
+
+  create_table "streams", force: :cascade do |t|
+    t.bigint "experience_id", null: false
+    t.string "title"
+    t.text "description"
+    t.datetime "scheduled_at"
+    t.string "status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["experience_id"], name: "index_streams_on_experience_id"
+  end
+
   create_table "teams", id: :serial, force: :cascade do |t|
     t.string "name"
     t.string "slug"
@@ -449,8 +458,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_144706) do
   add_foreign_key "access_grants", "access_passes"
   add_foreign_key "access_grants", "teams"
   add_foreign_key "access_grants", "users"
-  add_foreign_key "access_pass_experiences", "access_passes"
-  add_foreign_key "access_pass_experiences", "experiences"
   add_foreign_key "access_passes", "spaces"
   add_foreign_key "account_onboarding_invitation_lists", "teams"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -478,6 +485,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_144706) do
   add_foreign_key "scaffolding_completely_concrete_tangible_things_assignments", "memberships"
   add_foreign_key "scaffolding_completely_concrete_tangible_things_assignments", "scaffolding_completely_concrete_tangible_things", column: "tangible_thing_id"
   add_foreign_key "spaces", "teams"
+  add_foreign_key "streaming_chat_rooms", "streams"
+  add_foreign_key "streams", "experiences"
   add_foreign_key "users", "oauth_applications", column: "platform_agent_of_id"
   add_foreign_key "webhooks_outgoing_endpoints", "scaffolding_absolutely_abstract_creative_concepts"
   add_foreign_key "webhooks_outgoing_endpoints", "teams"
