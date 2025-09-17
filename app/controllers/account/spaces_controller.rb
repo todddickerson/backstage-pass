@@ -67,9 +67,8 @@ class Account::SpacesController < Account::ApplicationController
   private
 
   def set_team
-    @team = current_user.teams.find(params[:team_id]) if params[:team_id]
-    @team ||= current_user.teams.find_by(id: @space&.team_id)
-    @team ||= current_user.teams.first
+    team_id = params[:team_id] || @space&.team_id
+    @team = current_user.teams.find_by(id: team_id) || current_user.teams.first
   end
 
   def set_space

@@ -65,9 +65,8 @@ class Account::ExperiencesController < Account::ApplicationController
   private
 
   def set_space
-    @space = current_user.teams.joins(:spaces).merge(Space.friendly).find_by(spaces: {id: params[:space_id]})&.spaces&.friendly&.find(params[:space_id])
-    @space ||= current_user.teams.joins(:spaces).merge(Space.where(id: @experience&.space_id)).first&.spaces&.find_by(id: @experience&.space_id) if @experience
-    @space ||= current_user.teams.first&.spaces&.first
+    space_id = params[:space_id] || @experience&.space_id
+    @space = current_user.spaces.friendly.find_by(id: space_id) || current_user.spaces.first
   end
 
   def set_experience

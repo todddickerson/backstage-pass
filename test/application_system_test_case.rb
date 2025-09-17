@@ -170,7 +170,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   end
 
   def device_name
-    @device_name ||= @@test_devices.each_key.find { name.include?(_1.to_s) } || raise("unknown test device, you probably want to use `device_test` to generate this test")
+    @device_name ||= @@test_devices.each_key.find { |key| name.include?(key.to_s) } || raise("unknown test device, you probably want to use `device_test` to generate this test")
   end
 
   def display_details

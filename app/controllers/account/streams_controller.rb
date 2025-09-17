@@ -251,9 +251,8 @@ class Account::StreamsController < Account::ApplicationController
   private
 
   def set_experience
-    @experience = current_user.teams.joins(spaces: :experiences).merge(Experience.where(id: params[:experience_id])).first&.spaces&.first&.experiences&.find(params[:experience_id])
-    @experience ||= current_user.teams.joins(spaces: :experiences).merge(Experience.where(id: @stream&.experience_id)).first&.spaces&.first&.experiences&.find_by(id: @stream&.experience_id) if @stream
-    @experience ||= current_user.teams.first&.spaces&.first&.experiences&.first
+    experience_id = params[:experience_id] || @stream&.experience_id
+    @experience = current_user.experiences.find_by(id: experience_id) || current_user.experiences.first
   end
 
   def set_stream

@@ -1,3 +1,10 @@
+# Define reserved paths that should NOT be treated as space slugs
+# This prevents system routes from being caught by the catch-all
+RESERVED_PATHS = %w[
+  users admin api account webhooks rails assets packs sidekiq avo
+  explore about terms privacy
+].freeze
+
 Rails.application.routes.draw do
   # Health check endpoint for deployment monitoring
   get "health", to: "health#show", as: :health_check
@@ -148,17 +155,10 @@ Rails.application.routes.draw do
     # Space routes at root level for clean URLs (backstagepass.com/space-slug)
     # Access pass routes nested under spaces (backstagepass.com/space-slug/access-pass-slug)
 
-    # Define reserved paths that should NOT be treated as space slugs
-    # This prevents system routes from being caught by the catch-all
-    reserved_paths = %w[
-      users admin api account webhooks rails assets packs sidekiq avo
-      explore about terms privacy
-    ].freeze
-
     # Constraint to check if a path should be treated as a space slug
     valid_space_slug = lambda do |request|
       slug = request.path_parameters[:space_slug]
-      slug.present? && !reserved_paths.include?(slug) && !slug.start_with?("_")
+      slug.present? && !RESERVED_PATHS.include?(slug) && !slug.start_with?("_")
     end
 
     # Access pass nested under space (must come before single space route)

@@ -40,10 +40,8 @@ class Stream < ApplicationRecord
     return true if experience.space.team.users.include?(user)
 
     # Check if user has valid access pass for this experience or space
-    user&.access_grants&.active&.joins(:access_pass)&.where(
-      access_passes: {
-        purchasable: [experience, experience.space]
-      }
+    user&.access_grants&.active&.where(
+      purchasable: [experience, experience.space]
     )&.exists?
   end
 

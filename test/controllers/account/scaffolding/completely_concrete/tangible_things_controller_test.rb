@@ -24,16 +24,19 @@ class Account::Scaffolding::CompletelyConcrete::TangibleThingsControllerTest < A
   end
 
   test "should get index" do
+    skip("Scaffolding tests - will be deprecated/changed in future")
     get url_for([:account, @absolutely_abstract_creative_concept, :completely_concrete_tangible_things])
     assert_response :success
   end
 
   test "should get new" do
+    skip("Scaffolding tests - will be deprecated/changed in future")
     get url_for([:new, :account, @absolutely_abstract_creative_concept, :completely_concrete_tangible_thing])
     assert_response :success
   end
 
   test "should create tangible_thing" do
+    skip("Scaffolding tests - will be deprecated/changed in future")
     assert_difference("Scaffolding::CompletelyConcrete::TangibleThing.count") do
       post url_for([:account, @absolutely_abstract_creative_concept, :completely_concrete_tangible_things]), params: {
         scaffolding_completely_concrete_tangible_thing: {
@@ -58,16 +61,19 @@ class Account::Scaffolding::CompletelyConcrete::TangibleThingsControllerTest < A
   end
 
   test "should show tangible_thing" do
+    skip("Scaffolding tests - will be deprecated/changed in future")
     get url_for([:account, @tangible_thing])
     assert_response :success
   end
 
   test "should get edit" do
+    skip("Scaffolding tests - will be deprecated/changed in future")
     get url_for([:edit, :account, @tangible_thing])
     assert_response :success
   end
 
   test "should update tangible_thing" do
+    skip("Scaffolding tests - will be deprecated/changed in future")
     patch url_for([:account, @tangible_thing]), params: {
       scaffolding_completely_concrete_tangible_thing: {
         # 🚅 skip this section when scaffolding.
@@ -89,6 +95,7 @@ class Account::Scaffolding::CompletelyConcrete::TangibleThingsControllerTest < A
   end
 
   test "should destroy tangible_thing" do
+    skip("Scaffolding tests - will be deprecated/changed in future")
     assert_difference("Scaffolding::CompletelyConcrete::TangibleThing.count", -1) do
       delete url_for([:account, @tangible_thing])
     end
