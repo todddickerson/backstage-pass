@@ -4,14 +4,38 @@ require "benchmark"
 class MobileStreamingPerformanceTest < ActiveSupport::TestCase
   setup do
     @creator = create(:onboarded_user, first_name: "Creator", last_name: "Mobile")
+    
+    # Ensure the creator's team has a name for space creation
+    if @creator.current_team.name.blank?
+      @creator.current_team.update!(name: "#{@creator.name}'s Team")
+    end
+    
     @space = @creator.current_team.primary_space
-
-    @experience = @space.experiences.create!(
-      name: "Mobile Performance Experience",
-      description: "Testing mobile streaming performance",
-      experience_type: "live_stream",
-      price_cents: 2999
+    
+    # Create space manually if it doesn't exist
+    @space ||= @creator.current_team.spaces.create!(
+      name: "#{@creator.current_team.name}'s Space",
+      slug: @creator.current_team.name.parameterize,
+      description: "Test space for mobile performance",
+      published: true
     )
+
+    puts "DEBUG Performance Test: @space=#{@space&.id}, @space.nil?=#{@space.nil?}"
+    
+    begin
+      @experience = @space.experiences.create!(
+        name: "Mobile Performance Experience",
+        description: "Testing mobile streaming performance",
+        experience_type: "live_stream",
+        price_cents: 2999
+      )
+      
+      puts "DEBUG Performance Test: @experience=#{@experience&.id}, @experience.nil?=#{@experience.nil?}"
+    rescue => e
+      puts "DEBUG Performance Test: Experience creation failed: #{e.class}: #{e.message}"
+      puts "DEBUG Performance Test: Experience errors: #{@experience&.errors&.full_messages}"
+      raise e
+    end
   end
 
   test "mobile API response time benchmarks" do
