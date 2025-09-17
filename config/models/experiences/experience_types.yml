@@ -1,0 +1,30 @@
+en: &experience_types
+  live_stream:
+    id: live_stream
+    label: Live Stream
+    description: Real-time streaming experiences with audience interaction
+    icon: "🎥"
+  course:
+    id: course
+    label: Course
+    description: Educational content delivered in structured lessons
+    icon: "📚"
+  community:
+    id: community
+    label: Community
+    description: Ongoing community access and engagement
+    icon: "👥"
+  consultation:
+    id: consultation
+    label: Consultation
+    description: One-on-one or group consultations
+    icon: "💼"
+  digital_product:
+    id: digital_product
+    label: Digital Product
+    description: Downloadable content or digital goods
+    icon: "📦"
+
+# Translations for other locales would go here
+# fr: *experience_types
+# es: *experience_types

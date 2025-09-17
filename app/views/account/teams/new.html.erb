@@ -1,0 +1,35 @@
+<%= render 'account/shared/page' do |page| %>
+  <% page.title t('.section') %>
+  <% page.body do %>
+    <%= render 'account/shared/box', divider: true do |box| %>
+      <% box.title t('.header') %>
+      <% box.description t('.description') %>
+      <% box.body do %>
+        <%= form_with(model: [:account, @team], local: true) do |form| %>
+          <% if @team.errors.any? %>
+            <div id="error_explanation" class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
+              <h2 class="font-bold mb-2"><%= pluralize(@team.errors.count, "error") %> prohibited this team from being saved:</h2>
+              <ul class="list-disc list-inside">
+                <% @team.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <div class="space-y-4">
+            <div>
+              <%= form.label :name, class: "block text-sm font-medium text-gray-700" %>
+              <%= form.text_field :name, class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm", required: true %>
+            </div>
+
+            <div class="flex justify-end space-x-3">
+              <%= link_to t('global.buttons.cancel'), account_teams_path, class: "btn btn-secondary" %>
+              <%= form.submit t('.buttons.create'), class: "btn btn-primary" %>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

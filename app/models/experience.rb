@@ -67,5 +67,12 @@ class Experience < ApplicationRecord
   def accessible_by?(user)
     user_can_view?(user)
   end
+
+  # Bullet Train pattern for select options
+  def self.experience_type_options
+    experience_types.keys.map do |type|
+      [human_attribute_name("experience_type.#{type}"), type]
+    end
+  end
   # 🚅 add methods above.
 end
