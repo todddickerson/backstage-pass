@@ -1,107 +1,213 @@
-# Bullet Train Application Template
-If you're new to Bullet Train, start with the [Bullet Train Developer Documentation](https://bullettrain.co/docs) and the [Getting Started](https://bullettrain.co/docs/getting-started) guide. You should also [join the community Discord server](https://discord.gg/bullettrain)!
+# Backstage Pass 🎫
 
-## Building a New Application with Bullet Train
-If you're building a new application with Bullet Train, you don't want to "Fork" the template repository on GitHub. Instead, you should:
+A modern creator economy platform built with Ruby on Rails, enabling creators to monetize exclusive content through live streaming, courses, and community access.
 
-1. Clone the template repository:
+## 🚀 Overview
 
-    ```
-    git clone git@github.com:bullet-train-co/bullet_train.git your_new_project_name
-    ```
+Backstage Pass empowers creators to build sustainable businesses by providing:
+- **Live Streaming** - Real-time video streaming with chat
+- **Access Passes** - Flexible monetization models
+- **Community Spaces** - Exclusive content areas
+- **Mobile First** - Native iOS/Android apps via Turbo Native
 
-2. Enter the project directory:
+## 🛠 Technology Stack
 
-    ```
-    cd your_new_project_name
-    ```
+- **Framework**: Ruby on Rails 8.0.2
+- **Ruby Version**: 3.3.0
+- **Frontend**: Hotwire (Turbo + Stimulus)
+- **CSS**: Tailwind CSS
+- **Database**: PostgreSQL
+- **Cache/Queues**: Redis
+- **Background Jobs**: Sidekiq
+- **Base Template**: Bullet Train
+- **Video Streaming**: LiveKit
+- **Chat**: GetStream.io
+- **Payments**: Stripe
+- **Mobile**: Turbo Native (iOS/Android)
 
-3. Run the configuration and setup scripts:
+## 📋 Prerequisites
 
-    ```
-    bin/configure
-    bin/setup
-    ```
-    
-4. Boot your application:
+- Ruby 3.3.0
+- PostgreSQL 14+
+- Redis 6+
+- Node.js 18+
+- Yarn
 
-    ```
-    bin/dev
-    ```
-    
-5. Visit `http://localhost:3000`.
+## 🚀 Quick Start
 
-## Cloud Development with Gitpod
+### 1. Clone the repository
+```bash
+git clone https://github.com/todddickerson/backstage-pass.git
+cd backstage-pass
+```
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/bullet-train-co/bullet_train)
+### 2. Install dependencies
+```bash
+bundle install
+yarn install
+```
 
-Clicking this button will set up a new Bullet Train project for development on [Gitpod](https://gitpod.io).
+### 3. Set up environment variables
+```bash
+cp .env.example .env
+```
 
-<br>
-<br>
+Edit `.env` with your credentials:
+```env
+# Required Services
+STRIPE_SECRET_KEY=sk_test_...
+LIVEKIT_API_KEY=...
+LIVEKIT_API_SECRET=...
+LIVEKIT_WS_URL=wss://...
+GETSTREAM_API_KEY=...
+GETSTREAM_API_SECRET=...
 
-<p align="center">
-<strong>Open-source development sponsored by:</strong>
-</p>
+# Optional Services
+POSTMARK_API_TOKEN=...
+CLOUDINARY_URL=...
+```
 
-<p align="center">
-<a href="https://www.clickfunnels.com"><img src="https://statics.myclickfunnels.com/workspace/Yjxavr/image/15795008/file/e4d910a06aaea6730652fb2cf60531a6.svg" width="575" /></a>
-</p>
+### 4. Setup database
+```bash
+rails db:create
+rails db:migrate
+rails db:seed
+```
 
-<br>
-<br>
+### 5. Start the application
+```bash
+bin/dev
+```
 
-## Provisioning a Production Environment
-You can use this public repository to provision a new application and then push your private application code there later.
+Visit http://localhost:3000
 
-### Render
+## 🧪 Testing
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/bullet-train-co/bullet_train)
+Run the test suite:
+```bash
+# All tests
+rails test
 
-Clicking this button will take you to the first step of a process that, when completed, will provision production-grade infrastructure for your Bullet Train application which will cost about **$30/month**.
+# Integration tests only
+rails test:integration
+
+# System tests
+rails test:system
+
+# With coverage
+COVERAGE=true rails test
+```
+
+Run linting:
+```bash
+standardrb --fix
+```
+
+## 📱 Mobile Development
+
+### iOS Setup
+1. Install Xcode
+2. Navigate to `ios/` directory
+3. Run `pod install`
+4. Open `BackstagePass.xcworkspace` in Xcode
+5. Configure signing & capabilities
+6. Run on simulator or device
+
+### Android Setup
+1. Install Android Studio
+2. Navigate to `android/` directory
+3. Sync Gradle dependencies
+4. Configure signing in `app/build.gradle`
+5. Run on emulator or device
+
+## 🏗 Architecture
+
+### Core Models
+
+- **User** - Platform users (creators and viewers)
+- **Team** - Organization unit for creators
+- **Space** - Creator's content space
+- **Experience** - Content types (live stream, course, etc.)
+- **Stream** - Individual streaming sessions
+- **AccessPass** - Monetization packages
+- **AccessGrant** - User access permissions
+
+### Key Features
+
+1. **Multi-tenant Architecture** - Team-based isolation
+2. **Real-time Streaming** - LiveKit integration
+3. **Chat System** - GetStream.io powered
+4. **Payment Processing** - Stripe subscriptions & one-time payments
+5. **Mobile Support** - Turbo Native wrapper apps
+
+## 🚢 Deployment
+
+### Railway (Recommended)
+```bash
+railway login
+railway link
+railway up
+```
 
 ### Heroku
+```bash
+heroku create your-app-name
+heroku addons:create heroku-postgresql:hobby-dev
+heroku addons:create heroku-redis:hobby-dev
+git push heroku main
+heroku run rails db:migrate
+```
 
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=http://github.com/bullet-train-co/bullet_train)
+### Environment Variables Required
 
-Clicking this button will take you to the first step of a process that, when completed, will provision production-grade infrastructure and services for your Bullet Train application which will cost about **$140/month**.
+See `.env.example` for full list. Critical variables:
+- Database connection
+- Redis connection
+- External service API keys
+- Rails master key
 
-Once that process has completed, be sure to complete the other steps from the [Deploying to Heroku](https://bullettrain.co/docs/heroku) documentation.
+## 📖 Documentation
 
-## Contribute to Bullet Train
-If you're looking contribute to Bullet Train, you should "Fork" this template repository on GitHub, like so:
+- [Creator Guide](docs/creators/README.md) - For content creators
+- [Viewer Guide](docs/viewers/README.md) - For audience members
+- [Developer Guide](docs/developers/README.md) - For contributors
+- [API Documentation](docs/api/README.md) - REST API reference
+- [Deployment Guide](docs/deployment/README.md) - Production setup
 
-1. Visit https://github.com/bullet-train-co/bullet_train.
-2. Click "Fork" in the top-right corner.
-3. Select the account where you want to fork the repository.
-4. Click the "Code" button on the new repository and copy the SSH path.
-5. Clone your forked repository using the SSH path you copied, like so:
+## 🤝 Contributing
 
-    ```
-    git clone git@github.com:your-account/bullet_train.git
-    cd bullet_train
-    ```
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-6. Run the setup script:
+### Development Workflow
 
-    ```
-    bin/setup
-    ```
+1. Run preflight checks: `./bin/preflight-check`
+2. Make your changes
+3. Run tests: `rails test`
+4. Run linter: `standardrb --fix`
+5. Commit with conventional commits
 
-7. Start the application:
+## 📄 License
 
-    ```
-    bin/dev
-    ```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-    > [!NOTE]
-    > Optional: If you have [ngrok](https://ngrok.com/) installed, uncomment `ngrok: ngrok http 3000` from `Procfile.dev` and run
-    > `bin/set-ngrok-url` to set `BASE_URL` to a publically accessible domain.
-    > Run `bin/set-ngrok-url` after restarting `ngrok` to update `BASE_URL` to
-    > the current public url.
+## 🙏 Acknowledgments
 
-8. Visit http://localhost:3000.
+- Built on [Bullet Train](https://bullettrain.co) Rails framework
+- Streaming powered by [LiveKit](https://livekit.io)
+- Chat powered by [GetStream](https://getstream.io)
+- Payments powered by [Stripe](https://stripe.com)
+
+## 📞 Support
+
+For issues and questions:
+- Open a [GitHub Issue](https://github.com/todddickerson/backstage-pass/issues)
+- Check our [FAQ](docs/FAQ.md)
+- Email: support@backstagepass.app
 
 ---
 
-This `README.md` file will be replaced with [`README.example.md`](./README.example.md) after running `bin/configure`.
+Built with ❤️ by the Backstage Pass team
