@@ -171,7 +171,7 @@ class MobileStreamingPerformanceTest < ActiveSupport::TestCase
     )
 
     # Create access pass and grant access to multiple users
-    access_pass = @space.access_passes.create!(
+    @space.access_passes.create!(
       name: "Concurrent Access",
       description: "Testing concurrent user access",
       pricing_type: "one_time",
@@ -349,12 +349,10 @@ class MobileStreamingPerformanceTest < ActiveSupport::TestCase
     # Test payment flow performance
     payment_time = Benchmark.measure do
       mobile_customers.each_with_index do |customer, i|
-        access_pass = access_passes[i % access_passes.length]
-
-        # Mock mobile payment intent creation
+        # Mock mobile payment intent creation (using access_passes for pricing variety)
         {
           id: "pi_mobile_test_#{i}",
-          amount: access_pass.price_cents,
+          amount: access_passes[i % access_passes.length].price_cents,
           currency: "usd",
           status: "requires_payment_method",
 
