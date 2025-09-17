@@ -2,8 +2,7 @@
 # Deployment: Connect GitHub repo and Railway auto-deploys on push to main
 
 [build]
-builder = "NIXPACKS"
-buildCommand = "bundle install && yarn install && bundle exec rails assets:precompile"
+builder = "DOCKER"
 
 [deploy]
 startCommand = "bundle exec rails db:migrate && bundle exec puma -C config/puma.rb"
