@@ -1,6 +1,6 @@
 class Account::StreamsController < Account::ApplicationController
   include ChatAccessControl
-  
+
   account_load_and_authorize_resource :stream, through: :experience, through_association: :streams
 
   # GET /account/experiences/:experience_id/streams
@@ -66,15 +66,15 @@ class Account::StreamsController < Account::ApplicationController
   # POST /account/streams/:id/join_chat
   def join_chat
     if add_user_to_chat_room(@stream, current_user)
-      render json: { 
-        success: true, 
+      render json: {
+        success: true,
         message: "Successfully joined chat",
         user_token: generate_chat_token_for_user(current_user, @stream)
       }
     else
-      render json: { 
-        success: false, 
-        message: "Failed to join chat" 
+      render json: {
+        success: false,
+        message: "Failed to join chat"
       }, status: :unprocessable_entity
     end
   end
@@ -82,27 +82,27 @@ class Account::StreamsController < Account::ApplicationController
   # DELETE /account/streams/:id/leave_chat
   def leave_chat
     if remove_user_from_chat_room(@stream, current_user)
-      render json: { success: true, message: "Successfully left chat" }
+      render json: {success: true, message: "Successfully left chat"}
     else
-      render json: { success: false, message: "Failed to leave chat" }, status: :unprocessable_entity
+      render json: {success: false, message: "Failed to leave chat"}, status: :unprocessable_entity
     end
   end
 
   # GET /account/streams/:id/chat_token
   def chat_token
     token = generate_chat_token_for_user(current_user, @stream)
-    
+
     if token
-      render json: { 
-        success: true, 
+      render json: {
+        success: true,
         token: token,
         user_id: current_user.id.to_s,
-        user_name: current_user.name || current_user.email.split('@').first
+        user_name: current_user.name || current_user.email.split("@").first
       }
     else
-      render json: { 
-        success: false, 
-        message: "Unable to generate chat token" 
+      render json: {
+        success: false,
+        message: "Unable to generate chat token"
       }, status: :forbidden
     end
   end
@@ -110,58 +110,58 @@ class Account::StreamsController < Account::ApplicationController
   # GET /account/streams/:id/video_token
   def video_token
     unless @stream.can_view?(current_user)
-      render json: { 
-        success: false, 
-        message: "Access Pass required to view stream" 
+      render json: {
+        success: false,
+        message: "Access Pass required to view stream"
       }, status: :forbidden
       return
     end
 
     livekit_service = Streaming::LivekitService.new
     connection_info = livekit_service.generate_mobile_connection_info(@stream, current_user)
-    
+
     render json: {
       success: true,
       **connection_info
     }
   rescue => e
     Rails.logger.error "Failed to generate video token: #{e.message}"
-    render json: { 
-      success: false, 
-      message: "Unable to generate video token" 
+    render json: {
+      success: false,
+      message: "Unable to generate video token"
     }, status: :internal_server_error
   end
 
   # POST /account/streams/:id/start_stream
   def start_stream
     unless @stream.can_broadcast?(current_user)
-      render json: { 
-        success: false, 
-        message: "Not authorized to broadcast this stream" 
+      render json: {
+        success: false,
+        message: "Not authorized to broadcast this stream"
       }, status: :forbidden
       return
     end
 
     if @stream.live?
-      render json: { 
-        success: false, 
-        message: "Stream is already live" 
+      render json: {
+        success: false,
+        message: "Stream is already live"
       }, status: :unprocessable_entity
       return
     end
 
     livekit_service = Streaming::LivekitService.new
-    
+
     begin
       # Create LiveKit room
       room = livekit_service.create_room(@stream)
-      
+
       # Update stream status
       @stream.update!(status: :live)
-      
+
       # Generate broadcaster token
       connection_info = livekit_service.generate_mobile_connection_info(@stream, current_user)
-      
+
       render json: {
         success: true,
         message: "Stream started successfully",
@@ -170,9 +170,9 @@ class Account::StreamsController < Account::ApplicationController
       }
     rescue => e
       Rails.logger.error "Failed to start stream: #{e.message}"
-      render json: { 
-        success: false, 
-        message: "Failed to start stream: #{e.message}" 
+      render json: {
+        success: false,
+        message: "Failed to start stream: #{e.message}"
       }, status: :internal_server_error
     end
   end
@@ -180,39 +180,39 @@ class Account::StreamsController < Account::ApplicationController
   # POST /account/streams/:id/stop_stream
   def stop_stream
     unless @stream.can_broadcast?(current_user)
-      render json: { 
-        success: false, 
-        message: "Not authorized to control this stream" 
+      render json: {
+        success: false,
+        message: "Not authorized to control this stream"
       }, status: :forbidden
       return
     end
 
     unless @stream.live?
-      render json: { 
-        success: false, 
-        message: "Stream is not currently live" 
+      render json: {
+        success: false,
+        message: "Stream is not currently live"
       }, status: :unprocessable_entity
       return
     end
 
     livekit_service = Streaming::LivekitService.new
-    
+
     begin
       # Delete LiveKit room
       livekit_service.delete_room(@stream)
-      
+
       # Update stream status
       @stream.update!(status: :ended)
-      
+
       render json: {
         success: true,
         message: "Stream stopped successfully"
       }
     rescue => e
       Rails.logger.error "Failed to stop stream: #{e.message}"
-      render json: { 
-        success: false, 
-        message: "Failed to stop stream: #{e.message}" 
+      render json: {
+        success: false,
+        message: "Failed to stop stream: #{e.message}"
       }, status: :internal_server_error
     end
   end
@@ -220,9 +220,9 @@ class Account::StreamsController < Account::ApplicationController
   # GET /account/streams/:id/room_info
   def room_info
     unless @stream.can_view?(current_user)
-      render json: { 
-        success: false, 
-        message: "Access Pass required to view stream" 
+      render json: {
+        success: false,
+        message: "Access Pass required to view stream"
       }, status: :forbidden
       return
     end
@@ -230,7 +230,7 @@ class Account::StreamsController < Account::ApplicationController
     livekit_service = Streaming::LivekitService.new
     room_info = livekit_service.get_room_info(@stream)
     participants = livekit_service.get_room_participants(@stream)
-    
+
     render json: {
       success: true,
       room_info: room_info,
@@ -239,9 +239,9 @@ class Account::StreamsController < Account::ApplicationController
     }
   rescue => e
     Rails.logger.error "Failed to get room info: #{e.message}"
-    render json: { 
-      success: false, 
-      message: "Unable to get room information" 
+    render json: {
+      success: false,
+      message: "Unable to get room information"
     }, status: :internal_server_error
   end
 

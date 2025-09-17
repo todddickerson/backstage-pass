@@ -13,7 +13,7 @@ module DeviceDetection
 
   def detect_device_variant
     @device = ::DeviceDetector.new(request.user_agent)
-    
+
     # Set variant for view rendering
     request.variant = :hotwire_native if hotwire_native_app?
     request.variant = :mobile if mobile_app? && !hotwire_native_app?
@@ -22,7 +22,7 @@ module DeviceDetection
   def hotwire_native_app?
     # Check for Hotwire Native user agent identifiers
     return true if request.user_agent.to_s.match?(/Turbo Native|Hotwire Native/i)
-    
+
     # Also check for custom header that native apps can send
     request.headers["X-Hotwire-Native-Version"].present?
   end

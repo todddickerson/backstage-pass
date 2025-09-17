@@ -17,7 +17,7 @@ class Rack::Attack
 
   ### Blocklist ###
   # Block suspicious requests
-  
+
   # Block requests with bad user agents
   blocklist("block-bad-agents") do |req|
     # List of known bad user agents
@@ -31,7 +31,7 @@ class Rack::Attack
       /wget/i,
       /curl/i # Be careful with this, legitimate services use curl
     ]
-    
+
     user_agent = req.user_agent.to_s
     bad_agents.any? { |pattern| user_agent.match?(pattern) }
   end
@@ -48,7 +48,7 @@ class Rack::Attack
       /phpMyAdmin/i,
       /\.php$/
     ]
-    
+
     sensitive_paths.any? { |pattern| req.path.match?(pattern) }
   end
 
@@ -135,7 +135,7 @@ class Rack::Attack
 
   ### Exponential Backoff for Repeated Offenders ###
   # Track repeat offenders and increase their ban time
-  
+
   # Ban IP for 1 hour after 3 limit violations in 10 minutes
   Rack::Attack.blocklist("recidivist-ip") do |req|
     Rack::Attack::Allow2Ban.filter(
@@ -165,13 +165,13 @@ class Rack::Attack
   self.throttled_responder = lambda do |req|
     now = Time.now.utc
     match_data = req.env["rack.attack.match_data"]
-    
+
     headers = {
       "RateLimit-Limit" => match_data[:limit].to_s,
       "RateLimit-Remaining" => "0",
       "RateLimit-Reset" => (now + (match_data[:period] - (now.to_i % match_data[:period]))).to_s
     }
-    
+
     [429, headers, ["Rate limit exceeded. Please try again later.\n"]]
   end
 
@@ -188,10 +188,10 @@ Rails.application.config.middleware.use Rack::Attack
 if Rails.env.production?
   ActiveSupport::Notifications.subscribe("rack.attack") do |name, start, finish, request_id, payload|
     req = payload[:request]
-    
+
     if [:throttle, :blocklist].include?(req.env["rack.attack.match_type"])
-      Rails.logger.warn("Rate limit exceeded: #{req.env['rack.attack.match_type']} #{req.ip} #{req.path}")
-      
+      Rails.logger.warn("Rate limit exceeded: #{req.env["rack.attack.match_type"]} #{req.ip} #{req.path}")
+
       # You could also send this to an error tracking service
       # Honeybadger.notify("Rate limit exceeded", context: {
       #   ip: req.ip,

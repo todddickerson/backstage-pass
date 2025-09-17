@@ -64,11 +64,11 @@ class Account::AccessPasses::WaitlistEntriesController < Account::ApplicationCon
     if @waitlist_entry.pending?
       @waitlist_entry.status = "approved"
       @waitlist_entry.approved_at = Time.current
-      
+
       if @waitlist_entry.save
         # Send approval email
         WaitlistMailer.approval_email(@waitlist_entry).deliver_later
-        
+
         redirect_to [:account, @waitlist_entry], notice: I18n.t("access_passes/waitlist_entries.notifications.approved")
       else
         redirect_to [:account, @waitlist_entry], alert: I18n.t("access_passes/waitlist_entries.notifications.approval_failed")
@@ -83,7 +83,7 @@ class Account::AccessPasses::WaitlistEntriesController < Account::ApplicationCon
     if @waitlist_entry.pending?
       @waitlist_entry.status = "rejected"
       @waitlist_entry.rejected_at = Time.current
-      
+
       if @waitlist_entry.save
         redirect_to [:account, @waitlist_entry], notice: I18n.t("access_passes/waitlist_entries.notifications.rejected")
       else

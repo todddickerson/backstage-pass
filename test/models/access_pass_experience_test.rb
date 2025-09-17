@@ -66,11 +66,11 @@ class AccessPassExperienceTest < ActiveSupport::TestCase
   end
 
   test "should be destroyed when access pass is destroyed" do
-    access_pass_experience = AccessPassExperience.create!(
+    AccessPassExperience.create!(
       access_pass: @access_pass,
       experience: @experience
     )
-    
+
     assert_difference "AccessPassExperience.count", -1 do
       @access_pass.destroy
     end
@@ -78,7 +78,7 @@ class AccessPassExperienceTest < ActiveSupport::TestCase
 
   test "should associate access pass with experiences through join table" do
     @access_pass.experiences << @experience
-    
+
     assert_includes @access_pass.experiences, @experience
     assert_includes @experience.access_passes, @access_pass
   end

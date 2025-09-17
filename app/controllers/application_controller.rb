@@ -4,17 +4,17 @@ class ApplicationController < ActionController::Base
   include DeviceDetection
 
   protect_from_forgery with: :exception, prepend: true
-  
+
   # Additional security configurations
-  
+
   # Prevent parameter pollution
   before_action :prevent_parameter_pollution
-  
+
   # Audit sensitive actions
   after_action :audit_sensitive_actions, if: :audit_required?
-  
+
   private
-  
+
   def prevent_parameter_pollution
     # Remove duplicate parameters (keep first occurrence)
     params.each do |key, value|
@@ -23,7 +23,7 @@ class ApplicationController < ActionController::Base
       end
     end
   end
-  
+
   def audit_sensitive_actions
     # Log sensitive actions for audit trail
     if audit_required?
@@ -37,7 +37,7 @@ class ApplicationController < ActionController::Base
       )
     end
   end
-  
+
   def audit_required?
     # Define which actions require audit logging
     sensitive_actions = {
@@ -48,12 +48,12 @@ class ApplicationController < ActionController::Base
       "teams" => %w[update destroy],
       "billing" => :all
     }
-    
+
     controller = controller_name.to_s
     action = action_name.to_s
-    
+
     return false unless user_signed_in?
-    
+
     if sensitive_actions[controller] == :all
       true
     elsif sensitive_actions[controller].is_a?(Array)
@@ -62,7 +62,7 @@ class ApplicationController < ActionController::Base
       false
     end
   end
-  
+
   def filtered_params_for_audit
     # Filter sensitive data from audit logs
     params.except(:password, :password_confirmation, :credit_card, :cvv, :ssn).to_unsafe_h

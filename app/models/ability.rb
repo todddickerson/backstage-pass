@@ -34,25 +34,25 @@ class Ability
       if billing_enabled?
         apply_billing_abilities user
       end
-      
+
       # Buyer-specific permissions
       # Buyers get access based on their AccessGrants, not just team membership
       user.access_grants.active.includes(:access_pass).each do |grant|
         # Can view the space they purchased from
         can :read, Space, id: grant.access_pass.space_id
-        
+
         # Can view the access pass they purchased
         can :read, AccessPass, id: grant.access_pass_id
-        
+
         # Can view experiences included in their access pass
         if grant.access_pass.access_pass_experiences.any?
           experience_ids = grant.access_pass.access_pass_experiences.pluck(:experience_id)
           can :read, Experience, id: experience_ids
         end
-        
+
         # Can view their own access grants
         can :read, AccessGrant, user_id: user.id
-        
+
         # Can view their own purchases
         can :read, Billing::Purchase, user_id: user.id
       end

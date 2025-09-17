@@ -338,6 +338,10 @@ GEM
     globalid (1.2.1)
       activesupport (>= 6.1)
     google-protobuf (3.25.8)
+    google-protobuf (3.25.8-aarch64-linux)
+    google-protobuf (3.25.8-arm64-darwin)
+    google-protobuf (3.25.8-x86_64-darwin)
+    google-protobuf (3.25.8-x86_64-linux)
     hashids (1.0.6)
     hashie (5.0.0)
     heapy (0.2.0)
@@ -843,7 +847,7 @@ DEPENDENCIES
   webdrivers
 
 RUBY VERSION
-   ruby 3.4.5
+   ruby 3.3.0p0
 
 BUNDLED WITH
    2.4.10

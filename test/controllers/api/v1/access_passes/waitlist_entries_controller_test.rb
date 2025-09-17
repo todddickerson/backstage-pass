@@ -30,14 +30,14 @@ class Api::V1::AccessPasses::WaitlistEntriesControllerTest < Api::Test
     # Fetch the waitlist_entry in question and prepare to compare it's attributes.
     waitlist_entry = AccessPasses::WaitlistEntry.find(waitlist_entry_data["id"])
 
-    assert_equal_or_nil waitlist_entry_data['email'], waitlist_entry.email
-    assert_equal_or_nil waitlist_entry_data['first_name'], waitlist_entry.first_name
-    assert_equal_or_nil waitlist_entry_data['last_name'], waitlist_entry.last_name
-    assert_equal_or_nil waitlist_entry_data['answers'], waitlist_entry.answers
-    assert_equal_or_nil waitlist_entry_data['status'], waitlist_entry.status
-    assert_equal_or_nil waitlist_entry_data['notes'], waitlist_entry.notes
-    assert_equal_or_nil DateTime.parse(waitlist_entry_data['approved_at']), waitlist_entry.approved_at
-    assert_equal_or_nil DateTime.parse(waitlist_entry_data['rejected_at']), waitlist_entry.rejected_at
+    assert_equal_or_nil waitlist_entry_data["email"], waitlist_entry.email
+    assert_equal_or_nil waitlist_entry_data["first_name"], waitlist_entry.first_name
+    assert_equal_or_nil waitlist_entry_data["last_name"], waitlist_entry.last_name
+    assert_equal_or_nil waitlist_entry_data["answers"], waitlist_entry.answers
+    assert_equal_or_nil waitlist_entry_data["status"], waitlist_entry.status
+    assert_equal_or_nil waitlist_entry_data["notes"], waitlist_entry.notes
+    assert_equal_or_nil DateTime.parse(waitlist_entry_data["approved_at"]), waitlist_entry.approved_at
+    assert_equal_or_nil DateTime.parse(waitlist_entry_data["rejected_at"]), waitlist_entry.rejected_at
     # 🚅 super scaffolding will insert new fields above this line.
 
     assert_equal waitlist_entry_data["access_pass_id"], waitlist_entry.access_pass_id
@@ -96,11 +96,11 @@ class Api::V1::AccessPasses::WaitlistEntriesControllerTest < Api::Test
     put "/api/v1/access_passes/waitlist_entries/#{@waitlist_entry.id}", params: {
       access_token: access_token,
       access_passes_waitlist_entry: {
-        email: 'another.email@test.com',
-        first_name: 'Alternative String Value',
-        last_name: 'Alternative String Value',
-        answers: 'Alternative String Value',
-        notes: 'Alternative String Value',
+        email: "another.email@test.com",
+        first_name: "Alternative String Value",
+        last_name: "Alternative String Value",
+        answers: "Alternative String Value",
+        notes: "Alternative String Value",
         # 🚅 super scaffolding will also insert new fields above this line.
       }
     }
@@ -112,11 +112,11 @@ class Api::V1::AccessPasses::WaitlistEntriesControllerTest < Api::Test
 
     # But we have to manually assert the value was properly updated.
     @waitlist_entry.reload
-    assert_equal @waitlist_entry.email, 'another.email@test.com'
-    assert_equal @waitlist_entry.first_name, 'Alternative String Value'
-    assert_equal @waitlist_entry.last_name, 'Alternative String Value'
-    assert_equal @waitlist_entry.answers, 'Alternative String Value'
-    assert_equal @waitlist_entry.notes, 'Alternative String Value'
+    assert_equal @waitlist_entry.email, "another.email@test.com"
+    assert_equal @waitlist_entry.first_name, "Alternative String Value"
+    assert_equal @waitlist_entry.last_name, "Alternative String Value"
+    assert_equal @waitlist_entry.answers, "Alternative String Value"
+    assert_equal @waitlist_entry.notes, "Alternative String Value"
     # 🚅 super scaffolding will additionally insert new fields above this line.
 
     # Also ensure we can't do that same action as another user.

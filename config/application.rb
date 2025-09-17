@@ -35,20 +35,20 @@ module UntitledApplication
     BulletTrain::Api.set_configuration(self)
 
     # Security Configuration
-    
+
     # Force SSL in production
     config.force_ssl = true if Rails.env.production?
-    
+
     # Secure cookies
-    config.session_store :cookie_store, 
+    config.session_store :cookie_store,
       key: "_backstage_pass_session",
       secure: Rails.env.production?, # HTTPS only in production
       httponly: true, # Prevent JavaScript access
       same_site: :lax # CSRF protection
-    
+
     # Security headers middleware
     config.middleware.use SecureHeaders::Middleware
-    
+
     # Configure allowed hosts for DNS rebinding protection
     # In production, set this to your actual domain
     if Rails.env.production?
@@ -60,7 +60,7 @@ module UntitledApplication
       config.hosts << /.*\.ngrok-free\.app/
       config.hosts << "localhost"
     end
-    
+
     # Set secure headers for ActionDispatch
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -70,17 +70,17 @@ module UntitledApplication
       "X-Permitted-Cross-Domain-Policies" => "none",
       "Referrer-Policy" => "strict-origin-when-cross-origin"
     }
-    
+
     # Configure ActiveRecord encryption (for Rails 7+)
     # This will encrypt sensitive data at rest
     # Generate keys with: bin/rails db:encryption:init
     # config.active_record.encryption.primary_key = ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"]
     # config.active_record.encryption.deterministic_key = ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"]
     # config.active_record.encryption.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
-    
+
     # Prevent timing attacks on CSRF tokens
     config.action_controller.default_protect_from_forgery = true
-    
+
     # Log security events
     if Rails.env.production?
       config.log_tags = [:request_id, :remote_ip]
