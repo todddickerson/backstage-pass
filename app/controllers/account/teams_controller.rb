@@ -1,4 +1,5 @@
 class Account::TeamsController < Account::ApplicationController
+  account_load_and_authorize_resource :team
   include Account::Teams::ControllerBase
 
   private
