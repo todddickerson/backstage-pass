@@ -19,6 +19,7 @@ class Ability
       can :manage, Invitation, id: user.teams.map(&:invitations).flatten.map(&:id)
 
       can :create, Team
+      can :manage, Team, id: user.team_ids
 
       # We only allow users to work with the access tokens they've created, e.g. those not created via OAuth2.
       can :manage, Platform::AccessToken, application: {team_id: user.team_ids}, provisioned: true

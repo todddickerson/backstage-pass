@@ -1,7 +1,6 @@
 class Account::ExperiencesController < Account::ApplicationController
-  before_action :set_space
-  before_action :set_experience, only: [:show, :edit, :update, :destroy]
-  before_action :build_experience, only: [:new, :create]
+  # Use Bullet Train's team-aware resource loading
+  account_load_and_authorize_resource :experience, through: :space, through_association: :experiences
 
   # GET /account/spaces/:space_id/experiences
   # GET /account/spaces/:space_id/experiences.json
@@ -63,25 +62,6 @@ class Account::ExperiencesController < Account::ApplicationController
   end
 
   private
-
-  def set_space
-    space_id = params[:space_id] || @experience&.space_id
-    @space = current_user.spaces.friendly.find_by(id: space_id) || current_user.spaces.first
-  end
-
-  def set_experience
-    @experience = @space.experiences.find(params[:id])
-  end
-
-  def build_experience
-    @experience = @space.experiences.build(experience_params) if params[:experience]
-    @experience ||= @space.experiences.build
-  end
-
-  def experience_params
-    return {} unless params[:experience]
-    params.require(:experience).permit(:name, :description, :experience_type, :price_cents)
-  end
 
   if defined?(Api::V1::ApplicationController)
     include strong_parameters_from_api
