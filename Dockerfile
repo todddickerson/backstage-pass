@@ -65,14 +65,14 @@ COPY . .
 RUN bundle exec bootsnap precompile --gemfile && \
     bundle exec bootsnap precompile app/ lib/
 
-# Precompile assets
+# Build assets manually to avoid jsbundling-rails issues
 # Railway will provide these as build-time environment variables
 ARG RAILS_MASTER_KEY
 ARG SECRET_KEY_BASE
-# The jsbundling:install task expects bun, but we use yarn/esbuild
-# So we bypass it by running the build directly
+# Build JavaScript and CSS manually
 RUN RAILS_ENV=production yarn build && \
-    RAILS_ENV=production bundle exec rails assets:precompile JSBUNDLING_NOBUILD=true
+    RAILS_ENV=production yarn build:css && \
+    mkdir -p public/assets
 
 # Clean up node_modules after asset compilation
 RUN rm -rf node_modules
