@@ -1,0 +1,18 @@
+<%= render 'account/shared/page' do |p| %>
+  <% p.content_for :title, t('.header') %>
+
+  <% p.content_for :body do %>
+    <div class="space-y-6">
+      <% if current_team.spaces.any? %>
+        <%= render 'account/spaces/index', spaces: current_team.spaces, hide_back: true %>
+      <% else %>
+        <div class="text-center py-8">
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Welcome to your team!</h3>
+          <p class="text-gray-500 mb-4">Get started by creating your first content space.</p>
+          <%= link_to "Create Your First Space", new_account_team_space_path(current_team), 
+              class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

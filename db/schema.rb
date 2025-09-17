@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_16_185803) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_17_161802) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -142,6 +142,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_185803) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["addressable_type", "addressable_id"], name: "index_addresses_on_addressable"
+  end
+
+  create_table "audit_logs", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "action"
+    t.string "ip_address"
+    t.text "user_agent"
+    t.json "params"
+    t.datetime "performed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_audit_logs_on_user_id"
   end
 
   create_table "billing_purchases", force: :cascade do |t|
@@ -489,6 +501,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_16_185803) do
   add_foreign_key "account_onboarding_invitation_lists", "teams"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "audit_logs", "users"
   add_foreign_key "billing_purchases", "access_passes"
   add_foreign_key "billing_purchases", "teams"
   add_foreign_key "billing_purchases", "users"

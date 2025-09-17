@@ -1,11 +1,14 @@
 class Account::StreamsController < Account::ApplicationController
   include ChatAccessControl
 
-  account_load_and_authorize_resource :stream, through: :experience, through_association: :streams
+  before_action :set_experience
+  before_action :set_stream, only: [:show, :edit, :update, :destroy, :join_chat, :leave_chat, :chat_token, :video_token, :start_stream, :stop_stream, :room_info]
+  before_action :build_stream, only: [:new, :create]
 
   # GET /account/experiences/:experience_id/streams
   # GET /account/experiences/:experience_id/streams.json
   def index
+    @streams = @experience.streams
     delegate_json_to_api
   end
 
@@ -246,6 +249,25 @@ class Account::StreamsController < Account::ApplicationController
   end
 
   private
+
+  def set_experience
+    experience_id = params[:experience_id] || @stream&.experience_id
+    @experience = current_user.experiences.find_by(id: experience_id) || current_user.experiences.first
+  end
+
+  def set_stream
+    @stream = @experience.streams.find(params[:id])
+  end
+
+  def build_stream
+    @stream = @experience.streams.build(stream_params) if params[:stream]
+    @stream ||= @experience.streams.build
+  end
+
+  def stream_params
+    return {} unless params[:stream]
+    params.require(:stream).permit(:title, :description, :scheduled_at, :status)
+  end
 
   if defined?(Api::V1::ApplicationController)
     include strong_parameters_from_api

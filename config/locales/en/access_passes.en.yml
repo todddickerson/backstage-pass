@@ -77,7 +77,7 @@ en:
       updated: Access Pass was successfully updated.
       destroyed: Access Pass was successfully destroyed.
   account:
-    # 🚅 super scaffolding will insert the export for the locale view helper here.
+    access_passes: *access_passes
   activerecord:
     attributes:
       access_pass:

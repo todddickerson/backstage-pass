@@ -1,12 +1,36 @@
 <%= render 'account/shared/page' do |p| %>
-  <% p.content_for :title, t('.header', teams_possessive: possessive_string(@team.name)) %>
+  <% p.content_for :title, t('.header', teams_possessive: "#{@team.name}'s") %>
 
   <% p.content_for :body do %>
-    <%= render 'account/spaces/index', spaces: @team.spaces, hide_back: true %>
-    <%= render 'account/access_passes/index', access_passes: @team.access_passes, hide_back: true %>
-    <%= render 'account/billing/purchases/index', purchases: @team.billing_purchases, hide_back: true %>
-    <%# 🚅 super scaffolding will insert new children above this line. %>
+    <%= render 'account/spaces/index', spaces: @spaces, hide_back: true %>
     
-    <%= render 'account/scaffolding/absolutely_abstract/creative_concepts/index', creative_concepts: @team.scaffolding_absolutely_abstract_creative_concepts, hide_back: true unless scaffolding_things_disabled? %>
+    <div class="space-y-6">
+      <% if @access_grants.any? %>
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Access Grants</h3>
+          <div class="space-y-2">
+            <% @access_grants.each do |grant| %>
+              <div class="border rounded-lg p-4">
+                <p class="text-sm text-gray-600">Grant #<%= grant.id %></p>
+                <p class="text-sm text-gray-500">Status: <%= grant.status %></p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      
+      <% if @billing_purchases.any? %>
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Purchases</h3>
+          <div class="space-y-2">
+            <% @billing_purchases.each do |purchase| %>
+              <div class="border rounded-lg p-4">
+                <p class="text-sm text-gray-600">Purchase #<%= purchase.id %></p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
   <% end %>
 <% end %>
