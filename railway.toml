@@ -2,7 +2,7 @@
 # Deployment: Connect GitHub repo and Railway auto-deploys on push to main
 
 [build]
-builder = "DOCKER"
+builder = "dockerfile"
 
 [deploy]
 startCommand = "bundle exec rails db:migrate && bundle exec puma -C config/puma.rb"
