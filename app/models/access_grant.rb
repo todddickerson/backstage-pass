@@ -7,7 +7,7 @@ class AccessGrant < ApplicationRecord
   belongs_to :team
   belongs_to :user
   belongs_to :purchasable, polymorphic: true
-  belongs_to :access_pass, optional: true  # Which product was purchased
+  belongs_to :access_pass, optional: true, counter_cache: true  # Which product was purchased
   # 🚅 add belongs_to associations above.
 
   # 🚅 add has_many associations above.
@@ -29,6 +29,8 @@ class AccessGrant < ApplicationRecord
   before_validation :set_default_status
   after_create :create_team_membership
   after_update :sync_membership_status
+  after_save :clear_space_caches
+  after_destroy :clear_space_caches
   # 🚅 add callbacks above.
 
   # 🚅 add delegations above.
@@ -113,6 +115,17 @@ class AccessGrant < ApplicationRecord
       # For granted access, we might want to keep them but mark differently
       # or remove them entirely depending on business logic
       # For now, let's keep the membership but could add a status field later
+    end
+  end
+
+  def clear_space_caches
+    # Clear space-related caches when access grants change
+    if purchasable.is_a?(Space)
+      purchasable.clear_member_count_cache
+      purchasable.clear_user_role_cache(user_id)
+    elsif purchasable.respond_to?(:space) && purchasable.space
+      purchasable.space.clear_member_count_cache
+      purchasable.space.clear_user_role_cache(user_id)
     end
   end
   # 🚅 add methods above.

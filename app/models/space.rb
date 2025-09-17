@@ -4,13 +4,13 @@ class Space < ApplicationRecord
 
   # 🚅 add attribute accessors above.
 
-  belongs_to :team
+  belongs_to :team, counter_cache: true
   # 🚅 add belongs_to associations above.
 
-  has_many :experiences, dependent: :destroy
+  has_many :experiences, dependent: :destroy, counter_cache: true
   has_many :access_grants, as: :purchasable, dependent: :destroy
   has_many :all_streams, through: :experiences, source: :streams
-  has_many :access_passes, dependent: :destroy
+  has_many :access_passes, dependent: :destroy, counter_cache: true
   # 🚅 add has_many associations above.
 
   has_rich_text :description
@@ -26,6 +26,8 @@ class Space < ApplicationRecord
   # 🚅 add validations above.
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
+  after_update :clear_member_count_cache
+  after_destroy :clear_member_count_cache
   # 🚅 add callbacks above.
 
   # 🚅 add delegations above.
@@ -52,13 +54,24 @@ class Space < ApplicationRecord
   end
 
   def total_viewers
-    User.joins(:access_grants)
-      .where(access_grants: {purchasable: self, status: :active})
-      .count
+    Rails.cache.fetch("space_#{id}/total_viewers", expires_in: 15.minutes) do
+      User.joins(:access_grants)
+        .where(access_grants: {purchasable: self, status: :active})
+        .count
+    end
   end
 
   def total_members
-    team.users.count + total_viewers
+    Rails.cache.fetch("space_#{id}/total_members", expires_in: 15.minutes) do
+      team.users.count + total_viewers_uncached
+    end
+  end
+
+  # Uncached version for internal use
+  def total_viewers_uncached
+    User.joins(:access_grants)
+      .where(access_grants: {purchasable: self, status: :active})
+      .count
   end
 
   def can_access?(user)
@@ -74,15 +87,17 @@ class Space < ApplicationRecord
   def role_for_user(user)
     return nil unless user
 
-    # Check team membership first (admin/editor roles)
-    membership = team.memberships.find_by(user: user)
-    return membership.role if membership
+    Rails.cache.fetch("space_#{id}/user_#{user.id}/role", expires_in: 30.minutes) do
+      # Check team membership first (admin/editor roles)
+      membership = team.memberships.find_by(user: user)
+      return membership.role if membership
 
-    # Check access grant (viewer role) - but this doesn't grant content access automatically
-    access_grant = user.access_grants.active.where(purchasable: self).first
-    return "viewer" if access_grant
+      # Check access grant (viewer role) - but this doesn't grant content access automatically
+      access_grant = user.access_grants.active.where(purchasable: self).first
+      return "viewer" if access_grant
 
-    nil
+      nil
+    end
   end
 
   def user_can_manage?(user)
@@ -143,6 +158,22 @@ class Space < ApplicationRecord
 
   def primary_space?
     team.spaces.first == self
+  end
+
+  # Cache management methods
+  def clear_member_count_cache
+    Rails.cache.delete("space_#{id}/total_viewers")
+    Rails.cache.delete("space_#{id}/total_members")
+  end
+
+  def clear_user_role_cache(user_id)
+    Rails.cache.delete("space_#{id}/user_#{user_id}/role")
+  end
+
+  def clear_all_user_caches
+    # Clear all user-specific caches for this space
+    # Note: This is expensive, use sparingly
+    Rails.cache.delete_matched("space_#{id}/user_*/role")
   end
 
   private
