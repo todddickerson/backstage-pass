@@ -4,7 +4,21 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
   setup do
     @mobile_user = create(:onboarded_user, first_name: "Mobile", last_name: "User")
     @creator = create(:onboarded_user, first_name: "Creator", last_name: "Mobile")
+
+    # Ensure the creator's team has a name for space creation
+    if @creator.current_team.name.blank?
+      @creator.current_team.update!(name: "#{@creator.name}'s Team")
+    end
+
     @space = @creator.current_team.primary_space
+
+    # Create space manually if it doesn't exist
+    @space ||= @creator.current_team.spaces.create!(
+      name: "#{@creator.current_team.name}'s Space",
+      slug: @creator.current_team.name.parameterize,
+      description: "Test space for mobile authentication",
+      published: true
+    )
   end
 
   test "mobile user registration and onboarding flow" do
@@ -14,7 +28,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         first_name: "New",
         last_name: "MobileUser",
         email: "mobile_user_#{SecureRandom.hex(4)}@example.com",
-        password: "SecurePassword123!",
+        password: "MobileTestSecure2025!#{SecureRandom.hex(4)}",
         platform: "mobile_ios", # or mobile_android
         device_info: {
           device_id: "mobile_device_#{SecureRandom.hex(8)}",

@@ -8,7 +8,7 @@ class Public::SpacesController < Public::ApplicationController
   def show
     # Direct slug lookup with eager loading to prevent N+1 queries
     @space = Space.friendly
-      .includes(:team, experiences: [:streams, :access_grants], :access_passes, :access_grants)
+      .includes(:team, {experiences: [:streams, :access_grants]}, :access_passes, :access_grants)
       .find(params[:space_slug])
 
     # Ensure the space is published for public viewing
@@ -28,7 +28,7 @@ class Public::SpacesController < Public::ApplicationController
   def index
     # Eager load all necessary associations to prevent N+1 queries
     @spaces = Space.published
-      .includes(:team, :access_passes, experiences: [:streams], access_grants: [:user])
+      .includes(:team, :access_passes, {experiences: [:streams]}, {access_grants: [:user]})
       .order(:name)
   end
 end
