@@ -7,41 +7,38 @@ module ExternalServiceMocks
   module LiveKit
     def self.mock_room_service!
       room_service = Minitest::Mock.new
-      
+
       # Mock room creation
-      room_service.expect(:create_room, 
+      room_service.expect(:create_room,
         OpenStruct.new(name: "test_room", sid: "RM_TEST123"),
-        [String]
-      )
-      
+        [String])
+
       # Mock room deletion
       room_service.expect(:delete_room, true, [String])
-      
+
       # Mock list rooms
-      room_service.expect(:list_rooms, 
+      room_service.expect(:list_rooms,
         [OpenStruct.new(name: "test_room", sid: "RM_TEST123")],
-        []
-      )
-      
+        [])
+
       # Mock get room
       room_service.expect(:get_room,
         OpenStruct.new(name: "test_room", sid: "RM_TEST123", num_participants: 0),
-        [String]
-      )
-      
+        [String])
+
       # Replace the actual service with mock
       LivekitService.stub(:room_service, room_service) do
         yield
       end
     end
-    
+
     def self.mock_token_service!
       # Mock token generation
       LivekitService.stub(:generate_token, "mock_token_#{SecureRandom.hex(8)}") do
         yield
       end
     end
-    
+
     def self.mock_all!
       mock_room_service! do
         mock_token_service! do
@@ -50,7 +47,7 @@ module ExternalServiceMocks
       end
     end
   end
-  
+
   # Stripe Mock Service
   module Stripe
     def self.mock_customer_service!
@@ -59,14 +56,14 @@ module ExternalServiceMocks
         email: "test@example.com",
         created: Time.current.to_i
       )
-      
+
       ::Stripe::Customer.stub(:create, customer) do
         ::Stripe::Customer.stub(:retrieve, customer) do
           yield
         end
       end
     end
-    
+
     def self.mock_subscription_service!
       subscription = OpenStruct.new(
         id: "sub_test_#{SecureRandom.hex(8)}",
@@ -79,7 +76,7 @@ module ExternalServiceMocks
           ))
         ])
       )
-      
+
       ::Stripe::Subscription.stub(:create, subscription) do
         ::Stripe::Subscription.stub(:retrieve, subscription) do
           ::Stripe::Subscription.stub(:update, subscription) do
@@ -90,7 +87,7 @@ module ExternalServiceMocks
         end
       end
     end
-    
+
     def self.mock_payment_intent_service!
       payment_intent = OpenStruct.new(
         id: "pi_test_#{SecureRandom.hex(8)}",
@@ -99,7 +96,7 @@ module ExternalServiceMocks
         currency: "usd",
         client_secret: "pi_test_secret_#{SecureRandom.hex(8)}"
       )
-      
+
       ::Stripe::PaymentIntent.stub(:create, payment_intent) do
         ::Stripe::PaymentIntent.stub(:retrieve, payment_intent) do
           ::Stripe::PaymentIntent.stub(:confirm, payment_intent) do
@@ -108,7 +105,7 @@ module ExternalServiceMocks
         end
       end
     end
-    
+
     def self.mock_checkout_session_service!
       session = OpenStruct.new(
         id: "cs_test_#{SecureRandom.hex(8)}",
@@ -117,14 +114,14 @@ module ExternalServiceMocks
         customer: "cus_test_123",
         line_items: OpenStruct.new(data: [])
       )
-      
+
       ::Stripe::Checkout::Session.stub(:create, session) do
         ::Stripe::Checkout::Session.stub(:retrieve, session) do
           yield
         end
       end
     end
-    
+
     def self.mock_price_service!
       price = OpenStruct.new(
         id: "price_test_#{SecureRandom.hex(8)}",
@@ -132,7 +129,7 @@ module ExternalServiceMocks
         currency: "usd",
         product: "prod_test_123"
       )
-      
+
       ::Stripe::Price.stub(:create, price) do
         ::Stripe::Price.stub(:retrieve, price) do
           ::Stripe::Price.stub(:list, OpenStruct.new(data: [price])) do
@@ -141,7 +138,7 @@ module ExternalServiceMocks
         end
       end
     end
-    
+
     def self.mock_all!
       mock_customer_service! do
         mock_subscription_service! do
@@ -156,12 +153,12 @@ module ExternalServiceMocks
       end
     end
   end
-  
+
   # GetStream Mock Service
   module GetStream
     def self.mock_chat_client!
       chat_client = Minitest::Mock.new
-      
+
       # Mock channel creation
       channel = OpenStruct.new(
         id: "channel_test_#{SecureRandom.hex(8)}",
@@ -171,26 +168,26 @@ module ExternalServiceMocks
         members: [],
         messages: []
       )
-      
+
       chat_client.expect(:channel, channel, ["messaging", String])
       chat_client.expect(:create_token, "test_token_#{SecureRandom.hex(8)}", [String])
-      
+
       # Mock user operations
       user = OpenStruct.new(
         id: "user_test_#{SecureRandom.hex(8)}",
         name: "Test User",
         image: "https://example.com/avatar.jpg"
       )
-      
+
       chat_client.expect(:update_user, user, [Hash])
       chat_client.expect(:upsert_user, user, [Hash])
-      
+
       # Replace actual client with mock
       GetstreamService.stub(:chat_client, chat_client) do
         yield
       end
     end
-    
+
     def self.mock_channel_operations!
       channel = OpenStruct.new(
         id: "channel_test",
@@ -210,20 +207,20 @@ module ExternalServiceMocks
         delete: true,
         update: true
       )
-      
+
       # Stub channel operations
       channel.define_singleton_method(:create) { |_| self }
       channel.define_singleton_method(:watch) { |_| self }
       channel.define_singleton_method(:stop_watching) { |_| self }
       channel.define_singleton_method(:query) { |_| self }
-      
+
       GetstreamService.stub(:create_channel, channel) do
         GetstreamService.stub(:get_channel, channel) do
           yield
         end
       end
     end
-    
+
     def self.mock_all!
       mock_chat_client! do
         mock_channel_operations! do
@@ -232,7 +229,7 @@ module ExternalServiceMocks
       end
     end
   end
-  
+
   # Convenience method to mock all services at once
   def self.mock_all_services!
     LiveKit.mock_all! do
@@ -243,7 +240,7 @@ module ExternalServiceMocks
       end
     end
   end
-  
+
   # Helper to verify service availability for conditional mocking
   def self.service_available?(service_name)
     case service_name
@@ -257,7 +254,7 @@ module ExternalServiceMocks
       false
     end
   end
-  
+
   # Mock only unavailable services (useful for CI/CD)
   def self.mock_unavailable_services!
     if service_available?(:livekit)
