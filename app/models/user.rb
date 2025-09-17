@@ -6,7 +6,7 @@ class User < ApplicationRecord
   # 🚅 add belongs_to associations above.
 
   has_many :access_grants, dependent: :destroy
-  
+
   # Through associations to simplify controller queries
   has_many :spaces, through: :teams
   has_many :experiences, through: :spaces

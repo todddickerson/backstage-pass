@@ -29,7 +29,7 @@ SecureHeaders::Configuration.default do |config|
   }
 
   config.csp = if Rails.env.production?
-    # Use report-only mode in production temporarily  
+    # Use report-only mode in production temporarily
     # SECURITY: Enable enforcement after testing (Issue #29)
     csp_rules.merge(report_only: true)
   else
