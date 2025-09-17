@@ -1,0 +1,48 @@
+<%= render 'shared/public/page' do %>
+  <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="prose prose-lg mx-auto">
+      <h1 class="text-3xl font-bold text-gray-900 mb-6">About Backstage Pass</h1>
+      
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Empowering Creators & Communities</h2>
+        <p class="text-gray-600 mb-4">
+          Backstage Pass is the ultimate platform for creators to build deeper connections with their most passionate fans.
+          We provide the tools you need to offer exclusive experiences, host live streams, and create memorable moments.
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Our Mission</h2>
+        <p class="text-gray-600 mb-4">
+          We believe in empowering creators to monetize their passion while building meaningful relationships with their audience.
+          Through innovative streaming technology and flexible access models, we're revolutionizing how creators and fans connect.
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Key Features</h2>
+        <ul class="list-disc list-inside text-gray-600 space-y-2">
+          <li>Live streaming with interactive chat</li>
+          <li>Exclusive experiences and content</li>
+          <li>Flexible access passes and pricing</li>
+          <li>Mobile-first design with Hotwire Native</li>
+          <li>Secure payment processing with Stripe</li>
+          <li>Community building tools</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Join Our Community</h2>
+        <p class="text-gray-600 mb-4">
+          Whether you're a creator looking to grow your audience or a fan seeking exclusive access,
+          Backstage Pass is your gateway to premium creator content.
+        </p>
+        <% if !user_signed_in? %>
+          <div class="mt-6">
+            <%= link_to "Get Started", new_user_registration_path, class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </section>
+    </div>
+  </div>
+<% end %>

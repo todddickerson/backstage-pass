@@ -1,0 +1,84 @@
+<%= render 'shared/public/page' do %>
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Explore Creator Spaces</h1>
+      <p class="mt-2 text-lg text-gray-600">Discover exclusive content and experiences from your favorite creators</p>
+    </div>
+
+    <% if @spaces.any? %>
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <% @spaces.each do |space| %>
+          <div class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-200">
+            <%= link_to public_space_path(space), class: "block" do %>
+              <% if space.avatar_image_url.present? %>
+                <div class="h-48 bg-gray-200">
+                  <%= image_tag space.avatar_image_url, class: "w-full h-full object-cover", alt: space.name %>
+                </div>
+              <% else %>
+                <div class="h-48 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <span class="text-white text-4xl font-bold"><%= space.name.first.upcase %></span>
+                </div>
+              <% end %>
+              
+              <div class="p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-2"><%= space.name %></h3>
+                
+                <% if space.description.present? %>
+                  <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+                    <%= truncate(space.description, length: 100) %>
+                  </p>
+                <% end %>
+                
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-4 text-sm text-gray-500">
+                    <span class="flex items-center">
+                      <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                      </svg>
+                      <%= pluralize(space.team.memberships.count, 'member') %>
+                    </span>
+                    
+                    <% if space.experiences.published.any? %>
+                      <span class="flex items-center">
+                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <%= pluralize(space.experiences.published.count, 'experience') %>
+                      </span>
+                    <% end %>
+                  </div>
+                </div>
+
+                <% if space.experiences.published.upcoming.any? %>
+                  <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-xs text-gray-500 mb-1">Next live stream:</p>
+                    <p class="text-sm font-medium text-purple-600">
+                      <%= space.experiences.published.upcoming.first.streams.upcoming.first&.scheduled_at&.strftime("%b %d at %l:%M %p") || "TBD" %>
+                    </p>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No creator spaces yet</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by creating your first space.</p>
+        <% if user_signed_in? %>
+          <div class="mt-6">
+            <%= link_to "Create Your Space", account_dashboard_path, class: "btn btn-primary" %>
+          </div>
+        <% else %>
+          <div class="mt-6">
+            <%= link_to "Sign Up as Creator", new_user_registration_path, class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+<% end %>
