@@ -91,6 +91,7 @@ FROM base
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
     curl \
+    netcat-openbsd \
     imagemagick \
     libvips \
     ffmpeg \
