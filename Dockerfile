@@ -72,10 +72,14 @@ ARG SECRET_KEY_BASE
 
 # Completely bypass jsbundling-rails and build assets manually
 ENV JSBUNDLING_SKIP_BUILD=true
-RUN RAILS_ENV=production yarn build && \
-    RAILS_ENV=production yarn build:css && \
+# Prevent database connections during asset precompilation
+ENV RAILS_ENV=production \
+    DATABASE_URL=nulldb://localhost/db \
+    DISABLE_DATABASE_ENVIRONMENT_CHECK=1
+RUN yarn build && \
+    yarn build:css && \
     mkdir -p public/assets && \
-    RAILS_ENV=production bundle exec rake assets:precompile
+    bundle exec rake assets:precompile
 
 # Clean up node_modules after asset compilation
 RUN rm -rf node_modules
