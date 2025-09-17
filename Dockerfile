@@ -40,20 +40,22 @@ RUN apt-get update -qq && \
     gnupg2 \
     wget
 
-# Install Node.js
+# Install Node.js and enable Corepack for Yarn
 ARG NODE_VERSION
 RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
     apt-get install -y nodejs && \
-    npm install -g yarn
+    corepack enable && \
+    corepack prepare yarn@4.2.2 --activate
 
 # Copy Gemfile and Ruby version file, then install gems
 COPY Gemfile Gemfile.lock .ruby-version ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
-# Copy package.json and install node packages
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile
+# Copy package.json and Yarn configuration files
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY .yarn .yarn
+RUN yarn install --immutable
 
 # Copy application code
 COPY . .
