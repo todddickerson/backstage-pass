@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+
+# Setup git hooks for the project
+# Usage: ./bin/setup-git-hooks
+
+require 'fileutils'
+require 'colorize'
+
+puts "🔧 Setting up git hooks...".cyan
+
+# Pre-commit hook content
+pre_commit_content = <<~HOOK
+#!/bin/sh
+# Pre-commit hook to enforce one-PR-at-a-time workflow
+
+echo "🔍 Running preflight checks..."
+
+# Run our custom preflight check
+./bin/preflight-check
+exit_code=$?
+
+case $exit_code in
+  0)
+    echo "✅ Preflight passed - proceeding with commit"
+    ;;
+  1)
+    echo "❌ Preflight failed - commit blocked"
+    echo "💡 Fix errors and try again"
+    exit 1
+    ;;
+  2)
+    echo "⚠️  Preflight warnings detected"
+    echo "💡 Consider resolving warnings before commit"
+    echo "🔄 Continuing with commit..."
+    ;;
+esac
+
+# Run StandardRB if available
+if command -v bundle >/dev/null 2>&1 && bundle exec standardrb --version >/dev/null 2>&1; then
+  echo "🔍 Running StandardRB checks..."
+  bundle exec standardrb --fix
+  if [ $? -ne 0 ]; then
+    echo "❌ StandardRB issues found - please fix and try again"
+    exit 1
+  fi
+  echo "✅ StandardRB passed"
+fi
+
+echo "✅ Pre-commit checks complete"
+HOOK
+
+# Create .git/hooks directory if it doesn't exist
+FileUtils.mkdir_p('.git/hooks')
+
+# Write pre-commit hook
+File.write('.git/hooks/pre-commit', pre_commit_content)
+FileUtils.chmod(0755, '.git/hooks/pre-commit')
+puts "✅ Created pre-commit hook".green
+
+puts "✅ Git hooks setup complete!".green
+puts
+puts "The following hooks were installed:".cyan
+puts "  • pre-commit: Runs preflight checks and StandardRB".light_blue
+puts
+puts "To disable hooks temporarily, use:".yellow
+puts "  git commit --no-verify".light_yellow

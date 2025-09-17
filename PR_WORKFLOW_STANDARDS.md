@@ -76,9 +76,21 @@ If multiple PRs exist accidentally:
 
 ## Tools
 - `./bin/preflight-check` - Verify clean state before work
+- `./bin/setup-git-hooks` - Install git hooks for automated checks
 - `gh pr list --state open` - Manual verification
 - GitHub branch protection rules
 - Automated cleanup scripts
+
+## Setup
+To enable automated workflow enforcement:
+```bash
+./bin/setup-git-hooks
+```
+
+This installs git hooks that:
+- Run preflight checks before commits
+- Enforce StandardRB code formatting
+- Prevent commits when multiple PRs are open
 
 ---
 **Remember**: One PR at a time keeps the codebase healthy and the team productive.
