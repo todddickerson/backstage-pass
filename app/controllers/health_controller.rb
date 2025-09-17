@@ -1,5 +1,8 @@
 class HealthController < ApplicationController
+  # Health checks should be publicly accessible
   skip_before_action :authenticate_user!, if: :devise_controller?
+  skip_before_action :prevent_parameter_pollution
+  skip_after_action :audit_sensitive_actions
   
   def show
     checks = {
@@ -36,8 +39,11 @@ class HealthController < ApplicationController
   end
   
   def check_migrations
-    ActiveRecord::Base.connection.migration_context.needs_migration? ? 'pending' : 'ok'
-  rescue StandardError => e
+    ActiveRecord::Migration.check_all_pending!
+    "ok"
+  rescue ActiveRecord::PendingMigrationError
+    "error"
+  rescue => e
     Rails.logger.error "Health check migrations error: #{e.message}"
     'error'
   end

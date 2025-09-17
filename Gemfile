@@ -107,7 +107,7 @@ group :test do
   # to switch to Cuprite, you can comment out the `selenium-webdriver` gem
   # and uncomment the `cuprite` gem below. Bullet Train will automatically load
   # the correct configuration based on which gem is included.
-  gem "selenium-webdriver"
+  gem "selenium-webdriver", ">= 4.6"
 
   # gem "cuprite"
 end
@@ -267,11 +267,6 @@ gem "ruby-openai"
 # 🚅 super scaffolding will insert new oauth providers above this line.
 
 # === Backstage Pass Custom Gems ===
-
-# Testing
-group :development, :test do
-  gem "webdrivers"
-end
 
 # Streaming Infrastructure
 gem "livekit-server-sdk"

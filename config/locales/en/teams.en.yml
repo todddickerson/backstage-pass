@@ -3,6 +3,12 @@ en:
     teams:
       breadcrumbs:
         dashboard: Dashboard
+      index:
+        header: "Your Team"
+        description: "Manage your team and content spaces."
+      show:
+        header: "%{teams_possessive} Dashboard"
+        description: "Overview of your team's spaces and content."
   teams:
     fields:
       _:

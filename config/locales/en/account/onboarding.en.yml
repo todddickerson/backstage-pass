@@ -1,0 +1,25 @@
+en:
+  account:
+    onboarding:
+      user_details:
+        edit:
+          header: "Complete Your Profile"
+          description: "Please provide some additional details to complete your account setup."
+          section: "Profile Setup"
+          buttons:
+            next: "Continue"
+            skip: "Skip for Now"
+        form:
+          fields:
+            first_name:
+              label: "First Name"
+            last_name:
+              label: "Last Name"
+            time_zone:
+              label: "Time Zone"
+          buttons:
+            update: "Continue"
+            skip: "Skip for Now"
+            next: "Continue"
+        notifications:
+          updated: "Profile updated successfully."

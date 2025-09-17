@@ -93,6 +93,9 @@ jobs:
           working-directory: tmp/starter
           bundler-cache: true
 
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
       - name: Enable corepack
         run: corepack enable
 

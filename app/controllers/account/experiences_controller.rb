@@ -1,9 +1,12 @@
 class Account::ExperiencesController < Account::ApplicationController
-  account_load_and_authorize_resource :experience, through: :space, through_association: :experiences
+  before_action :set_space
+  before_action :set_experience, only: [:show, :edit, :update, :destroy]
+  before_action :build_experience, only: [:new, :create]
 
   # GET /account/spaces/:space_id/experiences
   # GET /account/spaces/:space_id/experiences.json
   def index
+    @experiences = @space.experiences
     delegate_json_to_api
   end
 
@@ -60,6 +63,26 @@ class Account::ExperiencesController < Account::ApplicationController
   end
 
   private
+
+  def set_space
+    @space = current_user.teams.joins(:spaces).merge(Space.friendly).find_by(spaces: {id: params[:space_id]})&.spaces&.friendly&.find(params[:space_id])
+    @space ||= current_user.teams.joins(:spaces).merge(Space.where(id: @experience&.space_id)).first&.spaces&.find_by(id: @experience&.space_id) if @experience
+    @space ||= current_user.teams.first&.spaces&.first
+  end
+
+  def set_experience
+    @experience = @space.experiences.find(params[:id])
+  end
+
+  def build_experience
+    @experience = @space.experiences.build(experience_params) if params[:experience]
+    @experience ||= @space.experiences.build
+  end
+
+  def experience_params
+    return {} unless params[:experience]
+    params.require(:experience).permit(:name, :description, :experience_type, :price_cents)
+  end
 
   if defined?(Api::V1::ApplicationController)
     include strong_parameters_from_api

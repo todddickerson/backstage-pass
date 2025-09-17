@@ -1,11 +1,14 @@
 class Account::SpacesController < Account::ApplicationController
   include DualIdFinder
 
-  account_load_and_authorize_resource :space, through: :team, through_association: :spaces
+  before_action :set_team
+  before_action :set_space, only: [:show, :edit, :update, :destroy]
+  before_action :build_space, only: [:new, :create]
 
   # GET /account/teams/:team_id/spaces
   # GET /account/teams/:team_id/spaces.json
   def index
+    @spaces = @team.spaces
     delegate_json_to_api
   end
 
@@ -62,6 +65,25 @@ class Account::SpacesController < Account::ApplicationController
   end
 
   private
+
+  def set_team
+    @team = current_user.teams.find(params[:team_id]) if params[:team_id]
+    @team ||= current_user.teams.find_by(id: @space&.team_id)
+    @team ||= current_user.teams.first
+  end
+
+  def set_space
+    @space = @team.spaces.friendly.find(params[:id])
+  end
+
+  def build_space
+    @space = @team.spaces.build(space_params) if params[:space]
+    @space ||= @team.spaces.build
+  end
+
+  def space_params
+    params.require(:space).permit(:name, :description, :slug, :published)
+  end
 
   if defined?(Api::V1::ApplicationController)
     include strong_parameters_from_api

@@ -1,7 +1,22 @@
 class Account::TeamsController < Account::ApplicationController
-  include Account::Teams::ControllerBase
+  before_action :set_team, only: [:show]
+
+  def index
+    @teams = current_user.teams
+    redirect_to account_team_path(@teams.first) if @teams.count == 1
+  end
+
+  def show
+    @spaces = @team.spaces
+    @access_grants = @team.access_grants
+    @billing_purchases = @team.billing_purchases
+  end
 
   private
+
+  def set_team
+    @team = current_user.teams.find(params[:id])
+  end
 
   def permitted_fields
     [

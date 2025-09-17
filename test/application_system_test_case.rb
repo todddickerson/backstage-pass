@@ -23,6 +23,71 @@ if Bundler.locked_gems.dependencies.has_key? "cuprite"
   end
   Capybara.default_driver = Capybara.javascript_driver = :bt_cuprite
 else # Selenium
+  # Ensure Selenium is loaded before referencing Selenium::WebDriver
+  require "selenium-webdriver"
+
+  # Register custom Chrome drivers that can use an explicit binary path when provided
+  Capybara.register_driver :selenium_chrome do |app|
+    options = Selenium::WebDriver::Chrome::Options.new
+
+    chrome_bin = ENV["CHROME_BIN"] || ENV["CHROME_PATH"] || ENV["GOOGLE_CHROME_SHIM"]
+    if chrome_bin && File.exist?(chrome_bin)
+      options.binary = chrome_bin
+    else
+      # Try common Chrome installation paths on macOS and Linux
+      possible_bins = [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta",
+        "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+        "/usr/bin/google-chrome",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+        "/opt/google/chrome/chrome"
+      ]
+      detected = possible_bins.find { |p| File.exist?(p) }
+      options.binary = detected if detected
+    end
+
+    options.add_argument("--window-size=1400,1400")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
+    Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+  end
+
+  Capybara.register_driver :selenium_chrome_headless do |app|
+    options = Selenium::WebDriver::Chrome::Options.new
+
+    chrome_bin = ENV["CHROME_BIN"] || ENV["CHROME_PATH"] || ENV["GOOGLE_CHROME_SHIM"]
+    if chrome_bin && File.exist?(chrome_bin)
+      options.binary = chrome_bin
+    else
+      # Try common Chrome installation paths on macOS and Linux
+      possible_bins = [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta",
+        "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+        "/usr/bin/google-chrome",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser",
+        "/opt/google/chrome/chrome"
+      ]
+      detected = possible_bins.find { |p| File.exist?(p) }
+      options.binary = detected if detected
+    end
+
+    options.add_argument("--headless=new")
+    options.add_argument("--window-size=1400,1400")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
+    Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+  end
+
   Capybara.javascript_driver = ENV["MAGIC_TEST"].present? ? :selenium_chrome : :selenium_chrome_headless
   Capybara.default_driver = ENV["MAGIC_TEST"].present? ? :selenium_chrome : :selenium_chrome_headless
 end
@@ -52,8 +117,10 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 
   if use_cuprite?
     driven_by :bt_cuprite
+  elsif ENV["MAGIC_TEST"].present?
+    driven_by :selenium_chrome
   else
-    driven_by :selenium, using: :chrome, screen_size: [1400, 1400]
+    driven_by :selenium_chrome_headless
   end
   include ActiveJob::TestHelper
   include MagicTest::Support
