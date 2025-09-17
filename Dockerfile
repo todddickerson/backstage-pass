@@ -65,9 +65,10 @@ RUN bundle exec bootsnap precompile --gemfile && \
     bundle exec bootsnap precompile app/ lib/
 
 # Precompile assets
-RUN SECRET_KEY_BASE_DUMMY=1 \
-    RAILS_MASTER_KEY=dummy \
-    bundle exec rails assets:precompile
+# Railway will provide these as build-time environment variables
+ARG RAILS_MASTER_KEY
+ARG SECRET_KEY_BASE
+RUN bundle exec rails assets:precompile
 
 # Clean up node_modules after asset compilation
 RUN rm -rf node_modules
