@@ -4,10 +4,10 @@ class AccessPass < ApplicationRecord
 
   # 🚅 add attribute accessors above.
 
-  belongs_to :space
+  belongs_to :space, counter_cache: true
   # 🚅 add belongs_to associations above.
 
-  has_many :access_grants  # Track who purchased this product
+  has_many :access_grants, counter_cache: true  # Track who purchased this product
   has_many :buyers, through: :access_grants, source: :user  # Users who bought this
   has_many :access_pass_experiences, dependent: :destroy
   has_many :experiences, through: :access_pass_experiences  # What's included in this pass

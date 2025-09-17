@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_17_161802) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_17_191451) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -24,9 +24,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_161802) do
     t.string "purchasable_type", null: false
     t.bigint "purchasable_id", null: false
     t.bigint "access_pass_id"
+    t.index ["access_pass_id", "created_at"], name: "index_access_grants_on_access_pass_id_and_created_at"
     t.index ["access_pass_id"], name: "index_access_grants_on_access_pass_id"
     t.index ["purchasable_type", "purchasable_id"], name: "index_access_passes_on_purchasable"
     t.index ["team_id"], name: "index_access_grants_on_team_id"
+    t.index ["user_id", "expires_at"], name: "index_access_grants_on_user_id_and_expires_at"
     t.index ["user_id"], name: "index_access_grants_on_user_id"
   end
 
@@ -54,7 +56,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_161802) do
     t.string "stripe_product_id"
     t.string "stripe_monthly_price_id"
     t.string "stripe_yearly_price_id"
+    t.integer "access_grants_count", default: 0, null: false
+    t.index ["pricing_type", "created_at"], name: "index_access_passes_on_pricing_type_and_created_at"
     t.index ["slug"], name: "index_access_passes_on_slug"
+    t.index ["space_id", "price_cents"], name: "index_access_passes_on_space_id_and_price_cents"
     t.index ["space_id", "slug"], name: "index_access_passes_on_space_id_and_slug", unique: true
     t.index ["space_id"], name: "index_access_passes_on_space_id"
   end
@@ -190,6 +195,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_161802) do
     t.integer "price_cents"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "streams_count", default: 0, null: false
+    t.integer "access_grants_count", default: 0, null: false
+    t.index ["space_id", "created_at"], name: "index_experiences_on_space_id_and_created_at"
+    t.index ["space_id", "experience_type"], name: "index_experiences_on_space_id_and_experience_type"
     t.index ["space_id"], name: "index_experiences_on_space_id"
   end
 
@@ -233,7 +242,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_161802) do
     t.index ["added_by_id"], name: "index_memberships_on_added_by_id"
     t.index ["invitation_id"], name: "index_memberships_on_invitation_id"
     t.index ["platform_agent_of_id"], name: "index_memberships_on_platform_agent_of_id"
+    t.index ["team_id", "role_ids"], name: "index_memberships_on_team_id_and_role_ids"
     t.index ["team_id"], name: "index_memberships_on_team_id"
+    t.index ["user_id", "team_id"], name: "index_memberships_on_user_id_and_team_id", unique: true
     t.index ["user_id"], name: "index_memberships_on_user_id"
   end
 
@@ -345,6 +356,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_161802) do
     t.boolean "published", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "experiences_count", default: 0, null: false
+    t.integer "access_passes_count", default: 0, null: false
+    t.index ["slug"], name: "index_spaces_on_slug"
+    t.index ["team_id", "created_at"], name: "index_spaces_on_team_id_and_created_at"
     t.index ["team_id"], name: "index_spaces_on_team_id"
   end
 
@@ -365,7 +380,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_161802) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["experience_id", "status"], name: "index_streams_on_experience_id_and_status"
     t.index ["experience_id"], name: "index_streams_on_experience_id"
+    t.index ["status", "scheduled_at"], name: "index_streams_on_status_and_scheduled_at"
   end
 
   create_table "teams", id: :serial, force: :cascade do |t|
@@ -376,6 +393,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_161802) do
     t.boolean "being_destroyed"
     t.string "time_zone"
     t.string "locale"
+    t.integer "spaces_count", default: 0, null: false
+    t.integer "memberships_count", default: 0, null: false
+    t.index ["created_at"], name: "index_teams_on_created_at"
   end
 
   create_table "users", id: :serial, force: :cascade do |t|

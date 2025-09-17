@@ -5,6 +5,8 @@
 if defined?(Api::V1::ApplicationController)
   class Api::V1::ExperiencesController < Api::V1::ApplicationController
     account_load_and_authorize_resource :experience, through: :space, through_association: :experiences
+    
+    before_action :preload_associations, only: [:index, :show]
 
     # GET /api/v1/spaces/:space_id/experiences
     def index
@@ -38,6 +40,20 @@ if defined?(Api::V1::ApplicationController)
     end
 
     private
+
+    def preload_associations
+      # Optimize queries by eager loading commonly accessed associations
+      if action_name == 'index' && @experiences
+        @experiences = @experiences.includes(:space, :streams, :access_grants)
+      elsif action_name == 'show' && @experience
+        # For single experience, load comprehensive associations for detailed view
+        @experience = Experience.includes(
+          :space, 
+          streams: [:streaming_chat_rooms], 
+          access_grants: [:user, :access_pass]
+        ).find(@experience.id)
+      end
+    end
 
     module StrongParameters
       # Only allow a list of trusted parameters through.

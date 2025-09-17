@@ -5,7 +5,7 @@ class Team < ApplicationRecord
 
   # 🚅 add belongs_to associations above.
 
-  has_many :spaces, dependent: :destroy
+  has_many :spaces, dependent: :destroy, counter_cache: true
   has_many :access_grants, dependent: :destroy
   has_many :billing_purchases, class_name: "Billing::Purchase", dependent: :destroy
   # 🚅 add has_many associations above.

@@ -3,7 +3,7 @@ class Stream < ApplicationRecord
 
   # 🚅 add attribute accessors above.
 
-  belongs_to :experience
+  belongs_to :experience, counter_cache: true
   # 🚅 add belongs_to associations above.
 
   has_many :streaming_chat_rooms, class_name: "Streaming::ChatRoom", dependent: :destroy
