@@ -8,7 +8,7 @@ class Experience < ApplicationRecord
   # 🚅 add belongs_to associations above.
 
   has_many :access_grants, as: :purchasable, dependent: :destroy
-  has_many :streams, dependent: :destroy, counter_cache: true
+  has_many :streams, dependent: :destroy
   has_many :access_pass_experiences, dependent: :destroy
   has_many :access_passes, through: :access_pass_experiences
   # 🚅 add has_many associations above.

@@ -7,10 +7,10 @@ class Space < ApplicationRecord
   belongs_to :team, counter_cache: true
   # 🚅 add belongs_to associations above.
 
-  has_many :experiences, dependent: :destroy, counter_cache: true
+  has_many :experiences, dependent: :destroy
   has_many :access_grants, as: :purchasable, dependent: :destroy
   has_many :all_streams, through: :experiences, source: :streams
-  has_many :access_passes, dependent: :destroy, counter_cache: true
+  has_many :access_passes, dependent: :destroy
   # 🚅 add has_many associations above.
 
   has_rich_text :description
