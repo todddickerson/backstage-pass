@@ -9,6 +9,9 @@ en:
       show:
         header: "%{teams_possessive} Dashboard"
         description: "Overview of your team's spaces and content."
+      edit:
+        buttons:
+          update: "Update Team"
   teams:
     fields:
       _:

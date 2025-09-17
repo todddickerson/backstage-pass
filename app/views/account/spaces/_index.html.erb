@@ -1,4 +1,4 @@
-<% spaces = spaces.accessible_by(current_ability) %>
+<% spaces = spaces&.accessible_by(current_ability) || Space.none %>
 <% team = @team %>
 <% context ||= team %>
 <% collection ||= :spaces %>

@@ -5,7 +5,7 @@
     <%= render 'account/spaces/index', spaces: @spaces, hide_back: true %>
     
     <div class="space-y-6">
-      <% if @access_grants.any? %>
+      <% if @access_grants&.any? %>
         <div>
           <h3 class="text-lg font-medium text-gray-900 mb-4">Access Grants</h3>
           <div class="space-y-2">
@@ -19,7 +19,7 @@
         </div>
       <% end %>
       
-      <% if @billing_purchases.any? %>
+      <% if @billing_purchases&.any? %>
         <div>
           <h3 class="text-lg font-medium text-gray-900 mb-4">Purchases</h3>
           <div class="space-y-2">
