@@ -46,8 +46,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
     apt-get install -y nodejs && \
     npm install -g yarn
 
-# Copy Gemfile and install gems
-COPY Gemfile Gemfile.lock ./
+# Copy Gemfile and Ruby version file, then install gems
+COPY Gemfile Gemfile.lock .ruby-version ./
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
