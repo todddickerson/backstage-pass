@@ -69,9 +69,10 @@ RUN bundle exec bootsnap precompile --gemfile && \
 # Railway will provide these as build-time environment variables
 ARG RAILS_MASTER_KEY
 ARG SECRET_KEY_BASE
-# Run yarn build directly instead of rails assets:precompile to avoid jsbundling issues
-RUN yarn build && \
-    bundle exec rails assets:precompile
+# The jsbundling:install task expects bun, but we use yarn/esbuild
+# So we bypass it by running the build directly
+RUN RAILS_ENV=production yarn build && \
+    RAILS_ENV=production bundle exec rails assets:clean assets:precompile JSBUNDLING_NOBUILD=true
 
 # Clean up node_modules after asset compilation
 RUN rm -rf node_modules
