@@ -21,6 +21,7 @@ ENV RAILS_ENV="production" \
 # Update gems and install essential packages
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
+    ca-certificates \
     curl \
     libpq5 \
     libjemalloc2 && \
@@ -68,7 +69,9 @@ RUN bundle exec bootsnap precompile --gemfile && \
 # Railway will provide these as build-time environment variables
 ARG RAILS_MASTER_KEY
 ARG SECRET_KEY_BASE
-RUN bundle exec rails assets:precompile
+# Run yarn build directly instead of rails assets:precompile to avoid jsbundling issues
+RUN yarn build && \
+    bundle exec rails assets:precompile
 
 # Clean up node_modules after asset compilation
 RUN rm -rf node_modules
@@ -79,6 +82,7 @@ FROM base
 # Install runtime dependencies for Active Storage and image processing
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y \
+    curl \
     imagemagick \
     libvips \
     ffmpeg \
