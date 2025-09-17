@@ -20,11 +20,11 @@ class Experience < ApplicationRecord
   # 🚅 add scopes above.
 
   enum :experience_type, {
-    live_stream: 0,
-    course: 1,
-    community: 2,
-    consultation: 3,
-    digital_product: 4
+    live_stream: "live_stream",
+    course: "course",
+    community: "community",
+    consultation: "consultation",
+    digital_product: "digital_product"
   }
 
   validates :name, presence: true
