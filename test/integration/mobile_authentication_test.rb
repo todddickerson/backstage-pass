@@ -29,7 +29,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         }
       }
     }
-    
+
     # Create new mobile user
     new_user = User.create!(
       first_name: mobile_registration_data[:user][:first_name],
@@ -37,12 +37,12 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
       email: mobile_registration_data[:user][:email],
       password: mobile_registration_data[:user][:password]
     )
-    
+
     # Test registration success
     assert_not_nil new_user
     assert new_user.persisted?
     assert_equal mobile_registration_data[:user][:email], new_user.email
-    
+
     # Test mobile onboarding completion check
     onboarding_status = {
       user_id: new_user.id,
@@ -51,7 +51,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
       has_spaces: new_user.teams.joins(:spaces).any?,
       onboarding_complete: new_user.teams.any? && new_user.teams.joins(:spaces).any?
     }
-    
+
     assert onboarding_status[:profile_complete]
     refute onboarding_status[:has_teams] # New user hasn't joined teams yet
     refute onboarding_status[:onboarding_complete]
@@ -82,22 +82,22 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         can_moderate: false
       }
     }
-    
+
     # Test session structure
     assert_not_nil mobile_session[:session_token]
     assert mobile_session[:session_token].length > 20
     assert_equal @mobile_user.id, mobile_session[:user_id]
-    
+
     # Test device tracking
     device_info = mobile_session[:device_info]
     assert_equal "mobile_ios", device_info[:platform]
     assert device_info[:fcm_token].start_with?("fcm_")
-    
+
     # Test session expiration
     session_metadata = mobile_session[:session_metadata]
     assert session_metadata[:expires_at] > Time.current
     assert session_metadata[:created_at] <= Time.current
-    
+
     # Test permissions
     permissions = mobile_session[:permissions]
     assert permissions[:can_purchase]
@@ -125,18 +125,18 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
       setup_completed: true,
       last_verified: Time.current
     }
-    
+
     # Test biometric configuration structure
     assert biometric_config[:biometric_enabled]
     assert_includes biometric_config[:supported_methods], "face_id"
     assert biometric_config[:device_capabilities][:secure_enclave]
-    
+
     # Test security settings
     security = biometric_config[:security_settings]
     assert security[:require_biometric_for_payments]
     refute security[:require_biometric_for_streaming]
     assert_equal 300, security[:biometric_timeout]
-    
+
     # Test setup completion
     assert biometric_config[:setup_completed]
     assert biometric_config[:last_verified] <= Time.current
@@ -164,7 +164,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         bundle_id: "com.backstagepass.mobile"
       }
     }
-    
+
     google_signin_data = {
       provider: "google",
       provider_uid: "google_user_#{SecureRandom.hex(8)}",
@@ -182,19 +182,19 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         locale: "en-US"
       }
     }
-    
+
     # Test Apple Sign In structure
     assert_equal "apple", apple_signin_data[:provider]
     assert apple_signin_data[:user_info][:email_verified]
     assert apple_signin_data[:user_info][:is_private_email]
     assert_equal "likely_real", apple_signin_data[:platform_specific][:real_user_status]
-    
+
     # Test Google Sign In structure
     assert_equal "google", google_signin_data[:provider]
     assert google_signin_data[:user_info][:email_verified]
     assert google_signin_data[:user_info][:profile_picture].start_with?("https://")
     assert_not_nil google_signin_data[:credentials][:refresh_token]
-    
+
     # Both should have required authentication data
     [apple_signin_data, google_signin_data].each do |provider_data|
       assert_not_nil provider_data[:provider_uid]
@@ -208,7 +208,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
     push_config = {
       user_id: @mobile_user.id,
       platform: "ios", # or "android"
-      
+
       # iOS specific
       apns_config: {
         device_token: "apns_token_#{SecureRandom.hex(32)}",
@@ -216,14 +216,14 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         bundle_id: "com.backstagepass.mobile",
         voip_token: "voip_token_#{SecureRandom.hex(32)}" # For streaming calls
       },
-      
+
       # Android specific (would be used for Android)
       fcm_config: {
         registration_token: "fcm_token_#{SecureRandom.hex(32)}",
         sender_id: "firebase_sender_id",
         app_id: "firebase_app_id"
       },
-      
+
       # Notification preferences
       notification_types: {
         live_stream_starting: true,
@@ -233,7 +233,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         security_alerts: true,
         marketing: false
       },
-      
+
       # Delivery settings
       delivery_settings: {
         quiet_hours_enabled: true,
@@ -245,18 +245,18 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         banner_style: "alerts" # alerts, banners, none
       }
     }
-    
+
     # Test platform configuration
     assert_equal "ios", push_config[:platform]
     assert_not_nil push_config[:apns_config][:device_token]
     assert_equal "com.backstagepass.mobile", push_config[:apns_config][:bundle_id]
-    
+
     # Test notification preferences
     notification_types = push_config[:notification_types]
     assert notification_types[:live_stream_starting]
     assert notification_types[:payment_confirmations]
     refute notification_types[:marketing] # Should default to false
-    
+
     # Test delivery settings
     delivery = push_config[:delivery_settings]
     assert delivery[:quiet_hours_enabled]
@@ -268,7 +268,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
     # Test offline authentication scenario
     offline_auth_state = {
       user_id: @mobile_user.id,
-      
+
       # Cached authentication tokens
       cached_tokens: {
         access_token: "cached_access_#{SecureRandom.hex(16)}",
@@ -276,7 +276,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         expires_at: 1.hour.from_now,
         scope: ["read", "write", "stream"]
       },
-      
+
       # Offline capabilities
       offline_permissions: {
         can_view_cached_content: true,
@@ -284,7 +284,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         can_queue_purchases: false, # Requires online verification
         can_stream: false # Requires real-time connection
       },
-      
+
       # Cached user data for offline access
       cached_user_data: {
         profile: {
@@ -302,7 +302,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         last_sync: 30.minutes.ago,
         sync_version: "1.0"
       },
-      
+
       # Token refresh logic
       refresh_strategy: {
         auto_refresh_threshold: 5.minutes,
@@ -311,26 +311,26 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         force_login_after: 7.days
       }
     }
-    
+
     # Test cached tokens
     cached_tokens = offline_auth_state[:cached_tokens]
     assert cached_tokens[:expires_at] > Time.current
     assert_includes cached_tokens[:scope], "read"
     assert_not_nil cached_tokens[:refresh_token]
-    
+
     # Test offline permissions
     offline_perms = offline_auth_state[:offline_permissions]
     assert offline_perms[:can_view_cached_content]
     assert offline_perms[:can_create_drafts]
     refute offline_perms[:can_queue_purchases] # Security requirement
     refute offline_perms[:can_stream] # Requires live connection
-    
+
     # Test cached user data
     cached_data = offline_auth_state[:cached_user_data]
     assert_equal @mobile_user.id, cached_data[:profile][:id]
     assert cached_data[:last_sync] < Time.current
     assert_not_nil cached_data[:sync_version]
-    
+
     # Test refresh strategy
     refresh = offline_auth_state[:refresh_strategy]
     assert_equal 5.minutes, refresh[:auto_refresh_threshold]
@@ -342,7 +342,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
     mobile_2fa_config = {
       user_id: @mobile_user.id,
       enabled: true,
-      
+
       # Primary 2FA method
       primary_method: {
         type: "totp", # Time-based One-Time Password
@@ -353,7 +353,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         verified: true,
         setup_date: Time.current
       },
-      
+
       # Backup methods
       backup_methods: [
         {
@@ -369,7 +369,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
           last_used: nil
         }
       ],
-      
+
       # Mobile-specific 2FA settings
       mobile_settings: {
         remember_device: true,
@@ -386,7 +386,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
           }
         ]
       },
-      
+
       # Recovery options
       recovery_options: {
         recovery_email: @mobile_user.email,
@@ -394,34 +394,34 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         support_contact_method: "email"
       }
     }
-    
+
     # Test 2FA configuration
     assert mobile_2fa_config[:enabled]
     assert_equal "totp", mobile_2fa_config[:primary_method][:type]
     assert mobile_2fa_config[:primary_method][:verified]
     assert_equal 8, mobile_2fa_config[:primary_method][:backup_codes].length
-    
+
     # Test backup methods
     backup_methods = mobile_2fa_config[:backup_methods]
     sms_method = backup_methods.find { |m| m[:type] == "sms" }
     email_method = backup_methods.find { |m| m[:type] == "email" }
-    
+
     assert_not_nil sms_method
     assert_not_nil email_method
     assert sms_method[:verified]
     assert email_method[:verified]
-    
+
     # Test mobile settings
     mobile_settings = mobile_2fa_config[:mobile_settings]
     assert mobile_settings[:remember_device]
     assert_equal 30.days, mobile_settings[:remember_duration]
     assert mobile_settings[:require_for_payments]
-    
+
     # Test trusted devices
     trusted_devices = mobile_settings[:trusted_devices]
     assert_equal 1, trusted_devices.length
     assert_equal "iPhone 15 Pro", trusted_devices.first[:device_name]
-    
+
     # Test recovery options
     recovery = mobile_2fa_config[:recovery_options]
     assert recovery[:account_recovery_enabled]
@@ -442,7 +442,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
       },
       {
         type: "account_locked",
-        error_code: "AUTH_002", 
+        error_code: "AUTH_002",
         message: "Account temporarily locked due to multiple failed attempts",
         retry_allowed: false,
         unlock_time: 15.minutes.from_now,
@@ -475,7 +475,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         user_action: "try_fallback"
       }
     ]
-    
+
     # Test error scenario structures
     auth_error_scenarios.each do |scenario|
       # All scenarios should have basic error info
@@ -483,40 +483,40 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
       assert_not_nil scenario[:error_code]
       assert_not_nil scenario[:message]
       assert_not_nil scenario[:user_action]
-      
+
       # Test specific scenario logic
       case scenario[:type]
       when "invalid_credentials"
         assert scenario[:retry_allowed]
         assert_equal 5, scenario[:lockout_threshold]
         assert_equal 15.minutes, scenario[:lockout_duration]
-        
+
       when "account_locked"
         refute scenario[:retry_allowed]
         assert scenario[:unlock_time] > Time.current
-        
+
       when "expired_token"
         assert scenario[:retry_allowed]
         assert scenario[:refresh_required]
-        
+
       when "device_not_recognized"
         assert scenario[:verification_required]
         assert_equal "email", scenario[:verification_method]
-        
+
       when "biometric_failed"
         assert scenario[:fallback_available]
         assert_equal "passcode", scenario[:fallback_method]
       end
     end
-    
+
     # Test security measures
     security_measures = {
       rate_limiting: {
-        login_attempts: { limit: 5, window: 15.minutes },
-        password_reset: { limit: 3, window: 1.hour },
-        verification_code: { limit: 10, window: 1.hour }
+        login_attempts: {limit: 5, window: 15.minutes},
+        password_reset: {limit: 3, window: 1.hour},
+        verification_code: {limit: 10, window: 1.hour}
       },
-      
+
       session_security: {
         max_concurrent_sessions: 3,
         session_timeout: 24.hours,
@@ -524,7 +524,7 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         secure_cookies: true,
         same_site_policy: "strict"
       },
-      
+
       device_tracking: {
         track_device_fingerprints: true,
         require_verification_new_device: true,
@@ -532,17 +532,17 @@ class MobileAuthenticationTest < ActiveSupport::TestCase
         device_trust_duration: 90.days
       }
     }
-    
+
     # Test rate limiting
     rate_limits = security_measures[:rate_limiting]
     assert_equal 5, rate_limits[:login_attempts][:limit]
     assert_equal 15.minutes, rate_limits[:login_attempts][:window]
-    
+
     # Test session security
     session_security = security_measures[:session_security]
     assert_equal 3, session_security[:max_concurrent_sessions]
     assert session_security[:secure_cookies]
-    
+
     # Test device tracking
     device_tracking = security_measures[:device_tracking]
     assert device_tracking[:track_device_fingerprints]
