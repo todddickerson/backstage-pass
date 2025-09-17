@@ -69,8 +69,9 @@ RUN bundle exec bootsnap precompile --gemfile && \
 # Railway will provide these as build-time environment variables
 ARG RAILS_MASTER_KEY
 ARG SECRET_KEY_BASE
-# Build JavaScript and CSS manually
+# Build JavaScript and CSS manually with proper linking
 RUN RAILS_ENV=production yarn build && \
+    RAILS_ENV=production bin/link && \
     RAILS_ENV=production yarn build:css && \
     mkdir -p public/assets
 
