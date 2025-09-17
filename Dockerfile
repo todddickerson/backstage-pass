@@ -72,7 +72,7 @@ ARG SECRET_KEY_BASE
 # The jsbundling:install task expects bun, but we use yarn/esbuild
 # So we bypass it by running the build directly
 RUN RAILS_ENV=production yarn build && \
-    RAILS_ENV=production bundle exec rails assets:clean assets:precompile JSBUNDLING_NOBUILD=true
+    RAILS_ENV=production bundle exec rails assets:precompile JSBUNDLING_NOBUILD=true
 
 # Clean up node_modules after asset compilation
 RUN rm -rf node_modules
