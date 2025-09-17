@@ -3,41 +3,11 @@
 
 [build]
 builder = "NIXPACKS"
-buildCommand = "bundle install && yarn install && bundle exec rails assets:precompile && bundle exec rails db:migrate"
-nixpacksPlan = """
-[phases.setup]
-nixPkgs = ['...', 'postgresql', 'imagemagick', 'ffmpeg', 'vips']
-
-[phases.build]
-cmds = ['bundle install', 'yarn install', 'bundle exec rails assets:precompile']
-"""
+buildCommand = "bundle install && yarn install && bundle exec rails assets:precompile"
 
 [deploy]
-startCommand = "bundle exec puma -C config/puma.rb"
+startCommand = "bundle exec rails db:migrate && bundle exec puma -C config/puma.rb"
 healthcheckPath = "/health"
-healthcheckTimeout = 30
-restartPolicyType = "ON_FAILURE"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE" 
 restartPolicyMaxRetries = 3
-numReplicas = 1
-
-# Web service configuration
-[[services]]
-name = "web"
-startCommand = "bundle exec puma -C config/puma.rb"
-
-# Background worker for Sidekiq
-[[services]]  
-name = "worker"
-startCommand = "bundle exec sidekiq -C config/sidekiq.yml"
-
-[environments]
-# These will be automatically set by Railway
-# Add others via Railway dashboard or CLI
-PORT = 3000
-RAILS_ENV = "production"
-NODE_ENV = "production"
-RAILS_LOG_TO_STDOUT = "enabled"
-RAILS_SERVE_STATIC_FILES = "enabled"
-RAILS_MAX_THREADS = "5"
-WEB_CONCURRENCY = "2"
-BUNDLE_WITHOUT = "development:test"

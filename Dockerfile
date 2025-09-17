@@ -69,11 +69,13 @@ RUN bundle exec bootsnap precompile --gemfile && \
 # Railway will provide these as build-time environment variables
 ARG RAILS_MASTER_KEY
 ARG SECRET_KEY_BASE
-# Build JavaScript and CSS manually with proper linking
+
+# Completely bypass jsbundling-rails and build assets manually
+ENV JSBUNDLING_SKIP_BUILD=true
 RUN RAILS_ENV=production yarn build && \
-    RAILS_ENV=production bin/link && \
     RAILS_ENV=production yarn build:css && \
-    mkdir -p public/assets
+    mkdir -p public/assets && \
+    RAILS_ENV=production bundle exec rake assets:precompile
 
 # Clean up node_modules after asset compilation
 RUN rm -rf node_modules

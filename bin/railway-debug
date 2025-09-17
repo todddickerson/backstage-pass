@@ -1,0 +1,52 @@
+#!/bin/bash
+
+echo "🚂 Railway Deployment Diagnostics"
+echo "=================================="
+
+echo ""
+echo "📊 Railway Status:"
+railway status
+
+echo ""
+echo "🔗 Project Services:"
+railway service
+
+echo ""
+echo "📋 Environment Variables:"
+railway variables
+
+echo ""
+echo "🔄 Recent Deployments:"
+railway logs || echo "❌ No deployment logs available"
+
+echo ""
+echo "🌐 Domain Status:"
+railway domain
+
+echo ""
+echo "🏥 Health Check:"
+echo "Testing: https://backstage-pass-production.up.railway.app/health"
+curl -s -I https://backstage-pass-production.up.railway.app/health | head -5
+
+echo ""
+echo "🏠 Root Path:"
+echo "Testing: https://backstage-pass-production.up.railway.app/"
+curl -s -I https://backstage-pass-production.up.railway.app/ | head -5
+
+echo ""
+echo "📝 Local Rails Check:"
+echo "Checking if Rails can boot locally..."
+if bundle exec rails runner "puts 'Rails boots successfully'" 2>/dev/null; then
+    echo "✅ Rails boots locally"
+else
+    echo "❌ Rails fails to boot locally"
+    echo "Error output:"
+    bundle exec rails runner "puts 'Rails boots successfully'" 2>&1 | head -10
+fi
+
+echo ""
+echo "🔧 Recommendations:"
+echo "1. Check Railway dashboard for build/deployment logs"
+echo "2. Ensure PostgreSQL service is connected"
+echo "3. Verify environment variables are set"
+echo "4. Check if DATABASE_URL is automatically provided"
