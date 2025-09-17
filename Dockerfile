@@ -55,7 +55,6 @@ RUN bundle install && \
 
 # Copy package.json and Yarn configuration files
 COPY package.json yarn.lock .yarnrc.yml ./
-COPY .yarn .yarn
 RUN yarn install --immutable
 
 # Copy application code
