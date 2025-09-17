@@ -5,7 +5,7 @@
 if defined?(Api::V1::ApplicationController)
   class Api::V1::SpacesController < Api::V1::ApplicationController
     account_load_and_authorize_resource :space, through: :team, through_association: :spaces
-    
+
     before_action :preload_associations, only: [:index, :show]
 
     # GET /api/v1/teams/:team_id/spaces
@@ -43,14 +43,14 @@ if defined?(Api::V1::ApplicationController)
 
     def preload_associations
       # Optimize queries by eager loading commonly accessed associations
-      if action_name == 'index' && @spaces
+      if action_name == "index" && @spaces
         @spaces = @spaces.includes(:team, :access_passes, experiences: [:streams, :access_grants])
-      elsif action_name == 'show' && @space
+      elsif action_name == "show" && @space
         # For single space, load comprehensive associations for detailed view
         @space = Space.includes(
-          :team, 
-          :access_passes, 
-          experiences: [:streams, :access_grants], 
+          :team,
+          :access_passes,
+          experiences: [:streams, :access_grants],
           access_grants: [:user]
         ).find(@space.id)
       end
