@@ -20,7 +20,7 @@ class Membership < ApplicationRecord
 
   # Check if this membership is a buyer role
   def buyer?
-    role_ids.include?('buyer')
+    role_ids.include?("buyer")
   end
 
   # Check if this membership can manage team settings

@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :access_passes_waitlist_entry, class: 'AccessPasses::WaitlistEntry' do
+  factory :access_passes_waitlist_entry, class: "AccessPasses::WaitlistEntry" do
     association :access_pass
     email { "MyString" }
     first_name { "MyString" }

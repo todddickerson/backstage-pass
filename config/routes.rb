@@ -1,13 +1,13 @@
 Rails.application.routes.draw do
   # Health check endpoint for deployment monitoring
   get "health", to: "health#show", as: :health_check
-  
+
   # See `config/routes/*.rb` to customize these configurations.
   draw "concerns"
   draw "devise"
   draw "sidekiq"
   draw "avo"
-  
+
   # Hotwire Native configuration endpoint
   get "/hotwire-native-config/:platform", to: "hotwire_native#configuration", as: :hotwire_native_config
 
@@ -80,7 +80,7 @@ Rails.application.routes.draw do
                 post :stop_stream
                 get :room_info
               end
-              
+
               namespace :streaming do
                 resources :chat_rooms
               end
@@ -88,7 +88,7 @@ Rails.application.routes.draw do
           end
           resources :access_passes do
             resources :access_pass_experiences
-            scope module: 'access_passes' do
+            scope module: "access_passes" do
               resources :waitlist_entries, only: collection_actions
             end
           end
@@ -110,7 +110,7 @@ Rails.application.routes.draw do
       end
     end
   end
-  
+
   namespace :webhooks do
     namespace :incoming do
       namespace :oauth do
@@ -118,57 +118,57 @@ Rails.application.routes.draw do
       end
     end
   end
-  
+
   # PUBLIC ROUTES - These come after account/api/webhooks to ensure proper priority
   scope module: "public" do
     # To keep things organized, we put non-authenticated controllers in the `Public::` namespace.
     # The root `/` path is routed to `Public::HomeController#index` by default.
     root to: "home#index"
-    
+
     # Priority routes - these take precedence over catch-all space routes
     # Add static pages here as needed (about, terms, privacy, etc.)
     get "about", to: "pages#about"
-    get "terms", to: "pages#terms" 
+    get "terms", to: "pages#terms"
     get "privacy", to: "pages#privacy"
-    
+
     # Browse all spaces (marketplace index)
     get "explore", to: "spaces#index", as: :explore_spaces
-    
+
     # Creator profile routes (@username) - must come before catch-all routes
-    get "/@:username", to: "creator_profiles#show", constraints: { username: /[a-zA-Z0-9_-]+/ }, as: :creator_profile
-    
+    get "/@:username", to: "creator_profiles#show", constraints: {username: /[a-zA-Z0-9_-]+/}, as: :creator_profile
+
     # Purchase routes - must come before catch-all routes
     get "/:space_slug/:access_pass_slug/purchase", to: "purchases#new", as: :new_space_access_pass_purchase
     post "/:space_slug/:access_pass_slug/purchase", to: "purchases#create", as: :space_access_pass_purchase
-    
+
     # Stripe webhook endpoint
     post "/webhooks/stripe", to: "purchases#stripe_webhook"
-    
+
     # CATCH-ALL ROUTES - These must be absolutely last!
     # Space routes at root level for clean URLs (backstagepass.com/space-slug)
     # Access pass routes nested under spaces (backstagepass.com/space-slug/access-pass-slug)
-    
+
     # Define reserved paths that should NOT be treated as space slugs
     # This prevents system routes from being caught by the catch-all
-    RESERVED_PATHS = %w[
+    reserved_paths = %w[
       users admin api account webhooks rails assets packs sidekiq avo
       explore about terms privacy
     ].freeze
-    
+
     # Constraint to check if a path should be treated as a space slug
     valid_space_slug = lambda do |request|
       slug = request.path_parameters[:space_slug]
-      slug.present? && !RESERVED_PATHS.include?(slug) && !slug.start_with?('_')
+      slug.present? && !reserved_paths.include?(slug) && !slug.start_with?("_")
     end
-    
+
     # Access pass nested under space (must come before single space route)
     constraints(valid_space_slug) do
-      get "/:space_slug/:access_pass_slug", to: "access_passes#show", 
-          constraints: { access_pass_slug: /[a-zA-Z0-9_-]+/ },
-          as: :public_space_access_pass
+      get "/:space_slug/:access_pass_slug", to: "access_passes#show",
+        constraints: {access_pass_slug: /[a-zA-Z0-9_-]+/},
+        as: :public_space_access_pass
     end
-    
-    # Space show page (must be absolutely last)  
+
+    # Space show page (must be absolutely last)
     constraints(valid_space_slug) do
       get "/:space_slug", to: "spaces#show", as: :public_space
     end

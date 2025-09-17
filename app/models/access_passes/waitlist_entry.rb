@@ -19,10 +19,10 @@ class AccessPasses::WaitlistEntry < ApplicationRecord
   scope :recent, -> { order(created_at: :desc) }
   # 🚅 add scopes above.
 
-  validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
+  validates :email, presence: true, format: {with: URI::MailTo::EMAIL_REGEXP}
   validates :first_name, presence: true
   validates :last_name, presence: true
-  validates :status, presence: true, inclusion: { in: %w[pending approved rejected] }
+  validates :status, presence: true, inclusion: {in: %w[pending approved rejected]}
   # 🚅 add validations above.
 
   # Set default status

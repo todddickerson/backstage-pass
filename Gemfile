@@ -205,7 +205,7 @@ end
 group :development, :test do
   # A great debugger.
   gem "pry"
-  
+
   # Generate fake data for seeds and tests
   gem "faker"
 end

@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :billing_purchase, class: 'Billing::Purchase' do
+  factory :billing_purchase, class: "Billing::Purchase" do
     association :team
     user { nil }
     access_pass { nil }

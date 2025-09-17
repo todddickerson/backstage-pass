@@ -31,10 +31,10 @@ class Streaming::ChatRoom < ApplicationRecord
   # Create the actual GetStream.io channel
   def create_chat_channel!
     return false if channel_id.present?
-    
+
     # Generate unique channel ID
     generated_id = "stream_#{stream.id}_#{SecureRandom.hex(4)}"
-    
+
     # Create channel in GetStream.io
     channel = chat_service.create_chat_room(
       chatroom_id: generated_id,
@@ -47,14 +47,14 @@ class Streaming::ChatRoom < ApplicationRecord
         team_id: stream.experience.space.team.id
       }
     )
-    
+
     # Update our record with the channel ID
     update!(channel_id: generated_id)
     channel
   end
 
   # Add user to chat room
-  def add_user(user, role: 'member')
+  def add_user(user, role: "member")
     chat_service.add_user_to_room(
       chatroom_id: channel_id,
       user_id: user.id.to_s,
@@ -95,7 +95,7 @@ class Streaming::ChatRoom < ApplicationRecord
 
   def cleanup_getstream_channel
     return unless channel_id.present?
-    
+
     chat_service.delete_chat_room(chatroom_id: channel_id)
   rescue => e
     Rails.logger.error "Failed to cleanup GetStream channel #{channel_id}: #{e.message}"

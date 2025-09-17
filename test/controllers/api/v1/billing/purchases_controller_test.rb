@@ -29,12 +29,12 @@ class Api::V1::Billing::PurchasesControllerTest < Api::Test
     # Fetch the purchase in question and prepare to compare it's attributes.
     purchase = Billing::Purchase.find(purchase_data["id"])
 
-    assert_equal_or_nil purchase_data['user_id'], purchase.user_id
-    assert_equal_or_nil purchase_data['access_pass_id'], purchase.access_pass_id
-    assert_equal_or_nil purchase_data['amount_cents'], purchase.amount_cents
-    assert_equal_or_nil purchase_data['stripe_charge_id'], purchase.stripe_charge_id
-    assert_equal_or_nil purchase_data['stripe_payment_intent_id'], purchase.stripe_payment_intent_id
-    assert_equal_or_nil purchase_data['status'], purchase.status
+    assert_equal_or_nil purchase_data["user_id"], purchase.user_id
+    assert_equal_or_nil purchase_data["access_pass_id"], purchase.access_pass_id
+    assert_equal_or_nil purchase_data["amount_cents"], purchase.amount_cents
+    assert_equal_or_nil purchase_data["stripe_charge_id"], purchase.stripe_charge_id
+    assert_equal_or_nil purchase_data["stripe_payment_intent_id"], purchase.stripe_payment_intent_id
+    assert_equal_or_nil purchase_data["status"], purchase.status
     # 🚅 super scaffolding will insert new fields above this line.
 
     assert_equal purchase_data["team_id"], purchase.team_id
@@ -93,8 +93,8 @@ class Api::V1::Billing::PurchasesControllerTest < Api::Test
     put "/api/v1/billing/purchases/#{@purchase.id}", params: {
       access_token: access_token,
       billing_purchase: {
-        stripe_charge_id: 'Alternative String Value',
-        stripe_payment_intent_id: 'Alternative String Value',
+        stripe_charge_id: "Alternative String Value",
+        stripe_payment_intent_id: "Alternative String Value",
         # 🚅 super scaffolding will also insert new fields above this line.
       }
     }
@@ -106,8 +106,8 @@ class Api::V1::Billing::PurchasesControllerTest < Api::Test
 
     # But we have to manually assert the value was properly updated.
     @purchase.reload
-    assert_equal @purchase.stripe_charge_id, 'Alternative String Value'
-    assert_equal @purchase.stripe_payment_intent_id, 'Alternative String Value'
+    assert_equal @purchase.stripe_charge_id, "Alternative String Value"
+    assert_equal @purchase.stripe_payment_intent_id, "Alternative String Value"
     # 🚅 super scaffolding will additionally insert new fields above this line.
 
     # Also ensure we can't do that same action as another user.

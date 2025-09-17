@@ -26,7 +26,7 @@ class Stream < ApplicationRecord
   # Status enum for stream lifecycle
   enum :status, {
     scheduled: "scheduled",
-    live: "live", 
+    live: "live",
     ended: "ended"
   }
 
@@ -38,7 +38,7 @@ class Stream < ApplicationRecord
   # Check if user can view this stream
   def can_view?(user)
     return true if experience.space.team.users.include?(user)
-    
+
     # Check if user has valid access pass for this experience or space
     user&.access_grants&.active&.joins(:access_pass)&.where(
       access_passes: {

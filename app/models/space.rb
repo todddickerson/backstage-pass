@@ -32,15 +32,15 @@ class Space < ApplicationRecord
 
   extend FriendlyId
   friendly_id :slug, use: :slugged
-  
+
   # Public URL for this space (root level)
   def public_url
     "/#{slug}"
   end
-  
+
   # Full URL including domain
   def full_public_url
-    "#{ENV.fetch('BASE_URL', 'http://localhost:3020')}/#{slug}"
+    "#{ENV.fetch("BASE_URL", "http://localhost:3020")}/#{slug}"
   end
 
   def live_experiences

@@ -5,7 +5,7 @@ class Avo::Resources::AccessPassesWaitlistEntry < Avo::BaseResource
   # self.search = {
   #   query: -> { query.ransack(id_eq: q, m: "or").result(distinct: false) }
   # }
-  
+
   def fields
     field :id, as: :id
     field :access_pass, as: :belongs_to

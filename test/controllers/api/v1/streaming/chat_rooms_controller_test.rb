@@ -32,8 +32,8 @@ class Api::V1::Streaming::ChatRoomsControllerTest < Api::Test
     # Fetch the chat_room in question and prepare to compare it's attributes.
     chat_room = Streaming::ChatRoom.find(chat_room_data["id"])
 
-    assert_equal_or_nil chat_room_data['stream_id'], chat_room.stream_id
-    assert_equal_or_nil chat_room_data['channel_id'], chat_room.channel_id
+    assert_equal_or_nil chat_room_data["stream_id"], chat_room.stream_id
+    assert_equal_or_nil chat_room_data["channel_id"], chat_room.channel_id
     # 🚅 super scaffolding will insert new fields above this line.
 
     assert_equal chat_room_data["stream_id"], chat_room.stream_id
@@ -92,8 +92,8 @@ class Api::V1::Streaming::ChatRoomsControllerTest < Api::Test
     put "/api/v1/streaming/chat_rooms/#{@chat_room.id}", params: {
       access_token: access_token,
       streaming_chat_room: {
-        stream_id: 'Alternative String Value',
-        channel_id: 'Alternative String Value',
+        stream_id: "Alternative String Value",
+        channel_id: "Alternative String Value",
         # 🚅 super scaffolding will also insert new fields above this line.
       }
     }
@@ -105,8 +105,8 @@ class Api::V1::Streaming::ChatRoomsControllerTest < Api::Test
 
     # But we have to manually assert the value was properly updated.
     @chat_room.reload
-    assert_equal @chat_room.stream_id, 'Alternative String Value'
-    assert_equal @chat_room.channel_id, 'Alternative String Value'
+    assert_equal @chat_room.stream_id, "Alternative String Value"
+    assert_equal @chat_room.channel_id, "Alternative String Value"
     # 🚅 super scaffolding will additionally insert new fields above this line.
 
     # Also ensure we can't do that same action as another user.

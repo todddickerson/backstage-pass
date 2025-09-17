@@ -1,0 +1,151 @@
+#!/usr/bin/env ruby
+
+# Preflight Check - Ensures clean PR state before starting new work
+# Usage: ./bin/preflight-check
+
+require 'json'
+
+class PreflightCheck
+  def initialize
+    @warnings = []
+    @errors = []
+    @info = []
+  end
+
+  def run
+    puts "🚀 Running Preflight Check..."
+    puts "=" * 50
+    
+    check_git_status
+    check_current_branch
+    check_open_prs
+    check_uncommitted_changes
+    check_unpushed_commits
+    
+    display_results
+    exit_with_status
+  end
+
+  private
+
+  def check_git_status
+    @info << "📍 Current branch: #{current_branch}"
+    
+    if current_branch == 'main'
+      @info << "✅ On main branch (good for starting new work)"
+    else
+      @warnings << "⚠️  On feature branch '#{current_branch}' - consider merging first"
+    end
+  end
+
+  def check_current_branch
+    unless git_clean?
+      @warnings << "⚠️  Working directory has changes - consider committing first"
+    end
+  end
+
+  def check_open_prs
+    open_prs = fetch_open_prs
+    
+    if open_prs.empty?
+      @info << "✅ No open PRs - clear to start new work"
+    elsif open_prs.size == 1
+      pr = open_prs.first
+      @warnings << "⚠️  1 open PR: ##{pr['number']} '#{pr['title']}'"
+      @warnings << "   Consider merging/closing before starting new work"
+      @warnings << "   URL: #{pr['url']}"
+    else
+      @errors << "❌ #{open_prs.size} open PRs found - VIOLATION of one-PR rule!"
+      open_prs.each do |pr|
+        @errors << "   • ##{pr['number']}: #{pr['title']}"
+      end
+      @errors << "   🔧 Run: gh pr list --state open"
+      @errors << "   🔧 Merge or close PRs before continuing"
+    end
+  end
+
+  def check_uncommitted_changes
+    if `git status --porcelain`.strip.empty?
+      @info << "✅ No uncommitted changes"
+    else
+      changed_files = `git status --porcelain`.lines.count
+      @warnings << "⚠️  #{changed_files} uncommitted changes detected"
+    end
+  end
+
+  def check_unpushed_commits
+    unpushed = `git log @{u}..HEAD --oneline 2>/dev/null`.lines.count rescue 0
+    
+    if unpushed == 0
+      @info << "✅ All commits pushed to remote"
+    else
+      @warnings << "⚠️  #{unpushed} unpushed commits on current branch"
+    end
+  end
+
+  def fetch_open_prs
+    result = `gh pr list --state open --json number,title,url 2>/dev/null`
+    return [] if $?.exitstatus != 0
+    
+    JSON.parse(result)
+  rescue JSON::ParserError
+    []
+  end
+
+  def current_branch
+    @current_branch ||= `git branch --show-current`.strip
+  end
+
+  def git_clean?
+    `git status --porcelain`.strip.empty?
+  end
+
+  def display_results
+    puts
+    
+    # Display info messages
+    @info.each { |msg| puts msg }
+    
+    # Display warnings
+    if @warnings.any?
+      puts
+      puts "⚠️  WARNINGS:"
+      @warnings.each { |msg| puts msg }
+    end
+    
+    # Display errors
+    if @errors.any?
+      puts
+      puts "❌ ERRORS:"
+      @errors.each { |msg| puts msg }
+    end
+    
+    puts
+    puts "=" * 50
+    
+    # Overall status
+    if @errors.any?
+      puts "🚨 PREFLIGHT FAILED - Fix errors before proceeding"
+    elsif @warnings.any?
+      puts "⚠️  PREFLIGHT WARNING - Proceed with caution"
+      puts "💡 Tip: Merge open PRs before starting new work"
+    else
+      puts "✅ PREFLIGHT PASSED - Clear for development"
+    end
+  end
+
+  def exit_with_status
+    if @errors.any?
+      exit 1
+    elsif @warnings.any?
+      exit 2  # Warning status
+    else
+      exit 0  # Success
+    end
+  end
+end
+
+# Only run if called directly (not when required)
+if __FILE__ == $0
+  PreflightCheck.new.run
+end

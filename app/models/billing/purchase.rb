@@ -29,7 +29,7 @@ class Billing::Purchase < ApplicationRecord
 
   def valid_access_passes
     # Access passes from any space in this team
-    AccessPass.joins(:space).where(spaces: { team_id: team_id })
+    AccessPass.joins(:space).where(spaces: {team_id: team_id})
   end
 
   # 🚅 add methods above.

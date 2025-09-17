@@ -3,41 +3,41 @@ class HealthController < ApplicationController
   skip_before_action :authenticate_user!, if: :devise_controller?
   skip_before_action :prevent_parameter_pollution
   skip_after_action :audit_sensitive_actions
-  
+
   def show
     checks = {
       database: check_database,
       redis: check_redis,
       migrations: check_migrations
     }
-    
+
     status = checks.values.all? ? :ok : :service_unavailable
-    
+
     render json: {
-      status: status == :ok ? 'healthy' : 'unhealthy',
+      status: (status == :ok) ? "healthy" : "unhealthy",
       timestamp: Time.current.iso8601,
-      version: Rails.application.config.version || 'unknown',
+      version: Rails.application.config.version || "unknown",
       checks: checks
     }, status: status
   end
-  
+
   private
-  
+
   def check_database
     ActiveRecord::Base.connection.active?
-    'ok'
-  rescue StandardError => e
+    "ok"
+  rescue => e
     Rails.logger.error "Health check database error: #{e.message}"
-    'error'
+    "error"
   end
-  
+
   def check_redis
-    Redis.new.ping == 'PONG' ? 'ok' : 'error'
-  rescue StandardError => e
+    (Redis.new.ping == "PONG") ? "ok" : "error"
+  rescue => e
     Rails.logger.error "Health check redis error: #{e.message}"
-    'error'
+    "error"
   end
-  
+
   def check_migrations
     ActiveRecord::Migration.check_all_pending!
     "ok"
@@ -45,6 +45,6 @@ class HealthController < ApplicationController
     "error"
   rescue => e
     Rails.logger.error "Health check migrations error: #{e.message}"
-    'error'
+    "error"
   end
 end
