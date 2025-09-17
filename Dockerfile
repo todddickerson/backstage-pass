@@ -1,76 +1,114 @@
 # syntax=docker/dockerfile:1
-# check=error=true
+# Multi-stage production Dockerfile optimized for Kamal 2 deployment
 
-# This Dockerfile is designed for production, not development. Use with Kamal or build'n'run by hand:
-# Build:
-# docker build -t untitled_application --build-arg BULLET_TRAIN_VERSION=$(grep -m 1 BULLET_TRAIN_VERSION Gemfile | cut -d '"' -f 2) .
-# Run:
-# docker run -d -p 80:80 -e RAILS_MASTER_KEY=<value from config/master.key> --name untitled_application untitled_application
+ARG RUBY_VERSION=3.3.0
+ARG NODE_VERSION=20
 
-# Sometimes it's handy to get long output and skip the cache:
-# docker build -t untitled_application --build-arg BULLET_TRAIN_VERSION=$(grep -m 1 BULLET_TRAIN_VERSION Gemfile | cut -d '"' -f 2) . --no-cache --progress=plain
-#
-# You can then get a console to see what's on the build image by doing:
-# docker run -it untitled_application /bin/bash
+# Base image with Ruby and essential dependencies
+FROM ruby:$RUBY_VERSION-slim AS base
 
-# For a containerized dev environment, see Dev Containers: https://guides.rubyonrails.org/getting_started_with_devcontainer.html
+# Rails app lives here
+WORKDIR /rails
 
+# Set production environment
+ENV RAILS_ENV="production" \
+    BUNDLE_DEPLOYMENT="1" \
+    BUNDLE_PATH="/usr/local/bundle" \
+    BUNDLE_WITHOUT="development:test" \
+    BUNDLE_JOBS="4" \
+    BUNDLE_RETRY="3"
 
+# Update gems and install essential packages
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    curl \
+    libpq5 \
+    libjemalloc2 && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-#######################################################################################################
 # Throw-away build stage to reduce size of final image
-# bullet_train/build provides build-time dependencies for all the gems in the starter repo.
-ARG BULLET_TRAIN_VERSION=FAKE.VERSION
-ARG FROM_IMAGE=ghcr.io/bullet-train-co/bullet_train/build:$BULLET_TRAIN_VERSION
-FROM $FROM_IMAGE AS build
+FROM base AS build
 
-# ✅ ⬇️  Install your native build-time dependencies below
+# Install build dependencies
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    build-essential \
+    git \
+    libpq-dev \
+    pkg-config \
+    python3 \
+    gnupg2 \
+    wget
 
+# Install Node.js
+ARG NODE_VERSION
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g yarn
 
-# ✅ ⬆️  Install your native build-time dependencies above
+# Copy Gemfile and install gems
+COPY Gemfile Gemfile.lock ./
+RUN bundle install && \
+    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git
 
-# Install application gems
-COPY Gemfile Gemfile.lock .ruby-version package.json yarn.lock ./
-RUN bundle install --clean && \
-    rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
-    bundle exec bootsnap precompile --gemfile && \
-    yarn install
+# Copy package.json and install node packages
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 
 # Copy application code
 COPY . .
 
-# Precompile bootsnap code for faster boot times
-RUN bundle exec bootsnap precompile app/ lib/
+# Precompile bootsnap and assets
+RUN bundle exec bootsnap precompile --gemfile && \
+    bundle exec bootsnap precompile app/ lib/
 
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 SPROCKETS_NO_EXPORT_CONCURRENT=1 ./bin/rails assets:precompile --trace
+# Precompile assets
+RUN SECRET_KEY_BASE_DUMMY=1 \
+    RAILS_MASTER_KEY=dummy \
+    bundle exec rails assets:precompile
 
+# Clean up node_modules after asset compilation
+RUN rm -rf node_modules
 
+# Final production image
+FROM base
 
+# Install runtime dependencies for Active Storage and image processing
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y \
+    imagemagick \
+    libvips \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
-#######################################################################################################
-# Final stage for app image
-# bullet_train/base provides run-time dependencies for everything used by the framework and starter repo.
-FROM ghcr.io/bullet-train-co/bullet_train/base:$BULLET_TRAIN_VERSION AS base
-
-# ✅ ⬇️  Install your native runtime dependencies below
-
-
-# ✅ ⬆️  Install your native runtime dependencies above
-
-# Copy built artifacts: gems, application
-COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
+# Copy built artifacts from build stage
+COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY --from=build /rails /rails
 
-# Make sure that all the directories we expect are actually there
-RUN mkdir -p db log storage tmp
+# Create non-root user for security
+RUN useradd rails --create-home --shell /bin/bash && \
+    chown -R rails:rails /rails && \
+    chmod -R 755 /rails/bin
 
-# Run and own only the runtime files as a non-root user for security
-RUN chown -R rails:rails db log storage tmp
-USER 1000:1000
+# Switch to non-root user
+USER rails:rails
 
-# Entrypoint prepares the database.
-ENTRYPOINT ["./bin/docker/entrypoint"]
+# Set environment variables for jemalloc (memory optimization)
+ENV LD_PRELOAD="libjemalloc.so.2" \
+    MALLOC_CONF="dirty_decay_ms:1000,narenas:2,background_thread:true"
 
-# Start server by default, this can be overwritten at runtime
-CMD ["./bin/rails", "server"]
+# Ensure binaries are executable
+RUN chmod +x /rails/bin/*
+
+# Entrypoint prepares database and runs migrations
+ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+
+# Expose port 3000
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+
+# Default command starts Puma server
+CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
