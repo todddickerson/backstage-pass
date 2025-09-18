@@ -65,7 +65,7 @@ Rails.application.routes.draw do
       resources :purchased_spaces, only: [:index, :show]
 
       # Stream viewing for authenticated users
-      resources :streams, only: [:show], controller: 'stream_viewing', path: 'streams', as: 'viewer_streams' do
+      resources :streams, only: [:show], controller: "stream_viewing", path: "streams", as: "viewer_streams" do
         member do
           get :video_token
           get :chat_token

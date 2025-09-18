@@ -244,3 +244,87 @@ LIVEKIT_API_SECRET=xxx
 GETSTREAM_API_KEY=xxx
 GETSTREAM_API_SECRET=xxx
 ```
+
+## 🔧 Bullet Train File Ejection & Customization
+
+### Decision Matrix: Eject vs Alternatives
+
+**✅ EJECT WHEN:**
+- Substantial onboarding flow changes needed
+- Authentication controller customization required
+- Business logic conflicts with framework defaults
+- Need explicit control over security-critical code
+
+**❌ AVOID EJECTION:**
+- Simple view/styling changes (use theme system)
+- Minor validation tweaks (use extension points)
+- Quick fixes (explore `bin/resolve` first)
+- Timezone/locale issues (often config problems)
+
+### File Ejection Process
+```bash
+# 1. Investigate first
+bin/resolve Account::Onboarding::UserDetailsController --open
+
+# 2. Understand the code, then eject if needed
+bin/resolve Account::Onboarding::UserDetailsController --eject
+
+# 3. Document why ejected in commit message
+git commit -m "Eject user details controller for custom timezone validation"
+```
+
+### 🚨 Onboarding Customization Patterns
+
+**Prefer Extension Points:**
+```ruby
+# In application_controller.rb
+def ensure_onboarding_is_complete
+  super # Call framework method first
+  
+  # Add custom checks
+  if current_user.missing_custom_field?
+    redirect_to custom_onboarding_step_path
+  end
+end
+```
+
+**Common Ejection Targets:**
+- `app/controllers/account/onboarding/user_details_controller.rb`
+- `app/views/account/onboarding/user_details/`
+- `app/controllers/account/users/registrations_controller.rb`
+
+### Timezone Validation Bug Patterns
+- **Issue**: JS timezone detection vs Rails timezone names mismatch
+- **Solution**: Convert `Intl.DateTimeFormat().resolvedOptions().timeZone` to Rails format
+- **Testing**: Verify both auto-detection and manual selection paths
+- **Fallback**: Always provide manual timezone selector
+
+### 🔒 Security Implications
+- **Ejected auth files = security maintenance burden**
+- **Update framework regularly** (security patches in ejected files won't auto-apply)
+- **Document all security customizations**
+- **Test 2FA/encryption changes thoroughly**
+
+### Maintenance Strategy
+- **Document business rationale** for each ejection
+- **Regular ejection review** (quarterly) - can we remove?
+- **Framework upgrade testing** - ejected files need manual reconciliation
+- **Version lock carefully** - understand upgrade implications
+
+### 🧪 Testing Ejected Components
+```ruby
+# Test both framework integration AND custom logic
+test "custom onboarding integrates with framework flow" do
+  # Test framework expectations
+  assert_redirected_to account_onboarding_user_details_path
+  
+  # Test custom behavior
+  assert @user.custom_field_completed?
+end
+```
+
+### Red Flags 🚩
+- **Monkey patching framework code** (high risk, prefer ejection)
+- **Ejecting files without understanding them**
+- **Not documenting customization rationale**
+- **Skipping security review for auth changes**

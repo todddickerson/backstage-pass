@@ -131,9 +131,9 @@ class Account::StreamViewingController < Account::ApplicationController
     return render_access_denied unless @stream.can_view?(current_user)
 
     if remove_user_from_chat_room(@stream, current_user)
-      render json: { success: true, message: "Successfully left chat" }
+      render json: {success: true, message: "Successfully left chat"}
     else
-      render json: { success: false, message: "Failed to leave chat" }, status: :unprocessable_entity
+      render json: {success: false, message: "Failed to leave chat"}, status: :unprocessable_entity
     end
   end
 
@@ -150,7 +150,7 @@ class Account::StreamViewingController < Account::ApplicationController
       else
         @experience = @stream.experience
         @space = @experience.space
-        
+
         redirect_to public_space_path(@space.slug),
           alert: "Access Pass required to view this stream. Please purchase access to continue."
       end

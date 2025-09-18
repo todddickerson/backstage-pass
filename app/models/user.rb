@@ -20,6 +20,11 @@ class User < ApplicationRecord
 
   # 🚅 add scopes above.
 
+  # Override the strict timezone validation from Bullet Train
+  # Default to Eastern Time if invalid timezone is submitted
+  before_validation :normalize_timezone
+  validates :time_zone, inclusion: {in: ActiveSupport::TimeZone.all.map(&:name)}, allow_nil: true, allow_blank: true
+
   # 🚅 add validations above.
 
   # 🚅 add callbacks above.
@@ -47,6 +52,17 @@ class User < ApplicationRecord
     ensure
       # Re-enable the callback for future team creations
       Team.set_callback(:create, :after, :create_default_space)
+    end
+  end
+
+  private
+
+  def normalize_timezone
+    return if time_zone.blank?
+    
+    # If the timezone is not valid, default to Eastern Time
+    unless ActiveSupport::TimeZone.all.map(&:name).include?(time_zone)
+      self.time_zone = "Eastern Time (US & Canada)"
     end
   end
 
