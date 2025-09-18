@@ -93,11 +93,11 @@ class AccessGrant < ApplicationRecord
     return if membership_for_user # Don't create duplicate memberships
 
     # Create membership with buyer role
-    target_team.memberships.create!(
-      user: user,
-      role_ids: ["buyer"],
-      source: "access_pass"
-    )
+    # Use find_or_create_by to avoid duplicate errors
+    target_team.memberships.find_or_create_by(user: user) do |membership|
+      membership.role_ids = ["buyer"]
+      membership.source = "access_pass"
+    end
   end
 
   def sync_membership_status

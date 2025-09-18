@@ -1,9 +1,11 @@
 # Define reserved paths that should NOT be treated as space slugs
 # This prevents system routes from being caught by the catch-all
-RESERVED_PATHS = %w[
-  users admin api account webhooks rails assets packs sidekiq avo
-  explore about terms privacy
-].freeze
+unless defined?(RESERVED_PATHS)
+  RESERVED_PATHS = %w[
+    users admin api account webhooks rails assets packs sidekiq avo
+    explore about terms privacy
+  ].freeze
+end
 
 Rails.application.routes.draw do
   # Health check endpoint for deployment monitoring
