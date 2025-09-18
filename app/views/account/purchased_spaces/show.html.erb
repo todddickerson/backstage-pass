@@ -1,0 +1,179 @@
+<%
+# Local variables
+page_title = @space.name
+%>
+
+<% content_for :title, page_title %>
+
+<div class="container mx-auto px-4 py-8">
+  <!-- Header with space info -->
+  <div class="mb-8">
+    <nav class="flex mb-4" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+          <%= link_to account_purchased_spaces_path, class: "inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600" do %>
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+            </svg>
+            My Streams
+          <% end %>
+        </li>
+        <li aria-current="page">
+          <div class="flex items-center">
+            <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2"><%= @space.name %></span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <div class="flex items-start justify-between">
+      <div class="flex-1">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2"><%= page_title %></h1>
+        <% if @space.description.present? %>
+          <p class="text-gray-600 mb-4"><%= @space.description.to_plain_text %></p>
+        <% end %>
+        
+        <!-- Access info -->
+        <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+          <svg class="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          You have access
+          <% if @access_grant.expires_at %>
+            (expires <%= time_ago_in_words(@access_grant.expires_at) %> from now)
+          <% end %>
+        </div>
+      </div>
+      
+      <%= link_to "Visit Public Page", public_space_path(@space.slug), 
+          target: "_blank",
+          class: "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+    </div>
+  </div>
+
+  <!-- Live streams section -->
+  <% if @live_streams.any? %>
+    <div class="mb-8">
+      <div class="flex items-center mb-4">
+        <div class="flex items-center">
+          <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2"></div>
+          <h2 class="text-xl font-semibold text-gray-900">Live Now</h2>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @live_streams.each do |experience| %>
+          <% experience.streams.where(status: :live).each do |stream| %>
+            <%= render "stream_card", stream: stream, status: :live %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Upcoming streams section -->
+  <% if @upcoming_streams.any? %>
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Upcoming Streams</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @upcoming_streams.each do |experience| %>
+          <% experience.streams.where(status: :scheduled).each do |stream| %>
+            <%= render "stream_card", stream: stream, status: :upcoming %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Experiences in this space -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Experiences</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @experiences.each do |experience| %>
+        <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+          <% if experience.respond_to?(:cover_photo) && experience.cover_photo.present? %>
+            <div class="aspect-video bg-gray-100">
+              <%= image_tag experience.cover_photo, 
+                  class: "w-full h-full object-cover" %>
+            </div>
+          <% else %>
+            <div class="aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <h3 class="text-white text-lg font-medium text-center px-4"><%= experience.name %></h3>
+            </div>
+          <% end %>
+          
+          <div class="p-4">
+            <h3 class="font-medium text-gray-900 mb-2"><%= experience.name %></h3>
+            <% if experience.description.present? %>
+              <p class="text-sm text-gray-600 mb-3 line-clamp-2">
+                <%= experience.description.to_plain_text %>
+              </p>
+            <% end %>
+            
+            <div class="flex items-center justify-between">
+              <div class="text-sm text-gray-500">
+                <% stream_count = experience.streams.count %>
+                <%= pluralize(stream_count, 'stream') %>
+              </div>
+              <%= link_to "View Experience", public_space_experience_path(
+                    space_slug: @space.slug,
+                    experience_slug: experience.slug
+                  ), 
+                  target: "_blank",
+                  class: "text-sm font-medium text-indigo-600 hover:text-indigo-500" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Recent streams section -->
+  <% if @recent_streams.any? %>
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Streams</h2>
+      <div class="space-y-4">
+        <% @recent_streams.each do |experience| %>
+          <% experience.streams.where(status: :ended).each do |stream| %>
+            <div class="bg-white rounded-lg shadow border border-gray-200 p-4 hover:shadow-md transition-shadow">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="font-medium text-gray-900 mb-1"><%= stream.title %></h3>
+                  <p class="text-sm text-gray-600 mb-2"><%= experience.name %></p>
+                  <p class="text-sm text-gray-500">
+                    Ended <%= time_ago_in_words(stream.updated_at) %> ago
+                  </p>
+                </div>
+                <div class="ml-4 flex space-x-2">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    Replay Available
+                  </span>
+                  <%= link_to "Watch", public_experience_stream_path(
+                        space_slug: @space.slug,
+                        experience_slug: experience.slug,
+                        stream_id: stream.id
+                      ), 
+                      target: "_blank",
+                      class: "inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Empty state if no content -->
+  <% if @experiences.empty? %>
+    <div class="text-center py-12">
+      <svg class="mx-auto h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+      </svg>
+      <h3 class="mt-4 text-lg font-medium text-gray-900">No experiences yet</h3>
+      <p class="mt-2 text-gray-500">The creator hasn't added any experiences to this space yet</p>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,243 @@
+<%
+# Local variables
+page_title = @stream.title
+stream_status = @stream.status
+can_view = @stream.can_view?(current_user)
+%>
+
+<% content_for :title, "#{page_title} - #{@space.name}" %>
+
+<!-- Include LiveKit SDK -->
+<%= javascript_include_tag "https://unpkg.com/livekit-client@2.6.1/dist/livekit-client.umd.js", defer: true %>
+
+<!-- Include GetStream Chat SDK -->
+<%= javascript_include_tag "https://cdn.jsdelivr.net/npm/stream-chat@8.x.x/dist/browser/index.umd.js", defer: true %>
+
+<div class="min-h-screen bg-black" 
+     data-controller="stream-viewer"
+     data-stream-viewer-stream-id-value="<%= @stream.id %>"
+     data-stream-viewer-can-view-value="<%= can_view %>"
+     data-stream-viewer-accessible-value="<%= @stream_accessible %>">
+  <!-- Mobile-first responsive container -->
+  <div class="w-full">
+    <!-- Video container -->
+    <div class="relative w-full" style="height: 100vh;">
+      <!-- Video player container -->
+      <div id="video-container" class="w-full h-full bg-black flex items-center justify-center">
+        <% if @stream_accessible %>
+          <!-- LiveKit video will be injected here -->
+          <div data-stream-viewer-target="video" class="w-full h-full"></div>
+          
+          <!-- Video loading overlay -->
+          <div data-stream-viewer-target="loading" class="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+            <div class="text-center text-white">
+              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+              <p class="text-lg">Loading stream...</p>
+            </div>
+          </div>
+        <% else %>
+          <!-- Stream not accessible overlay -->
+          <div data-stream-viewer-target="error" class="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center">
+            <div class="text-center text-white max-w-md mx-auto px-6">
+              <% case stream_status %>
+              <% when "scheduled" %>
+                <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold mb-2">Stream Scheduled</h3>
+                <% if @stream.scheduled_at %>
+                  <p class="text-gray-300 mb-4">
+                    Starts <%= @stream.scheduled_at.strftime("%B %-d, %Y at %-I:%M %p %Z") %>
+                  </p>
+                  <p class="text-sm text-gray-400">
+                    (<%= time_ago_in_words(@stream.scheduled_at) %> from now)
+                  </p>
+                <% else %>
+                  <p class="text-gray-300">Stream time will be announced soon</p>
+                <% end %>
+              <% when "ended" %>
+                <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"></path>
+                </svg>
+                <h3 class="text-xl font-semibold mb-2">Stream Ended</h3>
+                <p class="text-gray-300 mb-4">This stream has finished</p>
+                <% if @stream.recording_url.present? %>
+                  <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium">
+                    Watch Recording
+                  </button>
+                <% else %>
+                  <p class="text-sm text-gray-400">Recording will be available soon</p>
+                <% end %>
+              <% else %>
+                <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold mb-2">Stream Unavailable</h3>
+                <p class="text-gray-300">This stream is not currently available for viewing</p>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Stream controls overlay -->
+      <div data-stream-viewer-target="controls" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 transition-opacity duration-300 opacity-100">
+        <div class="flex items-center justify-between text-white">
+          <!-- Stream info -->
+          <div class="flex-1 min-w-0">
+            <h1 class="text-lg font-semibold truncate"><%= @stream.title %></h1>
+            <p class="text-sm text-gray-300 truncate">
+              <%= @space.name %> • <%= @experience.name %>
+            </p>
+            <% if stream_status == "live" %>
+              <div class="flex items-center mt-1">
+                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-2"></div>
+                <span class="text-sm text-red-400 font-medium">LIVE</span>
+                <span data-stream-viewer-target="viewerCount" class="text-sm text-gray-300 ml-2">0 viewers</span>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Control buttons -->
+          <div class="flex items-center space-x-3 ml-4">
+            <!-- Chat toggle button (mobile) -->
+            <button id="chat-toggle" class="md:hidden p-2 bg-black bg-opacity-50 rounded-full hover:bg-opacity-75 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+            </button>
+
+            <!-- Fullscreen button -->
+            <button id="fullscreen-toggle" class="p-2 bg-black bg-opacity-50 rounded-full hover:bg-opacity-75 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+              </svg>
+            </button>
+
+            <!-- Back to dashboard button -->
+            <%= link_to account_purchased_spaces_path, 
+                class: "p-2 bg-black bg-opacity-50 rounded-full hover:bg-opacity-75 transition-colors" do %>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat sidebar (desktop) -->
+    <div data-stream-viewer-target="chatSidebar" class="hidden md:block fixed top-0 right-0 w-80 h-full bg-gray-900 border-l border-gray-700 z-50">
+      <div class="flex flex-col h-full">
+        <!-- Chat header -->
+        <div class="p-4 border-b border-gray-700">
+          <div class="flex items-center justify-between">
+            <h3 class="text-white font-semibold">Live Chat</h3>
+            <button id="close-chat" class="text-gray-400 hover:text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat messages container -->
+        <div data-stream-viewer-target="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3">
+          <!-- Chat messages will be inserted here -->
+        </div>
+
+        <!-- Chat input -->
+        <div class="p-4 border-t border-gray-700">
+          <div class="flex items-center space-x-2">
+            <input 
+              type="text" 
+              data-stream-viewer-target="chatInput"
+              placeholder="Type a message..."
+              class="flex-1 bg-gray-800 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-indigo-500 focus:outline-none"
+              disabled
+            >
+            <button 
+              id="send-message" 
+              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile chat overlay -->
+    <div data-stream-viewer-target="mobileChat" class="md:hidden fixed inset-0 bg-gray-900 z-50 transform translate-y-full transition-transform duration-300">
+      <div class="flex flex-col h-full">
+        <!-- Mobile chat header -->
+        <div class="p-4 border-b border-gray-700">
+          <div class="flex items-center justify-between">
+            <h3 class="text-white font-semibold">Live Chat</h3>
+            <button id="close-mobile-chat" class="text-gray-400 hover:text-white">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile chat messages -->
+        <div data-stream-viewer-target="mobileChatMessages" class="flex-1 overflow-y-auto p-4 space-y-3">
+          <!-- Chat messages will be inserted here -->
+        </div>
+
+        <!-- Mobile chat input -->
+        <div class="p-4 border-t border-gray-700">
+          <div class="flex items-center space-x-2">
+            <input 
+              type="text" 
+              data-stream-viewer-target="mobileChatInput"
+              placeholder="Type a message..."
+              class="flex-1 bg-gray-800 text-white px-3 py-2 rounded-lg border border-gray-600 focus:border-indigo-500 focus:outline-none"
+              disabled
+            >
+            <button 
+              id="mobile-send-message" 
+              class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stream metadata for JavaScript -->
+<script type="application/json" id="stream-data">
+<%== {
+  stream: {
+    id: @stream.id,
+    title: @stream.title,
+    status: @stream.status,
+    room_name: @stream.room_name,
+    accessible: @stream_accessible
+  },
+  permissions: {
+    can_view: can_view,
+    can_broadcast: @stream.can_broadcast?(current_user)
+  },
+  endpoints: {
+    video_token: video_token_account_viewer_stream_path(@stream),
+    chat_token: chat_token_account_viewer_stream_path(@stream),
+    stream_info: stream_info_account_viewer_stream_path(@stream),
+    join_chat: join_chat_account_viewer_stream_path(@stream),
+    leave_chat: leave_chat_account_viewer_stream_path(@stream)
+  },
+  chat_room: @chat_room ? {
+    id: @chat_room.id,
+    channel_id: @chat_room.channel_id
+  } : nil
+}.to_json %>
+</script>
+
+<!-- Streaming functionality is handled by the stream-viewer Stimulus controller -->
