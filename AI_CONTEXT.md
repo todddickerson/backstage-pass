@@ -1,46 +1,48 @@
 # Current Task Context
 
-## 🎯 Working on Issue #35
+## 🎯 Working on Issue #36
 
-### Title: [STORY 3] Purchase Flow: Stripe Integration & Checkout
+### Title: [STORY 4] Live Streaming: LiveKit Integration
 
 ### Description:
 ## User Story
-As a **viewer**, I want to **purchase an Access Pass** so that **I can access exclusive content**.
+As a **creator**, I want to **host live streams for my paying audience** so that **I can deliver exclusive content**.
 
 ## Acceptance Criteria
-- [ ] Can click "Get Access" on any Access Pass
-- [ ] If not logged in, enter email for passwordless auth
-- [ ] Receive 6-digit code via email
-- [ ] Complete purchase with credit card (Stripe Elements)
-- [ ] Immediately redirected to purchased content
-- [ ] Receive email confirmation
+- [ ] Can schedule a stream with title and description
+- [ ] Can go live with webcam and screen share
+- [ ] Can see viewer count and chat
+- [ ] Can moderate chat (delete messages, ban users)
+- [ ] Can end stream and it saves as recording
+- [ ] Only users with valid Access Pass can view
 
 ## Technical Requirements
-- Create Billing::Purchase model (namespaced)
-- Create AccessGrant model to track user access to passes
-- Integrate Stripe Elements for payment processing
-- Implement passwordless authentication with OTP
-- Create Public::PurchasesController for checkout flow
-- Create Account::AccessPassesController for managing purchases
+- Integrate LiveKit SDK for WebRTC streaming
+- Update Stream model with LiveKit room management
+- Create streaming UI with video controls
+- Integrate GetStream.io chat (already has ChatRoom model)
+- Add recording to Cloudflare R2 storage
+- Create Account::StreamsController for creator streaming
+- Create Account::ExperiencesController for viewer streaming
 
 ## Implementation Steps
-1. Add Pay gem and configure Stripe
-2. Create Purchase and AccessGrant models
-3. Build checkout flow with Stripe Elements
-4. Add passwordless auth with email OTP
-5. Create purchase confirmation emails
-6. Add access verification to experiences
+1. Add livekit-server-sdk gem
+2. Create LiveKit room creation service
+3. Build streaming interface with Stimulus
+4. Connect GetStream chat to streaming rooms
+5. Add viewer access verification
+6. Implement recording storage
 
 ## Dependencies
-- Stripe API keys configured
-- Pay gem for Stripe integration
-- Requires AccessPass model from Story 2
+- LiveKit API credentials configured
+- GetStream.io already integrated
+- Stream model already exists (needs LiveKit fields)
+- Requires AccessGrant for access verification
 
 ## Priority
-Critical for Phase 1 MVP - monetization requires purchase flow
+High for Phase 1 MVP - core feature for live content delivery
 
-### Branch: issue-35
+### Branch: issue-36
 
 ## 📋 Implementation Checklist:
 - [ ] Review issue requirements above
@@ -69,7 +71,7 @@ git status
 git diff
 
 # When complete
-bin/gh-complete 35 "PR title describing changes"
+bin/gh-complete 36 "PR title describing changes"
 ```
 
 ## 📚 Key Documentation:
@@ -86,4 +88,4 @@ bin/gh-complete 35 "PR title describing changes"
 - Always validate namespacing before generating models
 
 ---
-*Context generated at: Thu Sep 18 10:35:04 EDT 2025*
+*Context generated at: Thu Sep 18 11:09:18 EDT 2025*
