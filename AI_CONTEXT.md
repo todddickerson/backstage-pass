@@ -1,54 +1,137 @@
 # Current Task Context
 
-## 🎯 Working on Issue #43
+## 🎯 Working on Issue #45
 
-### Title: [STORY 7] Space Discovery: Public Marketplace
+### Title: [CRITICAL] Fix Payment Processing - Complete Stripe Integration
 
 ### Description:
-## User Story
-As a **viewer**, I want to **discover interesting Spaces** so that **I can find content worth purchasing**.
+## Problem
 
-## Acceptance Criteria
-- [ ] Can browse public Space pages
-- [ ] Can view creator profiles at /@username  
-- [ ] Can see Space description and available Access Passes
-- [ ] Can preview what's included in each Access Pass
-- [ ] Can see pricing clearly displayed
+Payment processing is currently broken with 6 failing tests due to missing service implementations. This blocks the core purchase flow essential for MVP functionality.
 
-## Technical Requirements
-- Create public controllers outside authentication
-- Implement SEO-friendly URLs with slugs
-- Public space browsing at /explore
-- Creator profile pages at /@username route
-- Basic filtering (no advanced search yet)
-
-## Implementation Tasks
-1. Create Public::SpacesController for browsing
-2. Add explore page with published spaces
-3. Implement creator profile pages (/@username route)
-4. Create public Space detail pages
-5. Display Access Passes with pricing
-6. Add basic filtering by category/price
-
-## Routes Needed
-```ruby
-# Public marketplace routes
-get '/explore', to: 'public/spaces#index'
-get '/@:username', to: 'public/creators#show'
-get '/:space_slug', to: 'public/spaces#show'
-get '/:space_slug/:access_pass_slug', to: 'public/access_passes#show'
+**Failing Tests:**
+```
+NoMethodError: undefined method 'any_instance' for class Billing::StripeService
 ```
 
-## Dependencies
-- Space model with published scope
-- Creators::Profile model for usernames
-- AccessPass with pricing display
-- No authentication required (public pages)
+## Critical Issues to Fix
+
+### 1. Missing Service Implementations
+- [ ] Complete `Billing::StripeService` implementation
+- [ ] Complete `Billing::PurchaseService` implementation  
+- [ ] Fix service layer methods causing test failures
+
+### 2. Purchase Flow Completion
+- [ ] Stripe Elements integration working end-to-end
+- [ ] Webhook handling for payment confirmations
+- [ ] Automatic access pass activation after payment
+- [ ] Email confirmations for purchases
+
+### 3. Test Coverage  
+- [ ] Fix 6 failing purchase flow tests
+- [ ] Add comprehensive payment integration tests
+- [ ] Mock Stripe responses properly
+
+## Technical Requirements
+
+### Service Layer Architecture
+```ruby
+# app/services/billing/stripe_service.rb
+class Billing::StripeService
+  def initialize(access_pass)
+    @access_pass = access_pass
+  end
+
+  def create_payment_intent(amount_cents)
+    # Stripe PaymentIntent creation
+  end
+
+  def process_webhook(event)
+    # Handle payment confirmations
+  end
+end
+
+# app/services/billing/purchase_service.rb  
+class Billing::PurchaseService
+  def initialize(user, access_pass)
+    @user = user
+    @access_pass = access_pass
+  end
+
+  def create_purchase(payment_intent_id)
+    # Create purchase record and activate access
+  end
+end
+```
+
+### Controller Updates
+- [ ] Complete `Public::PurchasesController` checkout flow
+- [ ] Handle Stripe webhook endpoint
+- [ ] Redirect to content after successful purchase
+
+### Email & Notifications
+- [ ] Purchase confirmation emails
+- [ ] Access instructions for new buyers
+- [ ] Receipt generation
+
+## Acceptance Criteria
+
+### Purchase Flow Working
+1. User clicks "Get Access" on access pass
+2. Stripe Elements form loads correctly  
+3. Payment processes successfully
+4. User immediately gains access to content
+5. Confirmation email sent
+6. All tests passing ✅
+
+### Webhook Reliability
+1. Stripe webhooks handled correctly
+2. Failed payments handled gracefully
+3. Duplicate webhooks ignored
+4. Proper error logging
+
+## User Stories Blocked
+
+This issue blocks:
+- **STORY 7**: Access Pass Purchase (40% complete)
+- **STORY 8**: Live Stream Viewing (depends on purchase access)
+- **STORY 10**: Account Management (subscription management)
 
 ## Priority
-High for Phase 1 MVP - enables content discovery and marketplace browsing
 
-### Branch: issue-43
+**CRITICAL** - This is the #1 blocker for MVP functionality. Users cannot purchase access passes without working payment processing.
+
+## Related Files
+
+```
+app/models/billing/purchase.rb
+app/controllers/public/purchases_controller.rb  
+app/services/billing/
+test/models/billing/
+config/routes.rb (webhook routes)
+```
+
+## Testing Plan
+
+1. Fix existing failing tests first
+2. Add integration tests with Stripe test mode
+3. Test webhook handling thoroughly
+4. Verify email sending works
+
+## Estimated Effort
+
+**2-3 days** for full completion including tests and email setup.
+
+## Definition of Done
+
+- [ ] All payment tests passing
+- [ ] Complete purchase flow working end-to-end
+- [ ] Stripe webhooks handling all events
+- [ ] Email confirmations working
+- [ ] Code reviewed and merged
+- [ ] Ready for next story (Live Stream Viewing)
+
+### Branch: issue-45
 
 ## 📋 Implementation Checklist:
 - [ ] Review issue requirements above
@@ -77,7 +160,7 @@ git status
 git diff
 
 # When complete
-bin/gh-complete 43 "PR title describing changes"
+bin/gh-complete 45 "PR title describing changes"
 ```
 
 ## 📚 Key Documentation:
@@ -94,4 +177,4 @@ bin/gh-complete 43 "PR title describing changes"
 - Always validate namespacing before generating models
 
 ---
-*Context generated at: Thu Sep 18 14:45:04 EDT 2025*
+*Context generated at: Thu Sep 18 15:33:27 EDT 2025*
