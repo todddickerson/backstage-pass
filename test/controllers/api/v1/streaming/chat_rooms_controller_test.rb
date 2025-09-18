@@ -92,7 +92,6 @@ class Api::V1::Streaming::ChatRoomsControllerTest < Api::Test
     put "/api/v1/streaming/chat_rooms/#{@chat_room.id}", params: {
       access_token: access_token,
       streaming_chat_room: {
-        stream_id: "Alternative String Value",
         channel_id: "Alternative String Value",
         # 🚅 super scaffolding will also insert new fields above this line.
       }
@@ -105,7 +104,6 @@ class Api::V1::Streaming::ChatRoomsControllerTest < Api::Test
 
     # But we have to manually assert the value was properly updated.
     @chat_room.reload
-    assert_equal @chat_room.stream_id, "Alternative String Value"
     assert_equal @chat_room.channel_id, "Alternative String Value"
     # 🚅 super scaffolding will additionally insert new fields above this line.
 

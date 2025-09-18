@@ -32,7 +32,12 @@ class Api::V1::StreamsControllerTest < Api::Test
     stream = Stream.find(stream_data["id"])
 
     assert_equal_or_nil stream_data["title"], stream.title
-    assert_equal_or_nil DateTime.parse(stream_data["scheduled_at"]), stream.scheduled_at
+    # Parse both dates to compare them properly
+    if stream_data["scheduled_at"] && stream.scheduled_at
+      assert_equal DateTime.parse(stream_data["scheduled_at"]).to_i, stream.scheduled_at.to_i
+    else
+      assert_equal_or_nil stream_data["scheduled_at"], stream.scheduled_at
+    end
     assert_equal_or_nil stream_data["status"], stream.status
     # 🚅 super scaffolding will insert new fields above this line.
 
@@ -93,7 +98,7 @@ class Api::V1::StreamsControllerTest < Api::Test
       access_token: access_token,
       stream: {
         title: "Alternative String Value",
-        status: "Alternative String Value",
+        status: "live",
         # 🚅 super scaffolding will also insert new fields above this line.
       }
     }
@@ -106,7 +111,7 @@ class Api::V1::StreamsControllerTest < Api::Test
     # But we have to manually assert the value was properly updated.
     @stream.reload
     assert_equal @stream.title, "Alternative String Value"
-    assert_equal @stream.status, "Alternative String Value"
+    assert_equal @stream.status, "live"
     # 🚅 super scaffolding will additionally insert new fields above this line.
 
     # Also ensure we can't do that same action as another user.
