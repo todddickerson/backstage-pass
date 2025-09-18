@@ -36,7 +36,7 @@ class Experience < ApplicationRecord
 
   # 🚅 add delegations above.
 
-  # monetize :price_cents
+  monetize :price_cents
 
   def live_streaming?
     experience_type == "live_stream"
