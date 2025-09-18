@@ -17,7 +17,9 @@ class Public::SpacesController < Public::ApplicationController
     end
 
     # Load related data for public display (already eager loaded)
-    @experiences = @space.experiences.published if @space.respond_to?(:experiences)
+    if @space.respond_to?(:experiences)
+      @experiences = @space.experiences.respond_to?(:published) ? @space.experiences.published : @space.experiences
+    end
     @total_members = begin
       @space.total_members
     rescue

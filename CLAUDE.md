@@ -44,6 +44,31 @@ It is 2025 Sept 15 when I'm updating this file.
 
 ## Development Workflow
 
+### 🎯 GitHub Task Management (CRITICAL)
+
+**ALWAYS at conversation/session start:**
+```bash
+bin/gh-sync                      # Sync GitHub issues to local
+cat AI_CURRENT_TASKS.md          # Review prioritized task list
+bin/gh-project-status            # Check project board
+```
+
+**Task workflow:**
+```bash
+bin/gh-start <issue-number>      # Start working on issue
+# ... implement feature ...
+bin/gh-complete <issue-number> "message"  # Complete with PR
+```
+
+**Critical Rules:**
+1. **ALWAYS run `bin/gh-sync` at conversation start**
+2. **NEVER create models without checking existing issues**
+3. **ALWAYS work on priority/critical first**
+4. **NEVER leave issues in ai/working state**
+5. **ALWAYS check AI_CURRENT_TASKS.md for work**
+
+See [GITHUB_TASK_MANAGEMENT.md](./GITHUB_TASK_MANAGEMENT.md) for complete system.
+
 ### ⚠️ CRITICAL: One-PR-at-a-Time Rule
 **ONLY ONE pull request should be open at any given time.**
 
