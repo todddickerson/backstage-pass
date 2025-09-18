@@ -61,6 +61,20 @@ Rails.application.routes.draw do
       # Creator profile management (singular resource)
       resource :creator_profile, only: [:show, :edit, :update, :create]
 
+      # Purchased spaces and streams for viewers
+      resources :purchased_spaces, only: [:index, :show]
+
+      # Stream viewing for authenticated users
+      resources :streams, only: [:show], controller: "stream_viewing", path: "streams", as: "viewer_streams" do
+        member do
+          get :video_token
+          get :chat_token
+          get :stream_info
+          post :join_chat
+          delete :leave_chat
+        end
+      end
+
       # team-level resources.
       resources :teams, extending do
         # routes for many teams actions and resources are configured in the `bullet_train` gem, but you can add more here.

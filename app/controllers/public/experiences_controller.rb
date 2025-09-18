@@ -1,6 +1,4 @@
 class Public::ExperiencesController < Public::ApplicationController
-  include ChatAccessControl
-
   before_action :set_space
   before_action :set_experience
   before_action :check_experience_access

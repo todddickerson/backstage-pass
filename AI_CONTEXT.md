@@ -1,137 +1,253 @@
 # Current Task Context
 
-## 🎯 Working on Issue #45
+## 🎯 Working on Issue #46
 
-### Title: [CRITICAL] Fix Payment Processing - Complete Stripe Integration
+### Title: [STORY 8] Live Stream Viewing - Complete Viewer Experience
 
 ### Description:
-## Problem
+## Overview
 
-Payment processing is currently broken with 6 failing tests due to missing service implementations. This blocks the core purchase flow essential for MVP functionality.
+Complete the viewer side of live streaming functionality. Backend LiveKit integration exists but viewer interface and access control need implementation.
 
-**Failing Tests:**
-```
-NoMethodError: undefined method 'any_instance' for class Billing::StripeService
-```
+## User Story
 
-## Critical Issues to Fix
-
-### 1. Missing Service Implementations
-- [ ] Complete `Billing::StripeService` implementation
-- [ ] Complete `Billing::PurchaseService` implementation  
-- [ ] Fix service layer methods causing test failures
-
-### 2. Purchase Flow Completion
-- [ ] Stripe Elements integration working end-to-end
-- [ ] Webhook handling for payment confirmations
-- [ ] Automatic access pass activation after payment
-- [ ] Email confirmations for purchases
-
-### 3. Test Coverage  
-- [ ] Fix 6 failing purchase flow tests
-- [ ] Add comprehensive payment integration tests
-- [ ] Mock Stripe responses properly
-
-## Technical Requirements
-
-### Service Layer Architecture
-```ruby
-# app/services/billing/stripe_service.rb
-class Billing::StripeService
-  def initialize(access_pass)
-    @access_pass = access_pass
-  end
-
-  def create_payment_intent(amount_cents)
-    # Stripe PaymentIntent creation
-  end
-
-  def process_webhook(event)
-    # Handle payment confirmations
-  end
-end
-
-# app/services/billing/purchase_service.rb  
-class Billing::PurchaseService
-  def initialize(user, access_pass)
-    @user = user
-    @access_pass = access_pass
-  end
-
-  def create_purchase(payment_intent_id)
-    # Create purchase record and activate access
-  end
-end
-```
-
-### Controller Updates
-- [ ] Complete `Public::PurchasesController` checkout flow
-- [ ] Handle Stripe webhook endpoint
-- [ ] Redirect to content after successful purchase
-
-### Email & Notifications
-- [ ] Purchase confirmation emails
-- [ ] Access instructions for new buyers
-- [ ] Receipt generation
+**As a** viewer with access  
+**I want to** watch live streams  
+**So that** I can consume the content I paid for
 
 ## Acceptance Criteria
 
-### Purchase Flow Working
-1. User clicks "Get Access" on access pass
-2. Stripe Elements form loads correctly  
-3. Payment processes successfully
-4. User immediately gains access to content
-5. Confirmation email sent
-6. All tests passing ✅
+### Core Viewing Experience
+- [ ] Can see upcoming and live streams in purchased Spaces
+- [ ] Can join live stream with one click  
+- [ ] Video plays smoothly with adaptive quality
+- [ ] Can participate in chat
+- [ ] Can use reactions/emojis
+- [ ] Can full-screen the video
+- [ ] Mobile-responsive video player
 
-### Webhook Reliability
-1. Stripe webhooks handled correctly
-2. Failed payments handled gracefully
-3. Duplicate webhooks ignored
-4. Proper error logging
+### Access Control
+- [ ] Only users with valid Access Pass can view
+- [ ] Proper error messages for unauthorized access
+- [ ] Seamless authentication check before stream access
+- [ ] Grace period for recently expired passes
 
-## User Stories Blocked
+### Stream Discovery  
+- [ ] Dashboard showing "My Streams" for purchased access passes
+- [ ] Upcoming stream notifications
+- [ ] Live stream indicators
+- [ ] Recently ended stream recordings (if available)
 
-This issue blocks:
-- **STORY 7**: Access Pass Purchase (40% complete)
-- **STORY 8**: Live Stream Viewing (depends on purchase access)
-- **STORY 10**: Account Management (subscription management)
+## Technical Implementation
 
-## Priority
+### Models (Already Implemented)
+✅ Stream model with LiveKit integration exists
+✅ Access control methods available  
+✅ Stream status tracking (scheduled, live, ended)
 
-**CRITICAL** - This is the #1 blocker for MVP functionality. Users cannot purchase access passes without working payment processing.
+### Controllers Needed
+```ruby
+# app/controllers/account/purchased_spaces_controller.rb
+class Account::PurchasedSpacesController < Account::ApplicationController
+  # Show user's purchased spaces and upcoming streams
+end
 
-## Related Files
-
+# app/controllers/account/stream_viewing_controller.rb  
+class Account::StreamViewingController < Account::ApplicationController
+  # Handle stream viewing with access control
+  
+  def show
+    # Verify user has access to stream
+    # Generate LiveKit viewer token
+    # Render streaming interface
+  end
+  
+  def video_token
+    # Generate LiveKit token for authenticated viewer
+  end
+  
+  def chat_token  
+    # Generate GetStream chat token
+  end
+end
 ```
-app/models/billing/purchase.rb
-app/controllers/public/purchases_controller.rb  
-app/services/billing/
-test/models/billing/
-config/routes.rb (webhook routes)
+
+### Views Needed
+```
+app/views/account/purchased_spaces/
+├── index.html.erb          # Dashboard of purchased content
+└── _stream_card.html.erb   # Stream preview cards
+
+app/views/account/stream_viewing/
+├── show.html.erb           # Main streaming page
+├── _video_player.html.erb  # LiveKit video component  
+└── _chat_panel.html.erb    # GetStream chat component
 ```
 
-## Testing Plan
+### Frontend Components
+- [ ] LiveKit video player integration
+- [ ] GetStream chat widget
+- [ ] Responsive video controls
+- [ ] Full-screen functionality
+- [ ] Mobile touch controls
 
-1. Fix existing failing tests first
-2. Add integration tests with Stripe test mode
-3. Test webhook handling thoroughly
-4. Verify email sending works
+### Routes Integration
+```ruby
+# config/routes.rb additions
+namespace :account do
+  resources :purchased_spaces, only: [:index]
+  
+  resources :streams, only: [:show], controller: 'stream_viewing' do
+    member do
+      get :video_token
+      get :chat_token
+    end
+  end
+end
+```
+
+## Access Control Logic
+
+### Purchase Verification
+```ruby
+def verify_stream_access
+  @stream = Stream.find(params[:id])
+  @access_pass = @stream.experience.access_passes.find do |pass|
+    current_user.has_active_access?(pass)
+  end
+  
+  unless @access_pass
+    redirect_to public_space_path(@stream.experience.space.slug), 
+                alert: "Access required to view this stream"
+  end
+end
+```
+
+### Token Generation
+```ruby
+def generate_viewer_token
+  LiveKit::AccessToken.new(
+    api_key: Rails.application.credentials.livekit.api_key,
+    api_secret: Rails.application.credentials.livekit.api_secret
+  ).tap do |token|
+    token.identity = current_user.id.to_s
+    token.name = current_user.name
+    token.add_grant(LiveKit::VideoGrant.new(
+      room_join: true,
+      room: @stream.room_name
+    ))
+  end.to_jwt
+end
+```
+
+## Integration Points
+
+### LiveKit Integration
+- [ ] Viewer token generation with proper permissions
+- [ ] Room joining with participant limits
+- [ ] Video quality adaptation
+- [ ] Connection health monitoring
+
+### GetStream Chat
+- [ ] Viewer chat authentication
+- [ ] Real-time message sync
+- [ ] Chat moderation (viewer restrictions)  
+- [ ] Emoji reactions integration
+
+### Purchase System Integration
+- [ ] Verify active access passes
+- [ ] Handle subscription status
+- [ ] Grace period for expired access
+- [ ] Redirect to purchase if no access
+
+## Testing Requirements
+
+### System Tests
+```ruby
+# test/system/stream_viewing_test.rb
+test "viewer with access can join stream"
+test "viewer without access is redirected to purchase"
+test "chat functionality works for authenticated viewers"
+test "video player loads and displays stream"
+test "full-screen mode works"
+```
+
+### Integration Tests
+```ruby
+# test/controllers/account/stream_viewing_controller_test.rb
+test "generates valid LiveKit token for authorized user"
+test "denies access for unauthorized user"
+test "handles expired access passes appropriately"
+```
+
+## Dependencies
+
+### Hard Dependencies
+- ✅ LiveKit configuration (already exists)
+- ✅ GetStream configuration (already exists)
+- ✅ Stream model (already exists)
+- ❌ **Working payment processing** (Issue #45 - Critical)
+
+### Soft Dependencies  
+- User authentication system (✅ working)
+- Access pass purchase system (❌ needs fixing)
+- Email notification system (✅ working)
+
+## Mobile Considerations
+
+### Responsive Design
+- [ ] Mobile video player optimization
+- [ ] Touch-friendly controls
+- [ ] Portrait/landscape orientation handling
+- [ ] Chat overlay for small screens
+
+### Performance
+- [ ] Adaptive bitrate streaming
+- [ ] Connection quality indicators  
+- [ ] Graceful degradation for poor connections
+- [ ] Battery usage optimization
+
+## Success Metrics
+
+### Technical Metrics
+- Video load time < 3 seconds
+- Chat message latency < 500ms
+- Stream uptime > 99%
+- Mobile compatibility across devices
+
+### User Experience
+- Single-click stream joining
+- Intuitive video controls
+- Reliable chat functionality
+- Clear access messaging
 
 ## Estimated Effort
 
-**2-3 days** for full completion including tests and email setup.
+**3-4 days** including testing and mobile optimization
 
 ## Definition of Done
 
-- [ ] All payment tests passing
-- [ ] Complete purchase flow working end-to-end
-- [ ] Stripe webhooks handling all events
-- [ ] Email confirmations working
+- [ ] All acceptance criteria met
+- [ ] Comprehensive test coverage
+- [ ] Mobile responsive design
 - [ ] Code reviewed and merged
-- [ ] Ready for next story (Live Stream Viewing)
+- [ ] Integration with purchase system working
+- [ ] Documentation updated
 
-### Branch: issue-45
+## Next Steps After Completion
+
+1. Live Stream Hosting improvements (creator side)
+2. Recording playback functionality  
+3. Stream analytics and metrics
+4. Advanced chat features (reactions, moderation)
+
+## Related Issues
+
+- Depends on: #45 (Payment Processing)
+- Enables: Creator hosting improvements
+- Prepares: Mobile app streaming foundation
+
+### Branch: issue-46
 
 ## 📋 Implementation Checklist:
 - [ ] Review issue requirements above
@@ -160,7 +276,7 @@ git status
 git diff
 
 # When complete
-bin/gh-complete 45 "PR title describing changes"
+bin/gh-complete 46 "PR title describing changes"
 ```
 
 ## 📚 Key Documentation:
@@ -177,4 +293,4 @@ bin/gh-complete 45 "PR title describing changes"
 - Always validate namespacing before generating models
 
 ---
-*Context generated at: Thu Sep 18 15:33:27 EDT 2025*
+*Context generated at: Thu Sep 18 16:00:45 EDT 2025*

@@ -1,0 +1,125 @@
+<%
+# Local variables
+page_title = "My Streams"
+%>
+
+<% content_for :title, page_title %>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2"><%= page_title %></h1>
+    <p class="text-gray-600">Access streams from your purchased spaces</p>
+  </div>
+
+  <% if @access_grants.empty? %>
+    <!-- Empty state -->
+    <div class="text-center py-12">
+      <svg class="mx-auto h-24 w-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+      </svg>
+      <h3 class="mt-4 text-lg font-medium text-gray-900">No purchased content yet</h3>
+      <p class="mt-2 text-gray-500">Browse spaces to find content you'd like to purchase</p>
+      <div class="mt-6">
+        <%= link_to "Explore Spaces", explore_spaces_path, 
+            class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+      </div>
+    </div>
+  <% else %>
+    <!-- Live streams section -->
+    <% if @live_streams.any? %>
+      <div class="mb-8">
+        <div class="flex items-center mb-4">
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2"></div>
+            <h2 class="text-xl font-semibold text-gray-900">Live Now</h2>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <% @live_streams.each do |stream| %>
+            <%= render "stream_card", stream: stream, status: :live %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Upcoming streams section -->
+    <% if @scheduled_streams.any? %>
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Upcoming Streams</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <% @scheduled_streams.each do |stream| %>
+            <%= render "stream_card", stream: stream, status: :upcoming %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Purchased spaces section -->
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">My Spaces</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <% @purchased_spaces.each do |space| %>
+          <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            <% if space.respond_to?(:cover_photo) && space.cover_photo.present? %>
+              <div class="aspect-video bg-gray-100">
+                <%= image_tag space.cover_photo, 
+                    class: "w-full h-full object-cover" %>
+              </div>
+            <% else %>
+              <div class="aspect-video bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                <h3 class="text-white text-lg font-medium text-center px-4"><%= space.name %></h3>
+              </div>
+            <% end %>
+            
+            <div class="p-4">
+              <h3 class="font-medium text-gray-900 mb-2"><%= space.name %></h3>
+              <p class="text-sm text-gray-600 mb-3 line-clamp-2"><%= space.description.to_plain_text if space.description.present? %></p>
+              
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-500">
+                  <% access_grant = @access_grants.find { |ag| ag.space == space } %>
+                  <% if access_grant&.expires_at %>
+                    Expires <%= time_ago_in_words(access_grant.expires_at) %> from now
+                  <% else %>
+                    Lifetime access
+                  <% end %>
+                </div>
+                <%= link_to "View Details", account_purchased_space_path(space), 
+                    class: "text-sm font-medium text-indigo-600 hover:text-indigo-500" %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Recent streams section -->
+    <% if @recent_streams.any? %>
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Streams</h2>
+        <div class="space-y-4">
+          <% @recent_streams.each do |stream| %>
+            <div class="bg-white rounded-lg shadow border border-gray-200 p-4 hover:shadow-md transition-shadow">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="font-medium text-gray-900 mb-1"><%= stream.title %></h3>
+                  <p class="text-sm text-gray-600 mb-2">
+                    <%= stream.experience.space.name %> • <%= stream.experience.name %>
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    Ended <%= time_ago_in_words(stream.updated_at) %> ago
+                  </p>
+                </div>
+                <div class="ml-4">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    Replay Available
+                  </span>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>
