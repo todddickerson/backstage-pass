@@ -47,7 +47,7 @@ class AccessPass < ApplicationRecord
   friendly_id :slug, use: :slugged
 
   # Monetize price
-  # monetize :price_cents
+  monetize :price_cents
 
   def price_display
     return "Free" if pricing_type == "free" || price_cents.zero?
