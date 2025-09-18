@@ -1,48 +1,54 @@
 # Current Task Context
 
-## 🎯 Working on Issue #36
+## 🎯 Working on Issue #43
 
-### Title: [STORY 4] Live Streaming: LiveKit Integration
+### Title: [STORY 7] Space Discovery: Public Marketplace
 
 ### Description:
 ## User Story
-As a **creator**, I want to **host live streams for my paying audience** so that **I can deliver exclusive content**.
+As a **viewer**, I want to **discover interesting Spaces** so that **I can find content worth purchasing**.
 
 ## Acceptance Criteria
-- [ ] Can schedule a stream with title and description
-- [ ] Can go live with webcam and screen share
-- [ ] Can see viewer count and chat
-- [ ] Can moderate chat (delete messages, ban users)
-- [ ] Can end stream and it saves as recording
-- [ ] Only users with valid Access Pass can view
+- [ ] Can browse public Space pages
+- [ ] Can view creator profiles at /@username  
+- [ ] Can see Space description and available Access Passes
+- [ ] Can preview what's included in each Access Pass
+- [ ] Can see pricing clearly displayed
 
 ## Technical Requirements
-- Integrate LiveKit SDK for WebRTC streaming
-- Update Stream model with LiveKit room management
-- Create streaming UI with video controls
-- Integrate GetStream.io chat (already has ChatRoom model)
-- Add recording to Cloudflare R2 storage
-- Create Account::StreamsController for creator streaming
-- Create Account::ExperiencesController for viewer streaming
+- Create public controllers outside authentication
+- Implement SEO-friendly URLs with slugs
+- Public space browsing at /explore
+- Creator profile pages at /@username route
+- Basic filtering (no advanced search yet)
 
-## Implementation Steps
-1. Add livekit-server-sdk gem
-2. Create LiveKit room creation service
-3. Build streaming interface with Stimulus
-4. Connect GetStream chat to streaming rooms
-5. Add viewer access verification
-6. Implement recording storage
+## Implementation Tasks
+1. Create Public::SpacesController for browsing
+2. Add explore page with published spaces
+3. Implement creator profile pages (/@username route)
+4. Create public Space detail pages
+5. Display Access Passes with pricing
+6. Add basic filtering by category/price
+
+## Routes Needed
+```ruby
+# Public marketplace routes
+get '/explore', to: 'public/spaces#index'
+get '/@:username', to: 'public/creators#show'
+get '/:space_slug', to: 'public/spaces#show'
+get '/:space_slug/:access_pass_slug', to: 'public/access_passes#show'
+```
 
 ## Dependencies
-- LiveKit API credentials configured
-- GetStream.io already integrated
-- Stream model already exists (needs LiveKit fields)
-- Requires AccessGrant for access verification
+- Space model with published scope
+- Creators::Profile model for usernames
+- AccessPass with pricing display
+- No authentication required (public pages)
 
 ## Priority
-High for Phase 1 MVP - core feature for live content delivery
+High for Phase 1 MVP - enables content discovery and marketplace browsing
 
-### Branch: issue-36
+### Branch: issue-43
 
 ## 📋 Implementation Checklist:
 - [ ] Review issue requirements above
@@ -71,7 +77,7 @@ git status
 git diff
 
 # When complete
-bin/gh-complete 36 "PR title describing changes"
+bin/gh-complete 43 "PR title describing changes"
 ```
 
 ## 📚 Key Documentation:
@@ -88,4 +94,4 @@ bin/gh-complete 36 "PR title describing changes"
 - Always validate namespacing before generating models
 
 ---
-*Context generated at: Thu Sep 18 11:09:18 EDT 2025*
+*Context generated at: Thu Sep 18 14:45:04 EDT 2025*
