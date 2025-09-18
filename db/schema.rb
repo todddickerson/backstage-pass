@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_17_191451) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_18_151301) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -197,6 +197,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_191451) do
     t.datetime "updated_at", null: false
     t.integer "streams_count", default: 0, null: false
     t.integer "access_grants_count", default: 0, null: false
+    t.string "slug"
+    t.index ["slug"], name: "index_experiences_on_slug"
     t.index ["space_id", "created_at"], name: "index_experiences_on_space_id_and_created_at"
     t.index ["space_id", "experience_type"], name: "index_experiences_on_space_id_and_experience_type"
     t.index ["space_id"], name: "index_experiences_on_space_id"
@@ -380,6 +382,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_191451) do
     t.string "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "livekit_room_name"
+    t.string "livekit_room_sid"
+    t.string "livekit_egress_id"
+    t.integer "viewer_count"
+    t.string "recording_url"
+    t.integer "max_viewers"
     t.index ["experience_id", "status"], name: "index_streams_on_experience_id_and_status"
     t.index ["experience_id"], name: "index_streams_on_experience_id"
     t.index ["status", "scheduled_at"], name: "index_streams_on_status_and_scheduled_at"

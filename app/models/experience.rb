@@ -30,8 +30,10 @@ class Experience < ApplicationRecord
   validates :name, presence: true
   validates :experience_type, presence: true
   validates :price_cents, presence: true, numericality: {greater_than_or_equal_to: 0}
+  validates :slug, presence: true, uniqueness: {scope: :space_id}
   # 🚅 add validations above.
 
+  before_validation :generate_slug, if: :name_changed?
   # 🚅 add callbacks above.
 
   # 🚅 add delegations above.
@@ -74,5 +76,24 @@ class Experience < ApplicationRecord
       [human_attribute_name("experience_type.#{type}"), type]
     end
   end
+
+  private
+
+  def generate_slug
+    return if name.blank?
+
+    base_slug = name.parameterize
+    potential_slug = base_slug
+    counter = 1
+
+    # Ensure slug is unique within the space
+    while space.experiences.where(slug: potential_slug).where.not(id: id).exists?
+      potential_slug = "#{base_slug}-#{counter}"
+      counter += 1
+    end
+
+    self.slug = potential_slug
+  end
+
   # 🚅 add methods above.
 end

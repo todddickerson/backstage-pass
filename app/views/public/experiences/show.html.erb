@@ -1,0 +1,249 @@
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-4xl font-bold text-gray-900 mb-2"><%= @experience.name %></h1>
+          <p class="text-lg text-gray-600">
+            <%= link_to @experience.space.name, public_space_path(@experience.space.slug), 
+                class: "text-blue-600 hover:text-blue-800" %>
+          </p>
+        </div>
+        <div class="text-right">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                   <%= @experience.experience_type == 'live_stream' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800' %>">
+            <%= @experience.experience_type.humanize %>
+          </span>
+          <div class="mt-2">
+            <span class="text-2xl font-bold text-gray-900"><%= @experience.price_display %></span>
+          </div>
+        </div>
+      </div>
+      
+      <% if @experience.description.present? %>
+        <div class="mt-6 prose max-w-none">
+          <%= @experience.description %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Live Stream Section -->
+    <% if @experience.live_streaming? && @active_stream %>
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Main Video Area -->
+        <div class="lg:col-span-3">
+          <div class="bg-black rounded-lg overflow-hidden shadow-lg">
+            <!-- Video Container -->
+            <div id="video-container" class="aspect-video bg-black flex items-center justify-center">
+              <% if @active_stream.live? %>
+                <div id="livekit-room" 
+                     data-controller="streaming" 
+                     data-streaming-room-name="<%= @active_stream.room_name %>"
+                     data-streaming-experience-slug="<%= @experience.slug %>"
+                     data-streaming-space-slug="<%= @experience.space.slug %>"
+                     data-streaming-can-publish="<%= @active_stream.can_broadcast?(current_user) %>"
+                     class="w-full h-full">
+                  <div class="flex items-center justify-center h-full text-white">
+                    <div class="text-center">
+                      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                      <p>Connecting to stream...</p>
+                    </div>
+                  </div>
+                </div>
+              <% else %>
+                <div class="text-center text-white">
+                  <div class="mb-4">
+                    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                  <h3 class="text-xl font-medium mb-2">Stream Not Live</h3>
+                  <p class="text-gray-300">This stream is currently offline.</p>
+                  <% if @active_stream.scheduled_at&.future? %>
+                    <p class="text-sm text-gray-400 mt-2">
+                      Scheduled for <%= @active_stream.scheduled_at.strftime("%B %d, %Y at %I:%M %p") %>
+                    </p>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Video Controls -->
+            <div class="bg-gray-900 px-4 py-3 flex items-center justify-between">
+              <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                  <% if @active_stream.live? %>
+                    <span class="flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-3 w-3 rounded-full bg-red-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                    </span>
+                    <span class="text-white text-sm font-medium">LIVE</span>
+                  <% else %>
+                    <span class="text-gray-400 text-sm">Offline</span>
+                  <% end %>
+                </div>
+                
+                <div id="viewer-count" class="text-gray-300 text-sm">
+                  <span id="participant-count">0</span> viewers
+                </div>
+              </div>
+
+              <!-- Stream Controls for Broadcasters -->
+              <% if @active_stream.can_broadcast?(current_user) %>
+                <div class="flex items-center space-x-2">
+                  <% unless @active_stream.live? %>
+                    <button id="start-stream-btn" 
+                            data-action="click->streaming#startStream"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">
+                      Go Live
+                    </button>
+                  <% else %>
+                    <button id="stop-stream-btn" 
+                            data-action="click->streaming#stopStream"
+                            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded text-sm font-medium">
+                      End Stream
+                    </button>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Stream Info -->
+          <div class="mt-4 bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-2"><%= @active_stream.title %></h2>
+            <% if @active_stream.description.present? %>
+              <div class="prose max-w-none">
+                <%= @active_stream.description %>
+              </div>
+            <% end %>
+            
+            <div class="mt-4 flex items-center space-x-6 text-sm text-gray-600">
+              <div>
+                <span class="font-medium">Max viewers:</span> 
+                <span id="max-viewers"><%= @active_stream.max_viewers || 0 %></span>
+              </div>
+              <% if @active_stream.scheduled_at %>
+                <div>
+                  <span class="font-medium">Scheduled:</span> 
+                  <%= @active_stream.scheduled_at.strftime("%B %d, %Y at %I:%M %p") %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Sidebar -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-lg shadow h-96 lg:h-[600px] flex flex-col">
+            <div class="p-4 border-b">
+              <h3 class="text-lg font-semibold">Chat</h3>
+            </div>
+            
+            <% if user_signed_in? && @active_stream.can_view?(current_user) %>
+              <div id="chat-container" 
+                   data-controller="chat"
+                   data-chat-room-id="<%= @chat_room.getstream_channel_id if @chat_room %>"
+                   data-chat-experience-slug="<%= @experience.slug %>"
+                   data-chat-space-slug="<%= @experience.space.slug %>"
+                   class="flex-1 flex flex-col min-h-0">
+                
+                <!-- Chat Messages -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-2">
+                  <div class="text-center text-gray-500 text-sm">
+                    Welcome to the chat! Say hello to get started.
+                  </div>
+                </div>
+                
+                <!-- Chat Input -->
+                <div class="border-t p-4">
+                  <div class="flex space-x-2">
+                    <input type="text" 
+                           id="chat-input"
+                           data-action="keypress->chat#handleKeyPress"
+                           placeholder="Type a message..."
+                           class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button data-action="click->chat#sendMessage"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                      Send
+                    </button>
+                  </div>
+                </div>
+              </div>
+            <% else %>
+              <div class="flex-1 flex items-center justify-center text-gray-500 text-center p-4">
+                <div>
+                  <p class="mb-2">Join the conversation!</p>
+                  <% unless user_signed_in? %>
+                    <%= link_to "Sign In", new_user_session_path, 
+                        class: "text-blue-600 hover:text-blue-800 underline" %>
+                  <% else %>
+                    <p class="text-sm">Access Pass required to participate in chat.</p>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <!-- Non-streaming Experience or No Active Stream -->
+      <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+        <div class="mb-6">
+          <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </div>
+        
+        <h2 class="text-2xl font-semibold text-gray-900 mb-2">
+          <% if @experience.live_streaming? %>
+            No Active Streams
+          <% else %>
+            <%= @experience.experience_type.humanize %> Experience
+          <% end %>
+        </h2>
+        
+        <p class="text-gray-600 mb-6">
+          <% if @experience.live_streaming? %>
+            There are currently no live streams for this experience.
+            <% if @streams.scheduled.any? %>
+              Check back for upcoming scheduled streams!
+            <% end %>
+          <% else %>
+            This experience is not currently set up for live streaming.
+          <% end %>
+        </p>
+
+        <!-- Show upcoming streams -->
+        <% if @streams.scheduled.any? %>
+          <div class="mt-8">
+            <h3 class="text-lg font-medium mb-4">Upcoming Streams</h3>
+            <div class="space-y-3">
+              <% @streams.scheduled.limit(3).each do |stream| %>
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <h4 class="font-medium"><%= stream.title %></h4>
+                  <p class="text-sm text-gray-600 mt-1">
+                    <%= stream.scheduled_at.strftime("%B %d, %Y at %I:%M %p") %>
+                  </p>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Back to Space -->
+    <div class="mt-8 text-center">
+      <%= link_to "← Back to #{@experience.space.name}", public_space_path(@experience.space.slug), 
+          class: "text-blue-600 hover:text-blue-800 underline" %>
+    </div>
+  </div>
+</div>
+
+<!-- Include LiveKit and GetStream SDKs -->
+<% if @experience.live_streaming? && @active_stream&.live? %>
+  <script src="https://unpkg.com/livekit-client/dist/livekit-client.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stream-chat@8.0.0/dist/browser/index.umd.js"></script>
+<% end %>
