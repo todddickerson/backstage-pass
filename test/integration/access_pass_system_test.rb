@@ -14,10 +14,10 @@ class AccessPassSystemTest < ActionDispatch::IntegrationTest
       pass = @space.access_passes.create!(
         name: "#{pricing_type.titleize} Pass",
         pricing_type: pricing_type,
-        price_cents: pricing_type == "free" ? 0 : 1999,
+        price_cents: (pricing_type == "free") ? 0 : 1999,
         published: true
       )
-      
+
       assert pass.valid?, "#{pricing_type} pass should be valid"
       assert_equal pricing_type, pass.pricing_type
     end
@@ -64,7 +64,7 @@ class AccessPassSystemTest < ActionDispatch::IntegrationTest
       experience_type: "live_stream",
       price_cents: 0
     )
-    
+
     course = @space.experiences.create!(
       name: "Video Course",
       experience_type: "course",
@@ -126,14 +126,14 @@ class AccessPassSystemTest < ActionDispatch::IntegrationTest
   test "experience types and validation" do
     # Test each experience type
     types = %w[live_stream course community consultation digital_product]
-    
+
     types.each do |type|
       experience = @space.experiences.create!(
         name: "#{type.humanize} Experience",
         experience_type: type,
         price_cents: 1999
       )
-      
+
       assert experience.valid?, "#{type} experience should be valid"
       assert_equal type, experience.experience_type
     end
