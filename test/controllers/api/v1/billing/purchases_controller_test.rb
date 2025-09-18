@@ -72,9 +72,14 @@ class Api::V1::Billing::PurchasesControllerTest < Api::Test
   test "create" do
     # Use the serializer to generate a payload, but strip some attributes out.
     params = {access_token: access_token}
-    purchase_data = JSON.parse(build(:billing_purchase, team: nil).api_attributes.to_json)
-    purchase_data.except!("id", "team_id", "created_at", "updated_at")
-    params[:billing_purchase] = purchase_data
+    params[:billing_purchase] = {
+      user_id: @user.id,
+      access_pass_id: nil,
+      amount_cents: 100,
+      stripe_charge_id: "ch_test_123",
+      stripe_payment_intent_id: "pi_test_123",
+      status: "completed"
+    }
 
     post "/api/v1/teams/#{@team.id}/billing/purchases", params: params
     assert_response :success

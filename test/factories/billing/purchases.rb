@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :billing_purchase, class: "Billing::Purchase" do
     association :team
-    user { nil }
+    association :user
     access_pass { nil }
     amount_cents { 1 }
     stripe_charge_id { nil }

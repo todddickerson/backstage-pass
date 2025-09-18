@@ -6,10 +6,12 @@ class Api::V1::AccessPassExperiencesControllerTest < Api::Test
 
     @space = create(:space, team: @team)
     @access_pass = create(:access_pass, space: @space)
-    @access_pass_experience = build(:access_pass_experience, access_pass: @access_pass)
+    @experience = create(:experience, space: @space)
+    @access_pass_experience = build(:access_pass_experience, access_pass: @access_pass, experience: @experience)
     @other_access_pass_experiences = create_list(:access_pass_experience, 3)
 
-    @another_access_pass_experience = create(:access_pass_experience, access_pass: @access_pass)
+    @another_experience = create(:experience, space: @space)
+    @another_access_pass_experience = create(:access_pass_experience, access_pass: @access_pass, experience: @another_experience)
 
     # 🚅 super scaffolding will insert file-related logic above this line.
     @access_pass_experience.save
@@ -31,7 +33,10 @@ class Api::V1::AccessPassExperiencesControllerTest < Api::Test
     # Fetch the access_pass_experience in question and prepare to compare it's attributes.
     access_pass_experience = AccessPassExperience.find(access_pass_experience_data["id"])
 
-    assert_equal_or_nil access_pass_experience_data["experience"], access_pass_experience.experience
+    # Compare experience ID instead of full object since API returns experience details
+    if access_pass_experience_data["experience"].present?
+      assert_equal access_pass_experience_data["experience"]["id"], access_pass_experience.experience.id
+    end
     assert_equal_or_nil access_pass_experience_data["included"], access_pass_experience.included
     assert_equal_or_nil access_pass_experience_data["position"], access_pass_experience.position
     # 🚅 super scaffolding will insert new fields above this line.
@@ -71,9 +76,12 @@ class Api::V1::AccessPassExperiencesControllerTest < Api::Test
   test "create" do
     # Use the serializer to generate a payload, but strip some attributes out.
     params = {access_token: access_token}
-    access_pass_experience_data = JSON.parse(build(:access_pass_experience, access_pass: nil).api_attributes.to_json)
-    access_pass_experience_data.except!("id", "access_pass_id", "created_at", "updated_at")
-    params[:access_pass_experience] = access_pass_experience_data
+    test_experience = create(:experience, space: @space)
+    params[:access_pass_experience] = {
+      experience_id: test_experience.id,
+      included: true,
+      position: 1
+    }
 
     post "/api/v1/access_passes/#{@access_pass.id}/access_pass_experiences", params: params
     assert_response :success
@@ -92,6 +100,8 @@ class Api::V1::AccessPassExperiencesControllerTest < Api::Test
     put "/api/v1/access_pass_experiences/#{@access_pass_experience.id}", params: {
       access_token: access_token,
       access_pass_experience: {
+        included: false,
+        position: 2
         # 🚅 super scaffolding will also insert new fields above this line.
       }
     }
@@ -103,6 +113,8 @@ class Api::V1::AccessPassExperiencesControllerTest < Api::Test
 
     # But we have to manually assert the value was properly updated.
     @access_pass_experience.reload
+    assert_equal false, @access_pass_experience.included
+    assert_equal 2, @access_pass_experience.position
     # 🚅 super scaffolding will additionally insert new fields above this line.
 
     # Also ensure we can't do that same action as another user.

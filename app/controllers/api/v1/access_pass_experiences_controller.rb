@@ -45,6 +45,7 @@ if defined?(Api::V1::ApplicationController)
         strong_params = params.require(:access_pass_experience).permit(
           *permitted_fields,
           :experience,
+          :experience_id,
           :included,
           :position,
           # 🚅 super scaffolding will insert new fields above this line.
@@ -53,6 +54,16 @@ if defined?(Api::V1::ApplicationController)
         )
 
         process_params(strong_params)
+
+        strong_params
+      end
+
+      def process_params(strong_params)
+        # Convert experience_id to experience association if provided
+        if strong_params[:experience_id].present?
+          strong_params[:experience] = Experience.find(strong_params[:experience_id])
+          strong_params.delete(:experience_id)
+        end
 
         strong_params
       end
