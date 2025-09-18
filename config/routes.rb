@@ -37,6 +37,8 @@ Rails.application.routes.draw do
     # 🚅 super scaffolding will insert new api versions above this line.
   end
   namespace :account do
+    get "analytics", to: "analytics#index"
+    get "analytics/index"
     shallow do
       # The account root `/` path is routed to `Account::Dashboard#index` by default. You can set it
       # to whatever you want by doing something like this:
@@ -116,6 +118,10 @@ Rails.application.routes.draw do
         namespace :billing do
           resources :purchases
         end
+
+        namespace :analytics do
+          resources :daily_snapshots
+        end
       end
     end
   end
@@ -134,6 +140,22 @@ Rails.application.routes.draw do
     # The root `/` path is routed to `Public::HomeController#index` by default.
     root to: "home#index"
 
+    # STREAMING ROUTES - HIGHEST PRIORITY
+    # Experience routes
+    get "/:space_slug/:experience_slug", to: "experiences#show",
+      constraints: {experience_slug: /[a-zA-Z0-9_-]+/}, as: :public_space_experience
+    get "/:space_slug/:experience_slug/streams/:stream_id", to: "experiences#stream", as: :public_experience_stream
+
+    # API endpoints for streaming
+    get "/:space_slug/:experience_slug/video_token", to: "experiences#video_token"
+    get "/:space_slug/:experience_slug/chat_token", to: "experiences#chat_token"
+    get "/:space_slug/:experience_slug/stream_info", to: "experiences#stream_info"
+
+    # Stream-specific API endpoints
+    get "/:space_slug/:experience_slug/streams/:stream_id/video_token", to: "experiences#video_token"
+    get "/:space_slug/:experience_slug/streams/:stream_id/chat_token", to: "experiences#chat_token"
+    get "/:space_slug/:experience_slug/streams/:stream_id/stream_info", to: "experiences#stream_info"
+
     # Priority routes - these take precedence over catch-all space routes
     # Add static pages here as needed (about, terms, privacy, etc.)
     get "about", to: "pages#about"
@@ -150,8 +172,15 @@ Rails.application.routes.draw do
     get "/:space_slug/:access_pass_slug/purchase", to: "purchases#new", as: :new_space_access_pass_purchase
     post "/:space_slug/:access_pass_slug/purchase", to: "purchases#create", as: :space_access_pass_purchase
 
+    # Waitlist routes - must come before catch-all routes
+    get "/:space_slug/:access_pass_slug/waitlist", to: "waitlist_entries#new", as: :new_waitlist_entry
+    post "/:space_slug/:access_pass_slug/waitlist", to: "waitlist_entries#create", as: :waitlist_entries
+    get "/:space_slug/:access_pass_slug/waitlist/success", to: "waitlist_entries#success", as: :waitlist_success
+
     # Stripe webhook endpoint
     post "/webhooks/stripe", to: "purchases#stripe_webhook"
+
+    # Experience routes moved to top of public scope for highest priority
 
     # CATCH-ALL ROUTES - These must be absolutely last!
     # Space routes at root level for clean URLs (backstagepass.com/space-slug)

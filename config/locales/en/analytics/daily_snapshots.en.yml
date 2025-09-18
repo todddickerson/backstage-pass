@@ -1,0 +1,138 @@
+en:
+  analytics/daily_snapshots: &daily_snapshots
+    label: &label Daily Snapshots
+    breadcrumbs:
+      label: *label
+    navigation:
+      label: *label
+      icon: fal fa-puzzle-piece
+    buttons: &buttons
+      new: Add New Daily Snapshot
+      create: Create Daily Snapshot
+      edit: Edit Daily Snapshot
+      update: Update Daily Snapshot
+      destroy: Remove Daily Snapshot
+      shorthand:
+        edit: Edit
+        destroy: Delete
+      confirmations:
+        # TODO customize for your use-case.
+        destroy: Are you sure you want to remove %{daily_snapshot_name}? This will also remove any child resources and can't be undone.
+    daily_snapshot:
+      buttons: *buttons
+    fields: &fields
+      id:
+        heading: Daily Snapshot ID
+      team_id:
+        heading: Team ID
+      date:
+        _: &date Date
+        label: *date
+        heading: *date
+        api_title: *date
+        api_description: *date
+      space_id: &space
+        _: &space_id Space
+        label: *space_id
+        heading: *space_id
+        api_title: *space_id
+        api_description: *space_id
+        placeholder: None
+      space: *space
+      total_revenue_cents:
+        _: &total_revenue_cents Total Revenue Cents
+        label: *total_revenue_cents
+        heading: *total_revenue_cents
+        api_title: *total_revenue_cents
+        api_description: *total_revenue_cents
+      purchases_count:
+        _: &purchases_count Purchases Count
+        label: *purchases_count
+        heading: *purchases_count
+        api_title: *purchases_count
+        api_description: *purchases_count
+      active_passes_count:
+        _: &active_passes_count Active Passes Count
+        label: *active_passes_count
+        heading: *active_passes_count
+        api_title: *active_passes_count
+        api_description: *active_passes_count
+      stream_views:
+        _: &stream_views Stream Views
+        label: *stream_views
+        heading: *stream_views
+        api_title: *stream_views
+        api_description: *stream_views
+      chat_messages:
+        _: &chat_messages Chat Messages
+        label: *chat_messages
+        heading: *chat_messages
+        api_title: *chat_messages
+        api_description: *chat_messages
+      # 🚅 super scaffolding will insert new fields above this line.
+      created_at:
+        _: &created_at Added
+        label: *created_at
+        heading: *created_at
+      updated_at:
+        _: &updated_at Updated
+        label: *updated_at
+        heading: *updated_at
+    api:
+      collection_actions: "Collection Actions for Daily Snapshots"
+      index: "List Daily Snapshots"
+      create: "Add a New Daily Snapshot"
+      member_actions: "Actions for an Individual Daily Snapshot"
+      show: "Retrieve a Daily Snapshot"
+      update: "Update a Daily Snapshot"
+      destroy: "Delete a Daily Snapshot"
+      fields: *fields
+    index:
+      section: "%{teams_possessive} Daily Snapshots"
+      contexts:
+        team:
+          header: Daily Snapshots
+          description: Below is a list of Daily Snapshots that have been added for %{team_name}.
+          description_empty: No Daily Snapshots have been added for %{team_name}.
+      fields: *fields
+      buttons: *buttons
+    show:
+      section: "%{daily_snapshot_name}"
+      header: Daily Snapshot Details
+      description: Below are the details we have for %{daily_snapshot_name}.
+      manage_description: You'll also find options for updating these details or removing %{daily_snapshot_name} from %{team_name} entirely.
+      fields: *fields
+      buttons: *buttons
+    form: &form
+      buttons: *buttons
+      fields: *fields
+    new:
+      section: "New Daily Snapshot for %{team_name}"
+      header: New Daily Snapshot Details
+      description: Please provide the details of the new Daily Snapshot you'd like to add to %{team_name}.
+      form: *form
+    edit:
+      section: "%{daily_snapshot_name}"
+      header: Edit Daily Snapshot Details
+      description: You can update the details or settings for %{daily_snapshot_name} below.
+      form: *form
+    notifications:
+      created: Daily Snapshot was successfully created.
+      updated: Daily Snapshot was successfully updated.
+      destroyed: Daily Snapshot was successfully destroyed.
+  account:
+    analytics:
+      daily_snapshots: *daily_snapshots
+  activerecord:
+    attributes:
+      analytics/daily_snapshot:
+        date: *date
+        space_id: *space_id
+        total_revenue_cents: *total_revenue_cents
+        purchases_count: *purchases_count
+        active_passes_count: *active_passes_count
+        stream_views: *stream_views
+        chat_messages: *chat_messages
+        # 🚅 super scaffolding will insert new activerecord attributes above this line.
+        created_at: *created_at
+        updated_at: *updated_at

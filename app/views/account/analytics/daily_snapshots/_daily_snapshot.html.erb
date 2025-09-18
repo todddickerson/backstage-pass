@@ -1,0 +1,31 @@
+<% team = @team || @team %>
+<% context ||= team %>
+<% collection ||= :analytics_daily_snapshots %>
+<% hide_actions ||= false %>
+<% hide_back ||= false %>
+
+<% with_attribute_settings object: daily_snapshot do %>
+  <tr data-id="<%= daily_snapshot.id %>">
+    <%= render "shared/tables/checkbox", object: daily_snapshot %>
+    <td><%= render 'shared/attributes/date', attribute: :date, url: [:account, daily_snapshot] %></td>
+    <td><%= render 'shared/attributes/belongs_to', attribute: :space %></td>
+    <td><%= render 'shared/attributes/number', attribute: :total_revenue_cents %></td>
+    <td><%= render 'shared/attributes/number', attribute: :purchases_count %></td>
+    <td><%= render 'shared/attributes/number', attribute: :active_passes_count %></td>
+    <td><%= render 'shared/attributes/number', attribute: :stream_views %></td>
+    <td><%= render 'shared/attributes/number', attribute: :chat_messages %></td>
+    <%# 🚅 super scaffolding will insert new fields above this line. %>
+    <td><%= render 'shared/attributes/date_and_time', attribute: :created_at %></td>
+    <td class="buttons">
+      <% unless hide_actions %>
+        <% if can? :edit, daily_snapshot %>
+          <%= link_to t('.buttons.shorthand.edit'), [:edit, :account, daily_snapshot], class: 'button-secondary button-smaller' %>
+        <% end %>
+        <% if can? :destroy, daily_snapshot %>
+          <%= button_to t('.buttons.shorthand.destroy'), [:account, daily_snapshot], method: :delete, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(daily_snapshot)) }, class: 'button-secondary button-smaller' %>
+        <% end %>
+        <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
+      <% end %>
+    </td>
+  </tr>
+<% end %>

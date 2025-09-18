@@ -8,6 +8,7 @@ class Team < ApplicationRecord
   has_many :spaces, dependent: :destroy
   has_many :access_grants, dependent: :destroy
   has_many :billing_purchases, class_name: "Billing::Purchase", dependent: :destroy
+  has_many :analytics_daily_snapshots, class_name: "Analytics::DailySnapshot", dependent: :destroy
   # 🚅 add has_many associations above.
 
   # 🚅 add oauth providers above.

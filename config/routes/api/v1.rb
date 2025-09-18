@@ -54,6 +54,10 @@ shallow do
       namespace :billing do
         resources :purchases
       end
+
+      namespace :analytics do
+        resources :daily_snapshots
+      end
     end
   end
 end

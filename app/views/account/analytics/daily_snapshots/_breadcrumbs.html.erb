@@ -1,0 +1,8 @@
+<% daily_snapshot ||= @daily_snapshot %>
+<% team ||= @team || daily_snapshot&.team %>
+<%= render 'account/teams/breadcrumbs', team: team %>
+<%= render 'account/shared/breadcrumb', label: t('.label'), url: [:account, team, :analytics_daily_snapshots] %>
+<% if daily_snapshot&.persisted? %>
+  <%= render 'account/shared/breadcrumb', label: daily_snapshot.label_string, url: [:account, daily_snapshot] %>
+<% end %>
+<%= render 'account/shared/breadcrumbs/actions', only_for: 'analytics/daily_snapshots' %>

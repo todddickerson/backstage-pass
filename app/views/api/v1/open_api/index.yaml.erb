@@ -30,6 +30,7 @@ components:
     <%= automatic_components_for Stream %>
     <%= automatic_components_for Streaming::ChatRoom %>
     <%= automatic_components_for AccessPasses::WaitlistEntry %>
+    <%= automatic_components_for Analytics::DailySnapshot %>
     <%# 🚅 super scaffolding will insert new components above this line. %>
   parameters:
     id:
@@ -73,4 +74,5 @@ paths:
   <%= automatic_paths_for Stream, Experience %>
   <%= automatic_paths_for Streaming::ChatRoom, Stream %>
   <%= automatic_paths_for AccessPasses::WaitlistEntry, AccessPass %>
+  <%= automatic_paths_for Analytics::DailySnapshot, Team %>
   <%# 🚅 super scaffolding will insert new paths above this line. %>
