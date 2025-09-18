@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_18_161715) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_18_182503) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -79,7 +79,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_161715) do
     t.datetime "rejected_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
     t.index ["access_pass_id"], name: "index_access_passes_waitlist_entries_on_access_pass_id"
+    t.index ["user_id"], name: "index_access_passes_waitlist_entries_on_user_id"
   end
 
   create_table "account_onboarding_invitation_lists", force: :cascade do |t|
@@ -554,6 +556,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_161715) do
   add_foreign_key "access_pass_experiences", "experiences", name: "access_pass_experiences_experience_id_fkey"
   add_foreign_key "access_passes", "spaces"
   add_foreign_key "access_passes_waitlist_entries", "access_passes"
+  add_foreign_key "access_passes_waitlist_entries", "users"
   add_foreign_key "account_onboarding_invitation_lists", "teams"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"

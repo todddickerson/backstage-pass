@@ -1,5 +1,5 @@
 class Account::AccessPasses::WaitlistEntriesController < Account::ApplicationController
-  account_load_and_authorize_resource :waitlist_entry, through: :access_pass, through_association: :waitlist_entries
+  account_load_and_authorize_resource :waitlist_entry, through: :access_pass, through_association: :waitlist_entries, shallow: true
 
   # GET /account/access_passes/:access_pass_id/waitlist_entries
   # GET /account/access_passes/:access_pass_id/waitlist_entries.json
@@ -61,6 +61,7 @@ class Account::AccessPasses::WaitlistEntriesController < Account::ApplicationCon
 
   # POST /account/access_passes/waitlist_entries/:id/approve
   def approve
+    @waitlist_entry ||= AccessPasses::WaitlistEntry.find(params[:id])
     if @waitlist_entry.pending?
       @waitlist_entry.status = "approved"
       @waitlist_entry.approved_at = Time.current
@@ -80,6 +81,7 @@ class Account::AccessPasses::WaitlistEntriesController < Account::ApplicationCon
 
   # POST /account/access_passes/waitlist_entries/:id/reject
   def reject
+    @waitlist_entry ||= AccessPasses::WaitlistEntry.find(params[:id])
     if @waitlist_entry.pending?
       @waitlist_entry.status = "rejected"
       @waitlist_entry.rejected_at = Time.current

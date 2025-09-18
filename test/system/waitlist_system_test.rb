@@ -174,7 +174,7 @@ class WaitlistSystemTest < ApplicationSystemTestCase
     end
 
     # Should see success message
-    assert_text("Waitlist entry was successfully approved")
+    assert_text("Application has been approved and email sent.")
 
     # Should see updated status
     assert_text("Approved")
@@ -211,7 +211,7 @@ class WaitlistSystemTest < ApplicationSystemTestCase
     end
 
     # Should see success message
-    assert_text("Waitlist entry was successfully rejected")
+    assert_text("Application has been rejected.")
 
     # Should see updated status
     assert_text("Rejected")
@@ -275,7 +275,7 @@ class WaitlistSystemTest < ApplicationSystemTestCase
     end
 
     click_on "Join Waitlist"
-    assert_text("Thank you for joining the waitlist!")
+    assert_text("You're on the list!")
 
     # Step 2: Creator logs in and reviews application
     login_as(@creator, scope: :user)

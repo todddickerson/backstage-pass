@@ -11,7 +11,7 @@ class AccessPass < ApplicationRecord
   has_many :buyers, through: :access_grants, source: :user  # Users who bought this
   has_many :access_pass_experiences, dependent: :destroy
   has_many :experiences, through: :access_pass_experiences  # What's included in this pass
-  has_many :waitlist_entries, class_name: "AccessPasses::WaitlistEntry", dependent: :destroy, counter_cache: true
+  has_many :waitlist_entries, class_name: "AccessPasses::WaitlistEntry", dependent: :destroy
   # 🚅 add has_many associations above.
 
   has_rich_text :description

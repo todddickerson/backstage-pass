@@ -3,7 +3,7 @@ class AccessPasses::WaitlistEntry < ApplicationRecord
 
   # 🚅 add attribute accessors above.
 
-  belongs_to :access_pass
+  belongs_to :access_pass, counter_cache: :waitlist_entries_count
   belongs_to :user, optional: true  # Optional because they might not have an account yet
   # 🚅 add belongs_to associations above.
 
