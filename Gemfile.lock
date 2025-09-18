@@ -422,6 +422,8 @@ GEM
       ruby-progressbar
     minitest-retry (0.2.5)
       minitest (>= 5.0)
+    mocha (2.7.1)
+      ruby2_keywords (>= 0.0.5)
     monetize (1.13.0)
       money (~> 6.12)
     money (6.19.0)
@@ -811,6 +813,7 @@ DEPENDENCIES
   magic_test
   minitest-reporters
   minitest-retry
+  mocha
   money-rails (~> 1.15)
   mux_ruby
   parallel_tests
