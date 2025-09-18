@@ -1,0 +1,19 @@
+Thank you for your interest
+
+Hi <%= @waitlist_entry.full_name %>,
+
+Thank you for applying to <%= @access_pass.name %> at <%= @space.name %>. After careful consideration, we've decided not to move forward with your application at this time.
+
+We appreciate your interest and encourage you to explore other opportunities within our community.
+
+<% if @waitlist_entry.notes.present? %>
+A message from the creator:
+<%= @waitlist_entry.notes %>
+<% end %>
+
+Explore Other Spaces: <%= request.base_url %>/explore
+
+If you have any questions, please don't hesitate to reach out to us.
+
+---
+© <%= Date.current.year %> Backstage Pass. All rights reserved.

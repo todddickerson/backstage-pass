@@ -11,7 +11,7 @@ class AccessPass < ApplicationRecord
   has_many :buyers, through: :access_grants, source: :user  # Users who bought this
   has_many :access_pass_experiences, dependent: :destroy
   has_many :experiences, through: :access_pass_experiences  # What's included in this pass
-  has_many :waitlist_entries, class_name: "AccessPasses::WaitlistEntry", dependent: :destroy
+  has_many :waitlist_entries, class_name: "AccessPasses::WaitlistEntry", dependent: :destroy, counter_cache: true
   # 🚅 add has_many associations above.
 
   has_rich_text :description
@@ -88,6 +88,40 @@ class AccessPass < ApplicationRecord
 
   def public_url
     "/#{space.slug}/#{slug}"
+  end
+
+  # Custom questions management
+  def has_custom_questions?
+    custom_questions.present? && custom_questions.any?
+  end
+
+  def parsed_custom_questions
+    return [] if custom_questions.blank?
+    custom_questions.is_a?(Array) ? custom_questions : []
+  end
+
+  def add_custom_question(question_text, question_type = "text", required = true)
+    questions = parsed_custom_questions
+    questions << {
+      "id" => SecureRandom.uuid,
+      "text" => question_text,
+      "type" => question_type,
+      "required" => required,
+      "options" => []
+    }
+    self.custom_questions = questions
+  end
+
+  def remove_custom_question(question_id)
+    questions = parsed_custom_questions
+    questions.reject! { |q| q["id"] == question_id }
+    self.custom_questions = questions
+  end
+
+  def waitlist_enabled?
+    # For now, waitlist is enabled for all published access passes
+    # In the future, this could be a configurable field
+    published?
   end
 
   private

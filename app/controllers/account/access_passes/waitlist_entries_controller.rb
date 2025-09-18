@@ -85,6 +85,9 @@ class Account::AccessPasses::WaitlistEntriesController < Account::ApplicationCon
       @waitlist_entry.rejected_at = Time.current
 
       if @waitlist_entry.save
+        # Send rejection email
+        WaitlistMailer.rejection_email(@waitlist_entry).deliver_later
+
         redirect_to [:account, @waitlist_entry], notice: I18n.t("access_passes/waitlist_entries.notifications.rejected")
       else
         redirect_to [:account, @waitlist_entry], alert: I18n.t("access_passes/waitlist_entries.notifications.rejection_failed")

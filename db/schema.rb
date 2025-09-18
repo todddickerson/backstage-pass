@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_18_151301) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_18_161715) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -57,11 +57,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_151301) do
     t.string "stripe_monthly_price_id"
     t.string "stripe_yearly_price_id"
     t.integer "access_grants_count", default: 0, null: false
+    t.jsonb "custom_questions"
+    t.integer "waitlist_entries_count", default: 0, null: false
     t.index ["pricing_type", "created_at"], name: "index_access_passes_on_pricing_type_and_created_at"
     t.index ["slug"], name: "index_access_passes_on_slug"
     t.index ["space_id", "price_cents"], name: "index_access_passes_on_space_id_and_price_cents"
     t.index ["space_id", "slug"], name: "index_access_passes_on_space_id_and_slug", unique: true
     t.index ["space_id"], name: "index_access_passes_on_space_id"
+    t.index ["waitlist_entries_count"], name: "index_access_passes_on_waitlist_entries_count"
   end
 
   create_table "access_passes_waitlist_entries", force: :cascade do |t|
@@ -147,6 +150,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_151301) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["addressable_type", "addressable_id"], name: "index_addresses_on_addressable"
+  end
+
+  create_table "analytics_daily_snapshots", force: :cascade do |t|
+    t.bigint "team_id", null: false
+    t.date "date"
+    t.bigint "space_id"
+    t.integer "total_revenue_cents"
+    t.integer "purchases_count"
+    t.integer "active_passes_count"
+    t.integer "stream_views"
+    t.integer "chat_messages"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["space_id"], name: "index_analytics_daily_snapshots_on_space_id"
+    t.index ["team_id"], name: "index_analytics_daily_snapshots_on_team_id"
   end
 
   create_table "audit_logs", force: :cascade do |t|
@@ -360,9 +378,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_151301) do
     t.datetime "updated_at", null: false
     t.integer "experiences_count", default: 0, null: false
     t.integer "access_passes_count", default: 0, null: false
+    t.integer "purchases_count", default: 0, null: false
+    t.integer "active_passes_count", default: 0, null: false
+    t.integer "total_revenue_cents", default: 0, null: false
+    t.index ["purchases_count"], name: "index_spaces_on_purchases_count"
     t.index ["slug"], name: "index_spaces_on_slug"
     t.index ["team_id", "created_at"], name: "index_spaces_on_team_id_and_created_at"
     t.index ["team_id"], name: "index_spaces_on_team_id"
+    t.index ["total_revenue_cents"], name: "index_spaces_on_total_revenue_cents"
   end
 
   create_table "streaming_chat_rooms", force: :cascade do |t|
@@ -388,9 +411,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_151301) do
     t.integer "viewer_count"
     t.string "recording_url"
     t.integer "max_viewers"
+    t.integer "max_viewer_count", default: 0, null: false
+    t.integer "total_viewers", default: 0, null: false
+    t.integer "chat_messages_count", default: 0, null: false
     t.index ["experience_id", "status"], name: "index_streams_on_experience_id_and_status"
     t.index ["experience_id"], name: "index_streams_on_experience_id"
+    t.index ["max_viewer_count"], name: "index_streams_on_max_viewer_count"
     t.index ["status", "scheduled_at"], name: "index_streams_on_status_and_scheduled_at"
+    t.index ["total_viewers"], name: "index_streams_on_total_viewers"
   end
 
   create_table "teams", id: :serial, force: :cascade do |t|
@@ -529,6 +557,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_151301) do
   add_foreign_key "account_onboarding_invitation_lists", "teams"
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "analytics_daily_snapshots", "spaces"
+  add_foreign_key "analytics_daily_snapshots", "teams"
   add_foreign_key "audit_logs", "users"
   add_foreign_key "billing_purchases", "access_passes"
   add_foreign_key "billing_purchases", "teams"

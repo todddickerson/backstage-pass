@@ -37,6 +37,8 @@ Rails.application.routes.draw do
     # 🚅 super scaffolding will insert new api versions above this line.
   end
   namespace :account do
+    get "analytics", to: "analytics#index"
+    get "analytics/index"
     shallow do
       # The account root `/` path is routed to `Account::Dashboard#index` by default. You can set it
       # to whatever you want by doing something like this:
@@ -116,6 +118,10 @@ Rails.application.routes.draw do
         namespace :billing do
           resources :purchases
         end
+
+        namespace :analytics do
+          resources :daily_snapshots
+        end
       end
     end
   end
@@ -165,6 +171,11 @@ Rails.application.routes.draw do
     # Purchase routes - must come before catch-all routes
     get "/:space_slug/:access_pass_slug/purchase", to: "purchases#new", as: :new_space_access_pass_purchase
     post "/:space_slug/:access_pass_slug/purchase", to: "purchases#create", as: :space_access_pass_purchase
+
+    # Waitlist routes - must come before catch-all routes
+    get "/:space_slug/:access_pass_slug/waitlist", to: "waitlist_entries#new", as: :new_waitlist_entry
+    post "/:space_slug/:access_pass_slug/waitlist", to: "waitlist_entries#create", as: :waitlist_entries
+    get "/:space_slug/:access_pass_slug/waitlist/success", to: "waitlist_entries#success", as: :waitlist_success
 
     # Stripe webhook endpoint
     post "/webhooks/stripe", to: "purchases#stripe_webhook"

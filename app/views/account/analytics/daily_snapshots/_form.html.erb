@@ -1,0 +1,24 @@
+<% cancel_path ||= daily_snapshot.persisted? ? [:account, daily_snapshot] : [:account, @team, :analytics_daily_snapshots] %>
+
+<%= form_with model: daily_snapshot, url: (daily_snapshot.persisted? ? [:account, daily_snapshot] : [:account, @team, :analytics_daily_snapshots]), class: 'form' do |form| %>
+  <%= render "shared/limits/form", form: form, cancel_path: cancel_path do %>
+    <%= render 'account/shared/forms/errors', form: form %>
+
+    <% with_field_settings form: form do %>
+      <%= render 'shared/fields/date_field', method: :date, options: {autofocus: true} %>
+      <%= render 'shared/fields/super_select', method: :space_id, options: {}, html_options: {},
+        choices: @daily_snapshot.valid_spaces.map { |space| [space.label_string, space.id] } %>
+      <%= render 'shared/fields/number_field', method: :total_revenue_cents %>
+      <%= render 'shared/fields/number_field', method: :purchases_count %>
+      <%= render 'shared/fields/number_field', method: :active_passes_count %>
+      <%= render 'shared/fields/number_field', method: :stream_views %>
+      <%= render 'shared/fields/number_field', method: :chat_messages %>
+      <%# 🚅 super scaffolding will insert new fields above this line. %>
+    <% end %>
+
+    <div class="buttons">
+      <%= form.submit (form.object.persisted? ? t('.buttons.update') : t('.buttons.create')), class: "button" %>
+      <%= link_to t('global.buttons.cancel'), cancel_path, class: "button-secondary" %>
+    </div>
+  <% end %>
+<% end %>

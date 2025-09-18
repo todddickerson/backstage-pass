@@ -225,6 +225,7 @@ GEM
       capybara (>= 3.0)
       ruby2_keywords
       selenium-webdriver (>= 4.0)
+    chartkick (5.2.0)
     childprocess (5.1.0)
       logger (~> 1.5)
     choice (0.2.0)
@@ -789,6 +790,7 @@ DEPENDENCIES
   capybara (~> 3.39)
   capybara-email
   capybara-lockstep
+  chartkick
   chronic
   colorize
   cssbundling-rails
