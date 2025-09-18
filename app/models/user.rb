@@ -59,7 +59,7 @@ class User < ApplicationRecord
 
   def normalize_timezone
     return if time_zone.blank?
-    
+
     # If the timezone is not valid, default to Eastern Time
     unless ActiveSupport::TimeZone.all.map(&:name).include?(time_zone)
       self.time_zone = "Eastern Time (US & Canada)"
