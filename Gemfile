@@ -75,6 +75,9 @@ group :development, :test do
   # In CI we use parallel tests to help increase test speed while keeping the number of
   # test runners down. You can tweak the workflow to adjust your parallelism as needed.
   gem "parallel_tests"
+
+  # Mocking and stubbing for tests
+  gem "mocha"
 end
 
 group :development do

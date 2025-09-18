@@ -1,6 +1,6 @@
 class Public::PurchasesController < Public::ApplicationController
-  before_action :authenticate_user!
-  before_action :load_access_pass
+  before_action :authenticate_user!, except: [:stripe_webhook]
+  before_action :load_access_pass, except: [:stripe_webhook]
 
   # GET /spaces/:space_slug/:access_pass_slug/purchase
   def new
@@ -108,8 +108,8 @@ class Public::PurchasesController < Public::ApplicationController
       grant.status = "active"
     end
 
-    # Send confirmation email
-    PurchaseMailer.confirmation(purchase).deliver_later
+    # Send confirmation email (TODO: Create PurchaseMailer)
+    # PurchaseMailer.confirmation(purchase).deliver_later
   end
 
   def handle_payment_intent_failed(payment_intent)

@@ -75,6 +75,8 @@ end
 # Load external service mocks
 require_relative "support/external_service_mocks"
 
+require "mocha/minitest"
+
 ActiveSupport::TestCase.class_eval do
   # Run tests in parallel with specified workers
   # parallelize(workers: :number_of_processors)

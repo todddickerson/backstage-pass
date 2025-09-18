@@ -1,13 +1,44 @@
 # 🤖 AI Current Tasks
 
-*Last synced: $(date)*
+*Last synced: Thu Sep 18 15:30:00 EDT 2025*
+*Current Sprint: Week 1: Foundation*
 
-## ℹ️ No AI-Ready Tasks Available
+## 📊 GitHub Status
+### Project: Not configured
 
-No issues are currently labeled as `ai/ready`.
+## 🎯 Task Priority Order
 
-### To add tasks:
-1. Create issues on GitHub
-2. Label them with `ai/ready`
-3. Run `bin/gh-sync` again
+### 🔴 CRITICAL Priority (Do First!)
 
+### 🟡 HIGH Priority
+*No high priority issues*
+
+### 📅 Current Sprint (Week 1)
+*No current sprint issues*
+
+### 📋 Other AI-Ready Issues
+
+## 💡 Workflow Commands
+
+```bash
+# Start working on an issue
+bin/gh-start <issue-number>
+
+# Complete and create PR
+bin/gh-complete <issue-number> "PR title"
+
+# Check project status
+bin/gh-project-status
+
+# Check milestone progress
+bin/gh-milestone-status
+
+# Move issue on project board
+bin/gh-project-move <issue> "In Progress"
+```
+
+## 🚨 Important Notes
+- ALWAYS work on CRITICAL priority first
+- ALWAYS run tests before completing
+- NEVER leave issues in ai/working state
+- ALWAYS follow conventions in CLAUDE.md
