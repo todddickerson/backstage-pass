@@ -11,7 +11,7 @@ A message from the creator:
 <%= @waitlist_entry.notes %>
 <% end %>
 
-Explore Other Spaces: <%= request.base_url %>/explore
+Explore Other Spaces: <%= Rails.application.config.action_mailer.default_url_options[:host] %>/explore
 
 If you have any questions, please don't hesitate to reach out to us.
 

@@ -24,7 +24,7 @@
   
   <div style="text-align: center; margin: 30px 0;">
     <%= link_to "Explore Other Spaces", 
-        "#{request.base_url}/explore",
+        "#{Rails.application.config.action_mailer.default_url_options[:host]}/explore",
         style: "display: inline-block; padding: 12px 30px; background-color: #6b7280; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;" %>
   </div>
   
