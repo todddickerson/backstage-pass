@@ -76,6 +76,10 @@ en:
       created: Access Pass was successfully created.
       updated: Access Pass was successfully updated.
       destroyed: Access Pass was successfully destroyed.
+    not_found: "Access pass not found"
+    purchase:
+      success: "Successfully purchased access pass!"
+      failed: "Purchase failed. Please try again."
   account:
     access_passes: *access_passes
   activerecord:

@@ -1,0 +1,8 @@
+en:
+  purchases:
+    success: "Purchase completed successfully!"
+    failed: "Purchase failed. Please try again."
+    processing: "Processing payment..."
+    confirmation:
+      subject: "Your purchase confirmation"
+      body: "Thank you for your purchase!"

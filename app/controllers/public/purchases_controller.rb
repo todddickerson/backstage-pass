@@ -32,7 +32,7 @@ class Public::PurchasesController < Public::ApplicationController
     result = service.execute
 
     if result[:success]
-      redirect_to space_path(@access_pass.space.slug), notice: t("purchases.success")
+      redirect_to public_space_path(@access_pass.space.slug), notice: t("purchases.success")
     else
       flash[:alert] = result[:error] || t("purchases.failed")
       redirect_to new_space_access_pass_purchase_path(@access_pass.space.slug, @access_pass.slug)
