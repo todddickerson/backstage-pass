@@ -43,7 +43,9 @@ class AccessGrant < ApplicationRecord
   }
 
   def active?
-    status&.to_s == "active" && (expires_at.nil? || expires_at > Time.current)
+    return false unless status&.to_s == "active"
+    return true if expires_at.nil?
+    expires_at > Time.current
   end
 
   def space
