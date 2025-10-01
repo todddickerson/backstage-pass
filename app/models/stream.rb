@@ -40,9 +40,9 @@ class Stream < ApplicationRecord
     return true if experience.space.team.users.include?(user)
 
     # Check if user has valid access pass for this experience or space
-    user&.access_grants&.active&.where(
+    user&.access_grants&.where(
       purchasable: [experience, experience.space]
-    )&.exists?
+    )&.any?(&:active?)
   end
 
   # Check if user can broadcast (host) this stream

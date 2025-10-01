@@ -102,7 +102,7 @@ class Space < ApplicationRecord
       return membership.role if membership
 
       # Check access grant (viewer role) - but this doesn't grant content access automatically
-      access_grant = user.access_grants.active.where(purchasable: self).first
+      access_grant = user.access_grants.where(purchasable: self).find { |g| g.active? }
       return "viewer" if access_grant
 
       nil
@@ -113,7 +113,7 @@ class Space < ApplicationRecord
     return false unless user
     membership = team.memberships.find_by(user: user)
     return false unless membership
-    %w[admin editor].include?(membership.role)
+    membership.admin? || membership.editor?
   end
 
   def user_can_view_space?(user)
@@ -130,11 +130,11 @@ class Space < ApplicationRecord
 
     # Viewers (including access grant holders) need specific content access
     # Check for specific experience access grant
-    has_experience_grant = user.access_grants.active.where(purchasable: experience).exists?
+    has_experience_grant = user.access_grants.where(purchasable: experience).any?(&:active?)
     return true if has_experience_grant
 
     # Check for space-level access grant (grants access to all experiences in space)
-    has_space_grant = user.access_grants.active.where(purchasable: self).exists?
+    has_space_grant = user.access_grants.where(purchasable: self).any?(&:active?)
     return true if has_space_grant
 
     false
@@ -145,13 +145,14 @@ class Space < ApplicationRecord
     return experiences if user_can_manage?(user)
 
     # For viewers (including access grant holders), check specific access
-    accessible_experience_ids = user.access_grants.active
+    accessible_experience_ids = user.access_grants
       .where(purchasable_type: "Experience")
       .where(purchasable_id: experience_ids)
+      .select(&:active?)
       .pluck(:purchasable_id)
 
     # If user has space-level access grant, they can see all experiences
-    if user.access_grants.active.where(purchasable: self).exists?
+    if user.access_grants.where(purchasable: self).any?(&:active?)
       return experiences
     end
 
