@@ -49,7 +49,13 @@ class Stream < ApplicationRecord
   # Check if user can broadcast (host) this stream
   def can_broadcast?(user)
     return false unless user
-    experience.space.team.users.include?(user)
+
+    # User must be a team member, but not just a "buyer" (access pass holder)
+    membership = experience.space.team.memberships.find_by(user: user)
+    return false unless membership
+
+    # Buyers (access pass holders) cannot broadcast
+    !membership.role_ids.include?("buyer") || membership.role_ids.length > 1
   end
 
   # Generate a unique stream URL for public viewing

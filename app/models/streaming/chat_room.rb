@@ -23,6 +23,11 @@ class Streaming::ChatRoom < ApplicationRecord
 
   # 🚅 add delegations above.
 
+  # Alias for channel_id to make intent clearer in views/controllers
+  def getstream_channel_id
+    channel_id
+  end
+
   # Initialize GetStream.io chat service
   def chat_service
     @chat_service ||= Streaming::ChatService.new

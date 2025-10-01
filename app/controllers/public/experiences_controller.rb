@@ -1,7 +1,12 @@
 class Public::ExperiencesController < Public::ApplicationController
+  include ChatAccessControl
+
   before_action :set_space
   before_action :set_experience
   before_action :check_experience_access, except: [:show, :video_token, :chat_token, :stream_info]
+
+  # Skip verify_chat_access from ChatAccessControl - we have our own access control
+  skip_before_action :verify_chat_access
 
   # GET /:space_slug/:experience_slug
   def show
@@ -84,7 +89,9 @@ class Public::ExperiencesController < Public::ApplicationController
         token: token,
         user_id: current_user.id.to_s,
         user_name: current_user.name || current_user.email.split("@").first,
-        chat_room_id: @stream.chat_room.getstream_channel_id
+        chat_room_id: @stream.chat_room.getstream_channel_id,
+        channel_id: @stream.chat_room.getstream_channel_id,
+        api_key: ENV["GETSTREAM_API_KEY"]
       }
     else
       render json: {
@@ -112,7 +119,8 @@ class Public::ExperiencesController < Public::ApplicationController
         id: @stream.id,
         title: @stream.title,
         status: @stream.status,
-        scheduled_at: @stream.scheduled_at
+        scheduled_at: @stream.scheduled_at,
+        max_viewers: @stream.max_viewers
       },
       room_info: room_info,
       participants: participants,
