@@ -5,8 +5,9 @@ module AbilityTest
     setup do
       @user = FactoryBot.create :onboarded_user
       @another_user = FactoryBot.create :onboarded_user
-      @membership = FactoryBot.create :membership, user: @user, team: @user.current_team
-      @team = @membership.team
+      # onboarded_user already creates a team and membership, so use the existing one
+      @team = @user.current_team
+      @membership = @user.memberships.find_by(team: @team)
       @user_ability = Ability.new(@user)
     end
 
@@ -57,7 +58,9 @@ module AbilityTest
     setup do
       @admin = FactoryBot.create :onboarded_user
       @another_user = FactoryBot.create :onboarded_user
-      @membership = FactoryBot.create :membership, user: @admin, team: @admin.current_team, role_ids: [Role.admin.id]
+      # Update existing membership to admin role instead of creating duplicate
+      @membership = @admin.memberships.find_by(team: @admin.current_team)
+      @membership.update!(role_ids: [Role.admin.id])
       @admin_ability = Ability.new(@admin)
     end
 

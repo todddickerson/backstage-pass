@@ -113,13 +113,6 @@ class PurchaseFlowBasicTest < ActionDispatch::IntegrationTest
       expires_at: 1.day.ago
     )
 
-    # Debug: Check all grants for this user
-    all_grants = new_user.access_grants.where(purchasable: @space)
-    puts "Total grants: #{all_grants.count}"
-    all_grants.each do |g|
-      puts "Grant: status=#{g.status}, expires_at=#{g.expires_at}, created_at=#{g.created_at}"
-    end
-
     # The grant should not be active due to expiration
     assert_equal false, grant.active?
     assert_equal false, @space.can_access?(new_user)

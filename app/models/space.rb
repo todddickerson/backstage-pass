@@ -77,11 +77,20 @@ class Space < ApplicationRecord
   def can_access?(user)
     return false unless user
 
-    # Team members always have full access
-    return true if team.users.include?(user)
+    # Check if user has team membership
+    membership = team.memberships.find_by(user: user)
+    if membership
+      # If membership is from an access grant, verify the grant is still active
+      if membership.source == "access_pass"
+        return user.access_grants.where(purchasable: self).any?(&:active?)
+      else
+        # Regular team members (admin/editor/etc) always have access
+        return true
+      end
+    end
 
-    # Space-level access grant gives access to the space (but not necessarily all experiences)
-    user.access_grants.active.where(purchasable: self).exists?
+    # No membership - check for space-level access grant
+    user.access_grants.where(purchasable: self).any?(&:active?)
   end
 
   def role_for_user(user)
