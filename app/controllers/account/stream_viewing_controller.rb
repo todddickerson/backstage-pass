@@ -13,8 +13,8 @@ class Account::StreamViewingController < Account::ApplicationController
     @chat_room = @stream.chat_room
 
     # Get user's access grant for this content
-    @access_grant = current_user.access_grants.active.find do |grant|
-      grant.grants_access_to?(@stream) || grant.grants_access_to?(@experience) || grant.grants_access_to?(@space)
+    @access_grant = current_user.access_grants.find do |grant|
+      grant.active? && (grant.grants_access_to?(@stream) || grant.grants_access_to?(@experience) || grant.grants_access_to?(@space))
     end
 
     # Check if stream is currently accessible

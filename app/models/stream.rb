@@ -19,6 +19,7 @@ class Stream < ApplicationRecord
   validates :status, presence: true
   # 🚅 add validations above.
 
+  after_update :handle_status_change, if: :saved_change_to_status?
   # 🚅 add callbacks above.
 
   # 🚅 add delegations above.
@@ -66,6 +67,50 @@ class Stream < ApplicationRecord
     chat_room = streaming_chat_rooms.create!
     chat_room.create_chat_channel!
     chat_room
+  end
+
+  # Create LiveKit room when stream goes live
+  def create_livekit_room
+    return unless live?
+    return if livekit_room_name.present? # Already created
+
+    livekit_service = Streaming::LivekitService.new
+    room = livekit_service.create_room(self)
+
+    if room
+      Rails.logger.info "LiveKit room created: #{room.name} (SID: #{room.sid})"
+      update_column(:started_at, Time.current) unless started_at.present?
+    end
+  rescue => e
+    Rails.logger.error "Failed to create LiveKit room: #{e.message}"
+    # Don't fail the stream status change, just log the error
+  end
+
+  # Cleanup LiveKit room when stream ends
+  def cleanup_livekit_room
+    return unless ended?
+    return unless livekit_room_name.present?
+
+    livekit_service = Streaming::LivekitService.new
+    livekit_service.delete_room(self)
+
+    Rails.logger.info "LiveKit room deleted: #{livekit_room_name}"
+    update_column(:ended_at, Time.current) unless ended_at.present?
+  rescue => e
+    Rails.logger.error "Failed to delete LiveKit room: #{e.message}"
+    # Continue anyway - room will eventually timeout
+  end
+
+  # Handle stream status changes
+  def handle_status_change
+    case status
+    when "live"
+      create_livekit_room
+      # Ensure chat room exists
+      chat_room
+    when "ended"
+      cleanup_livekit_room
+    end
   end
 
   # 🚅 add methods above.
