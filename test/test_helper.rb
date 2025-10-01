@@ -34,6 +34,9 @@ end
 require "sidekiq/testing"
 Sidekiq::Testing.inline!
 
+# Configure ActiveJob to use test adapter for job assertions
+ActiveJob::Base.queue_adapter = :test
+
 ENV["MINITEST_REPORTERS_REPORTS_DIR"] = "test/reports#{ENV["TEST_ENV_NUMBER"] || ""}"
 require "minitest/reporters"
 

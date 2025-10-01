@@ -71,8 +71,8 @@ class Account::AnalyticsController < Account::ApplicationController
   end
 
   def prepare_space_performance_data
-    # Group by space and sum metrics
-    space_data = @space_snapshots.group(:space).sum(:total_revenue_cents)
+    # Group by space and sum metrics (remove ordering first to avoid SQL error)
+    space_data = @space_snapshots.reorder(nil).group(:space).sum(:total_revenue_cents)
     space_data.map do |space, revenue_cents|
       [space.name, revenue_cents / 100.0]
     end
