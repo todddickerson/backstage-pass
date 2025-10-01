@@ -139,13 +139,97 @@ module ExternalServiceMocks
       end
     end
 
+    def self.mock_setup_intent_service!
+      setup_intent = OpenStruct.new(
+        id: "seti_test_#{SecureRandom.hex(8)}",
+        client_secret: "seti_test_secret_#{SecureRandom.hex(8)}",
+        customer: "cus_test",
+        status: "requires_payment_method",
+        usage: "off_session",
+        payment_method: nil
+      )
+
+      ::Stripe::SetupIntent.stub(:create, setup_intent) do
+        ::Stripe::SetupIntent.stub(:retrieve, setup_intent) do
+          ::Stripe::SetupIntent.stub(:confirm, setup_intent.tap { |si| si.status = "succeeded" }) do
+            yield
+          end
+        end
+      end
+    end
+
+    def self.mock_payment_method_service!
+      payment_method = OpenStruct.new(
+        id: "pm_test_#{SecureRandom.hex(8)}",
+        type: "card",
+        customer: "cus_test",
+        card: OpenStruct.new(
+          brand: "visa",
+          last4: "4242",
+          exp_month: 12,
+          exp_year: 2030
+        )
+      )
+
+      ::Stripe::PaymentMethod.stub(:attach, payment_method) do
+        ::Stripe::PaymentMethod.stub(:retrieve, payment_method) do
+          ::Stripe::PaymentMethod.stub(:detach, payment_method) do
+            yield
+          end
+        end
+      end
+    end
+
+    def self.mock_product_service!
+      product = OpenStruct.new(
+        id: "prod_test_#{SecureRandom.hex(8)}",
+        name: "Test Product",
+        description: "Test product description",
+        active: true,
+        metadata: {}
+      )
+
+      ::Stripe::Product.stub(:create, product) do
+        ::Stripe::Product.stub(:retrieve, product) do
+          ::Stripe::Product.stub(:update, product) do
+            yield
+          end
+        end
+      end
+    end
+
+    def self.mock_webhook_service!
+      # Mock Stripe::Webhook.construct_event to return a properly structured event
+      ::Stripe::Webhook.stub(:construct_event, ->(payload, sig_header, secret) {
+        event_data = JSON.parse(payload)
+        OpenStruct.new(
+          id: "evt_test_#{SecureRandom.hex(8)}",
+          type: event_data["type"],
+          data: OpenStruct.new(
+            object: OpenStruct.new(event_data["data"]["object"] || {})
+          ),
+          created: Time.current.to_i
+        )
+      }) do
+        yield
+      end
+    end
+
     def self.mock_all!
       mock_customer_service! do
         mock_subscription_service! do
           mock_payment_intent_service! do
             mock_checkout_session_service! do
               mock_price_service! do
-                yield
+                mock_setup_intent_service! do
+                  mock_payment_method_service! do
+                    mock_product_service! do
+                      mock_webhook_service! do
+                        yield
+                      end
+                    end
+                  end
+                end
               end
             end
           end

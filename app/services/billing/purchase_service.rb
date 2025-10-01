@@ -12,6 +12,8 @@ module Billing
     end
 
     def execute
+      return {success: false, error: "Access pass is required"} if access_pass.nil?
+
       return handle_free_purchase if access_pass.pricing_type == "free"
       return handle_one_time_purchase if access_pass.pricing_type == "one_time"
       handle_subscription_purchase
@@ -81,7 +83,7 @@ module Billing
           {success: false, error: "Payment failed"}
         end
       end
-    rescue Stripe::Error => e
+    rescue Stripe::StripeError => e
       {success: false, error: e.message}
     end
 
@@ -128,7 +130,7 @@ module Billing
           {success: false, error: "Subscription requires payment method", subscription: subscription}
         end
       end
-    rescue Stripe::Error => e
+    rescue Stripe::StripeError => e
       {success: false, error: e.message}
     end
 

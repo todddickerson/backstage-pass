@@ -116,6 +116,9 @@ group :test do
   gem "selenium-webdriver", ">= 4.6"
 
   # gem "cuprite"
+
+  # Extract assigns and assert_template methods from Rails (removed in Rails 5)
+  gem "rails-controller-testing"
 end
 
 # BULLET TRAIN GEMS
