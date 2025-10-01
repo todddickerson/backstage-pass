@@ -32,6 +32,16 @@ en:
         api_title: *experience
         api_description: *experience
         placeholder: Select
+        id:
+          heading: Experience ID
+        space_id:
+          heading: Space ID
+        name:
+          heading: Experience Name
+        description:
+          heading: Description
+        experience_type:
+          heading: Type
         options:
           one: One
           two: Two

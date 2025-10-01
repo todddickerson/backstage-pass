@@ -1,0 +1,4 @@
+en:
+  devise:
+    hints:
+      password_length: "Minimum %{minimum_length} characters"

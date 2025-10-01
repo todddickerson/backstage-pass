@@ -14,8 +14,14 @@ class AccessGrant < ApplicationRecord
 
   # 🚅 add has_one associations above.
 
-  scope :active, -> { where(status: :active).where("expires_at > ? OR expires_at IS NULL", Time.current) }
-  scope :expired, -> { where("expires_at <= ?", Time.current) }
+  scope :active, -> {
+    where(status: "active").where(
+      "id IN (SELECT id FROM access_grants WHERE expires_at IS NULL OR expires_at > ?)",
+      Time.current
+    )
+  }
+
+  scope :expired, -> { where("expires_at IS NOT NULL AND expires_at <= ?", Time.current) }
   scope :for_spaces, -> { where(purchasable_type: "Space") }
   scope :for_experiences, -> { where(purchasable_type: "Experience") }
   # 🚅 add scopes above.
@@ -53,6 +59,7 @@ class AccessGrant < ApplicationRecord
   end
 
   def grants_access_to?(resource)
+    return false unless active? # SECURITY: Only active grants provide access
     return true if purchasable == resource
     return true if purchasable.is_a?(Space) && resource.respond_to?(:space) && resource.space == purchasable
     false
