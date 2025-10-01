@@ -6,15 +6,15 @@ module Streaming
       validate_environment!
 
       @room_service = LiveKit::RoomServiceClient.new(
-        host: livekit_host,
+        livekit_host,
         api_key: ENV["LIVEKIT_API_KEY"],
-        secret_key: ENV["LIVEKIT_API_SECRET"]
+        api_secret: ENV["LIVEKIT_API_SECRET"]
       )
 
       @egress_service = LiveKit::EgressServiceClient.new(
-        host: livekit_host,
+        livekit_host,
         api_key: ENV["LIVEKIT_API_KEY"],
-        secret_key: ENV["LIVEKIT_API_SECRET"]
+        api_secret: ENV["LIVEKIT_API_SECRET"]
       )
     end
 
@@ -73,25 +73,26 @@ module Streaming
       # Merge with custom permissions
       final_permissions = default_permissions.merge(permissions)
 
-      # Create video grants
-      video_grant = LiveKit::VideoGrant.new
-      video_grant.room_join = true
-      video_grant.room = room_name
-      video_grant.can_publish = final_permissions[:can_publish]
-      video_grant.can_subscribe = final_permissions[:can_subscribe]
-      video_grant.can_publish_data = final_permissions[:can_publish_data]
-      video_grant.can_update_metadata = final_permissions[:can_update_metadata]
+      # Create video grants (using camelCase as per gem API)
+      video_grant = LiveKit::VideoGrant.new(
+        roomJoin: true,
+        room: room_name,
+        canPublish: final_permissions[:can_publish],
+        canSubscribe: final_permissions[:can_subscribe],
+        canPublishData: final_permissions[:can_publish_data],
+        canUpdateOwnMetadata: final_permissions[:can_update_metadata]
+      )
 
       # Generate token
       token = LiveKit::AccessToken.new(
         api_key: ENV["LIVEKIT_API_KEY"],
-        api_secret: ENV["LIVEKIT_API_SECRET"]
+        api_secret: ENV["LIVEKIT_API_SECRET"],
+        identity: identity,
+        name: participant_name,
+        ttl: 24 * 60 * 60 # 24 hours
       )
 
-      token.identity = identity
-      token.name = participant_name
       token.video_grant = video_grant
-      token.ttl = 24 * 60 * 60 # 24 hours
 
       token.to_jwt
     end
