@@ -221,7 +221,7 @@ class AccessControlVerificationTest < ActionDispatch::IntegrationTest
     )
 
     # Create access grant for specific experience only
-    grant = AccessGrant.create!(
+    AccessGrant.create!(
       user: @viewer,
       team: @creator_team,
       purchasable: @experience,  # Grant for specific experience, not space
@@ -256,7 +256,7 @@ class AccessControlVerificationTest < ActionDispatch::IntegrationTest
     )
 
     # Create space-level access grant
-    grant = AccessGrant.create!(
+    AccessGrant.create!(
       user: @viewer,
       team: @creator_team,
       purchasable: @creator_space,  # Grant for entire space
