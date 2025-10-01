@@ -50,7 +50,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
 
   test "should load team snapshots" do
     # Create test data
-    Analytics::DailySnapshot.create!(
+    create(:analytics_daily_snapshot,
       team: @team,
       space: nil,
       date: Date.current,
@@ -65,7 +65,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
 
   test "should load space snapshots" do
     # Create test data
-    Analytics::DailySnapshot.create!(
+    create(:analytics_daily_snapshot,
       team: @team,
       space: @space,
       date: Date.current,
@@ -79,7 +79,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
 
   test "should calculate summary metrics" do
     # Create test data
-    Analytics::DailySnapshot.create!(
+    create(:analytics_daily_snapshot,
       team: @team,
       space: nil,
       date: Date.current,
@@ -102,12 +102,13 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
 
   test "should prepare chart data" do
     # Create test data
-    Analytics::DailySnapshot.create!(
+    create(:analytics_daily_snapshot,
       team: @team,
       space: nil,
       date: Date.current,
       total_revenue_cents: 5000,
       purchases_count: 3,
+      active_passes_count: 1,
       stream_views: 100,
       chat_messages: 50
     )
@@ -123,7 +124,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
 
   test "should load recent snapshots" do
     # Create test data
-    snapshot = Analytics::DailySnapshot.create!(
+    snapshot = create(:analytics_daily_snapshot,
       team: @team,
       space: nil,
       date: Date.current,
@@ -138,7 +139,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should set has_data flag correctly when data exists" do
-    Analytics::DailySnapshot.create!(
+    create(:analytics_daily_snapshot,
       team: @team,
       space: nil,
       date: Date.current
@@ -165,7 +166,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should not trigger analytics job when recent data exists" do
-    Analytics::DailySnapshot.create!(
+    create(:analytics_daily_snapshot,
       team: @team,
       space: nil,
       date: Date.current
