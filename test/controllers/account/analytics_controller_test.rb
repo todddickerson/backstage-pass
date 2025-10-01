@@ -54,8 +54,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
       team: @team,
       space: nil,
       date: Date.current,
-      total_revenue_cents: 5000
-    )
+      total_revenue_cents: 5000)
 
     get account_analytics_index_url
     assert_response :success
@@ -69,8 +68,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
       team: @team,
       space: @space,
       date: Date.current,
-      total_revenue_cents: 3000
-    )
+      total_revenue_cents: 3000)
 
     get account_analytics_index_url
     assert_response :success
@@ -87,8 +85,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
       purchases_count: 3,
       active_passes_count: 10,
       stream_views: 100,
-      chat_messages: 50
-    )
+      chat_messages: 50)
 
     get account_analytics_index_url
     assert_response :success
@@ -110,8 +107,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
       purchases_count: 3,
       active_passes_count: 1,
       stream_views: 100,
-      chat_messages: 50
-    )
+      chat_messages: 50)
 
     get account_analytics_index_url
     assert_response :success
@@ -128,8 +124,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
       team: @team,
       space: nil,
       date: Date.current,
-      total_revenue_cents: 5000
-    )
+      total_revenue_cents: 5000)
 
     get account_analytics_index_url
     assert_response :success
@@ -142,8 +137,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
     create(:analytics_daily_snapshot,
       team: @team,
       space: nil,
-      date: Date.current
-    )
+      date: Date.current)
 
     get account_analytics_index_url
     assert_response :success
@@ -169,8 +163,7 @@ class Account::AnalyticsControllerTest < ActionDispatch::IntegrationTest
     create(:analytics_daily_snapshot,
       team: @team,
       space: nil,
-      date: Date.current
-    )
+      date: Date.current)
 
     assert_no_enqueued_jobs do
       get account_analytics_index_url

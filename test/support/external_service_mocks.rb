@@ -2,48 +2,57 @@
 # This module provides mocks for all external services to ensure
 # tests can run without actual API calls and to provide predictable responses
 
+require "minitest/mock"
+
 module ExternalServiceMocks
   # LiveKit Mock Service
   module LiveKit
-    def self.mock_room_service!
-      room_service = Minitest::Mock.new
-
-      # Mock room creation
-      room_service.expect(:create_room,
-        OpenStruct.new(name: "test_room", sid: "RM_TEST123"),
-        [String])
-
-      # Mock room deletion
-      room_service.expect(:delete_room, true, [String])
-
-      # Mock list rooms
-      room_service.expect(:list_rooms,
-        [OpenStruct.new(name: "test_room", sid: "RM_TEST123")],
-        [])
-
-      # Mock get room
-      room_service.expect(:get_room,
-        OpenStruct.new(name: "test_room", sid: "RM_TEST123", num_participants: 0),
-        [String])
-
-      # Replace the actual service with mock
-      LivekitService.stub(:room_service, room_service) do
-        yield
-      end
-    end
-
-    def self.mock_token_service!
-      # Mock token generation
-      LivekitService.stub(:generate_token, "mock_token_#{SecureRandom.hex(8)}") do
-        yield
-      end
-    end
-
     def self.mock_all!
-      mock_room_service! do
-        mock_token_service! do
-          yield
-        end
+      # Create a mock LiveKit service instance with callable methods
+      mock_service = Object.new
+
+      # Define mock methods that accept parameters
+      mock_service.define_singleton_method(:get_room_info) do |stream|
+        OpenStruct.new(
+          name: stream.room_name,
+          sid: "RM_TEST123",
+          num_participants: 0,
+          max_participants: stream.max_viewers || 500,
+          creation_time: Time.current.to_i
+        )
+      end
+
+      mock_service.define_singleton_method(:get_room_participants) do |stream|
+        []
+      end
+
+      mock_service.define_singleton_method(:create_room) do |stream|
+        OpenStruct.new(name: stream.room_name, sid: "RM_TEST123")
+      end
+
+      mock_service.define_singleton_method(:delete_room) do |stream|
+        true
+      end
+
+      mock_service.define_singleton_method(:generate_access_token) do |stream, user, permissions = {}|
+        "mock_token_#{SecureRandom.hex(8)}"
+      end
+
+      mock_service.define_singleton_method(:generate_mobile_connection_info) do |stream, user, platform: "mobile"|
+        {
+          room_url: "wss://test.livekit.cloud",
+          access_token: "mock_token_#{SecureRandom.hex(8)}",
+          room_name: stream.room_name,
+          participant_identity: "user_#{user.id}",
+          participant_name: user.name || user.email.split("@").first,
+          can_publish: stream.can_broadcast?(user),
+          can_subscribe: true
+        }
+      end
+
+      # Stub Streaming::LivekitService.new to return our mock
+      Streaming::LivekitService.stub(:new, mock_service) do
+        yield
       end
     end
   end
