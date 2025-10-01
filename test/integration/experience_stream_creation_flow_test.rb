@@ -12,12 +12,12 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
 
   test "user can create different types of experiences" do
     # Navigate to experiences page
-    get account_team_space_experiences_path(@team, @space)
+    get account_space_experiences_path(@space)
     assert_response :success
 
     # Create live stream experience
     assert_difference "Experience.count", 1 do
-      post account_team_space_experiences_path(@team, @space), params: {
+      post account_space_experiences_path(@space), params: {
         experience: {
           name: "Live Coding Sessions",
           description: "Weekly coding streams",
@@ -34,7 +34,7 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
 
     # Create course experience
     assert_difference "Experience.count", 1 do
-      post account_team_space_experiences_path(@team, @space), params: {
+      post account_space_experiences_path(@space), params: {
         experience: {
           name: "Rails Mastery Course",
           description: "Complete Rails training",
@@ -51,7 +51,7 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
 
     # Create consultation experience
     assert_difference "Experience.count", 1 do
-      post account_team_space_experiences_path(@team, @space), params: {
+      post account_space_experiences_path(@space), params: {
         experience: {
           name: "1-on-1 Consultation",
           description: "Personal consultation sessions",
@@ -71,11 +71,11 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
     experience = create(:experience, space: @space, name: "Original Name")
 
     # Go to edit page
-    get edit_account_team_space_experience_path(@team, @space, experience)
+    get edit_account_space_experience_path(@space, experience)
     assert_response :success
 
     # Update experience
-    patch account_team_space_experience_path(@team, @space, experience), params: {
+    patch account_space_experience_path(@space, experience), params: {
       experience: {
         name: "Updated Experience",
         description: "New description",
@@ -98,13 +98,13 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
       experience_type: "live_stream")
 
     # Navigate to streams page
-    get account_team_space_experience_streams_path(@team, @space, experience)
+    get account_space_experience_streams_path(@space, experience)
     assert_response :success
 
     # Create new stream with mocked LiveKit service
     ExternalServiceMocks::LiveKit.mock_all! do
       assert_difference "Stream.count", 1 do
-        post account_team_space_experience_streams_path(@team, @space, experience), params: {
+        post account_space_experience_streams_path(@space, experience), params: {
           stream: {
             title: "Building a SaaS App",
             description: "Live coding session",
@@ -129,11 +129,11 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
     stream = create(:stream, experience: experience)
 
     # Go to edit page
-    get edit_account_team_space_experience_stream_path(@team, @space, experience, stream)
+    get edit_account_space_experience_stream_path(@space, experience, stream)
     assert_response :success
 
     # Update stream
-    patch account_team_space_experience_stream_path(@team, @space, experience, stream), params: {
+    patch account_space_experience_stream_path(@space, experience, stream), params: {
       stream: {
         title: "Updated Stream Title",
         description: "New stream description",
@@ -173,12 +173,12 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
     experience = create(:experience, space: @space)
 
     # Navigate to access passes page
-    get account_team_space_access_passes_path(@team, @space)
+    get account_space_access_passes_path(@space)
     assert_response :success
 
     # Create access pass
     assert_difference "AccessPass.count", 1 do
-      post account_team_space_access_passes_path(@team, @space), params: {
+      post account_space_access_passes_path(@space), params: {
         access_pass: {
           name: "VIP Access",
           description: "Full access to all content",
@@ -209,7 +209,7 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
     # Create access grant with mocked Stripe
     ExternalServiceMocks::Stripe.mock_all! do
       assert_difference "AccessGrant.count", 1 do
-        post account_team_space_access_grants_path(@team, @space), params: {
+        post account_space_access_grants_path(@space), params: {
           access_grant: {
             user_id: audience_user.id,
             access_pass_id: access_pass.id
@@ -234,7 +234,7 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
 
     # Delete experience
     assert_difference ["Experience.count", "Stream.count"], [-1, -2] do
-      delete account_team_space_experience_path(@team, @space, experience)
+      delete account_space_experience_path(@space, experience)
     end
 
     # Streams should be gone
@@ -245,7 +245,7 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
   test "user cannot create invalid experiences" do
     # Try to create experience with missing required fields
     assert_no_difference "Experience.count" do
-      post account_team_space_experiences_path(@team, @space), params: {
+      post account_space_experiences_path(@space), params: {
         experience: {
           name: "",
           description: "Description only",
@@ -278,7 +278,7 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
     # Create experience with mocked services
     ExternalServiceMocks.mock_all_services! do
       # Create experience
-      post account_team_space_experiences_path(@team, @space), params: {
+      post account_space_experiences_path(@space), params: {
         experience: {
           name: "Complete Workshop",
           description: "End-to-end workshop",
@@ -301,7 +301,7 @@ class ExperienceStreamCreationFlowTest < ActionDispatch::IntegrationTest
       stream = Stream.last
 
       # Create access pass
-      post account_team_space_access_passes_path(@team, @space), params: {
+      post account_space_access_passes_path(@space), params: {
         access_pass: {
           name: "Workshop Pass",
           description: "Access to workshop",
