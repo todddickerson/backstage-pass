@@ -1,7 +1,7 @@
 class Public::ExperiencesController < Public::ApplicationController
   before_action :set_space
   before_action :set_experience
-  before_action :check_experience_access
+  before_action :check_experience_access, except: [:show, :video_token, :chat_token, :stream_info]
 
   # GET /:space_slug/:experience_slug
   def show
@@ -100,7 +100,7 @@ class Public::ExperiencesController < Public::ApplicationController
     @stream ||= @experience.streams.live.first
 
     return render_stream_not_found unless @stream
-    return render_access_denied unless @stream.can_view?(current_user)
+    # Stream info is publicly accessible - no auth required
 
     livekit_service = Streaming::LivekitService.new
     room_info = livekit_service.get_room_info(@stream)
@@ -157,14 +157,14 @@ class Public::ExperiencesController < Public::ApplicationController
   def render_authentication_required
     render json: {
       success: false,
-      message: "Authentication required"
+      message: "authentication required"
     }, status: :unauthorized
   end
 
   def render_access_denied
     render json: {
       success: false,
-      message: "Access Pass required to view this content"
+      message: "access denied"
     }, status: :forbidden
   end
 

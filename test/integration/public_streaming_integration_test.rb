@@ -9,7 +9,7 @@ class PublicStreamingIntegrationTest < ActionDispatch::IntegrationTest
 
     @team = @creator.current_team
     @space = @team.primary_space
-    @space.update!(slug: "test-space")
+    @space.update!(slug: "test-space", published: true)
 
     # Create a live stream experience
     @experience = Experience.create!(
@@ -74,10 +74,10 @@ class PublicStreamingIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
     response_data = JSON.parse(response.body)
     assert response_data["success"]
-    assert_present response_data["room_url"]
-    assert_present response_data["access_token"]
-    assert_present response_data["participant_identity"]
-    assert_present response_data["participant_name"]
+    assert response_data["room_url"].present?
+    assert response_data["access_token"].present?
+    assert response_data["participant_identity"].present?
+    assert response_data["participant_name"].present?
   end
 
   test "video token endpoint denies access without proper grants" do
@@ -112,10 +112,10 @@ class PublicStreamingIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
     response_data = JSON.parse(response.body)
     assert response_data["success"]
-    assert_present response_data["token"]
-    assert_present response_data["user_id"]
-    assert_present response_data["channel_id"]
-    assert_present response_data["api_key"]
+    assert response_data["token"].present?
+    assert response_data["user_id"].present?
+    assert response_data["channel_id"].present?
+    assert response_data["api_key"].present?
   end
 
   test "stream info endpoint provides current stream data" do
@@ -128,7 +128,7 @@ class PublicStreamingIntegrationTest < ActionDispatch::IntegrationTest
     response_data = JSON.parse(response.body)
     assert response_data["success"]
     assert_equal 5, response_data["participant_count"]
-    assert_present response_data["stream"]
+    assert response_data["stream"].present?
     assert_equal @stream.id, response_data["stream"]["id"]
     assert_equal 10, response_data["stream"]["max_viewers"]
   end
