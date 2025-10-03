@@ -154,21 +154,29 @@ Rails.application.routes.draw do
     # The root `/` path is routed to `Public::HomeController#index` by default.
     root to: "home#index"
 
+    # Constraint to check if a path should be treated as a space slug (MOVED UP)
+    valid_space_slug = lambda do |request|
+      slug = request.path_parameters[:space_slug]
+      slug.present? && !RESERVED_PATHS.include?(slug) && !slug.start_with?("_")
+    end
+
     # STREAMING ROUTES - HIGHEST PRIORITY
-    # Experience routes
-    get "/:space_slug/:experience_slug", to: "experiences#show",
-      constraints: {experience_slug: /[a-zA-Z0-9_-]+/}, as: :public_space_experience
-    get "/:space_slug/:experience_slug/streams/:stream_id", to: "experiences#stream", as: :public_experience_stream
+    # Experience routes WITH valid_space_slug constraint
+    constraints(valid_space_slug) do
+      get "/:space_slug/:experience_slug", to: "experiences#show",
+        constraints: {experience_slug: /[a-zA-Z0-9_-]+/}, as: :public_space_experience
+      get "/:space_slug/:experience_slug/streams/:stream_id", to: "experiences#stream", as: :public_experience_stream
 
-    # API endpoints for streaming
-    get "/:space_slug/:experience_slug/video_token", to: "experiences#video_token"
-    get "/:space_slug/:experience_slug/chat_token", to: "experiences#chat_token"
-    get "/:space_slug/:experience_slug/stream_info", to: "experiences#stream_info"
+      # API endpoints for streaming
+      get "/:space_slug/:experience_slug/video_token", to: "experiences#video_token"
+      get "/:space_slug/:experience_slug/chat_token", to: "experiences#chat_token"
+      get "/:space_slug/:experience_slug/stream_info", to: "experiences#stream_info"
 
-    # Stream-specific API endpoints
-    get "/:space_slug/:experience_slug/streams/:stream_id/video_token", to: "experiences#video_token"
-    get "/:space_slug/:experience_slug/streams/:stream_id/chat_token", to: "experiences#chat_token"
-    get "/:space_slug/:experience_slug/streams/:stream_id/stream_info", to: "experiences#stream_info"
+      # Stream-specific API endpoints
+      get "/:space_slug/:experience_slug/streams/:stream_id/video_token", to: "experiences#video_token"
+      get "/:space_slug/:experience_slug/streams/:stream_id/chat_token", to: "experiences#chat_token"
+      get "/:space_slug/:experience_slug/streams/:stream_id/stream_info", to: "experiences#stream_info"
+    end
 
     # Priority routes - these take precedence over catch-all space routes
     # Add static pages here as needed (about, terms, privacy, etc.)
@@ -182,14 +190,18 @@ Rails.application.routes.draw do
     # Creator profile routes (@username) - must come before catch-all routes
     get "/@:username", to: "creator_profiles#show", constraints: {username: /[a-zA-Z0-9_-]+/}, as: :creator_profile
 
-    # Purchase routes - must come before catch-all routes
-    get "/:space_slug/:access_pass_slug/purchase", to: "purchases#new", as: :new_space_access_pass_purchase
-    post "/:space_slug/:access_pass_slug/purchase", to: "purchases#create", as: :space_access_pass_purchase
+    # Purchase routes - WITH valid_space_slug constraint
+    constraints(valid_space_slug) do
+      get "/:space_slug/:access_pass_slug/purchase", to: "purchases#new", as: :new_space_access_pass_purchase
+      post "/:space_slug/:access_pass_slug/purchase", to: "purchases#create", as: :space_access_pass_purchase
+    end
 
-    # Waitlist routes - must come before catch-all routes
-    get "/:space_slug/:access_pass_slug/waitlist", to: "waitlist_entries#new", as: :new_waitlist_entry
-    post "/:space_slug/:access_pass_slug/waitlist", to: "waitlist_entries#create", as: :waitlist_entries
-    get "/:space_slug/:access_pass_slug/waitlist/success", to: "waitlist_entries#success", as: :waitlist_success
+    # Waitlist routes - WITH valid_space_slug constraint
+    constraints(valid_space_slug) do
+      get "/:space_slug/:access_pass_slug/waitlist", to: "waitlist_entries#new", as: :new_waitlist_entry
+      post "/:space_slug/:access_pass_slug/waitlist", to: "waitlist_entries#create", as: :waitlist_entries
+      get "/:space_slug/:access_pass_slug/waitlist/success", to: "waitlist_entries#success", as: :waitlist_success
+    end
 
     # Stripe webhook endpoint
     post "/webhooks/stripe", to: "purchases#stripe_webhook"
@@ -199,12 +211,6 @@ Rails.application.routes.draw do
     # CATCH-ALL ROUTES - These must be absolutely last!
     # Space routes at root level for clean URLs (backstagepass.com/space-slug)
     # Access pass routes nested under spaces (backstagepass.com/space-slug/access-pass-slug)
-
-    # Constraint to check if a path should be treated as a space slug
-    valid_space_slug = lambda do |request|
-      slug = request.path_parameters[:space_slug]
-      slug.present? && !RESERVED_PATHS.include?(slug) && !slug.start_with?("_")
-    end
 
     # Access pass nested under space (must come before single space route)
     constraints(valid_space_slug) do

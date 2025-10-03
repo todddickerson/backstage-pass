@@ -68,11 +68,19 @@ class Account::SpacesController < Account::ApplicationController
 
   def set_team
     team_id = params[:team_id] || @space&.team_id
+    Rails.logger.debug "🔍 SET_TEAM: params[:team_id]=#{params[:team_id]}, @space&.team_id=#{@space&.team_id}, resolved team_id=#{team_id}"
     @team = current_user.teams.find_by(id: team_id) || current_user.teams.first
+    Rails.logger.debug "🔍 SET_TEAM: @team=#{@team&.id} (#{@team&.name})"
   end
 
   def set_space
-    @space = @team.spaces.friendly.find(params[:id])
+    Rails.logger.debug "🔍 SET_SPACE: Looking for space #{params[:id]} in team #{@team&.id}"
+    @space = @team.spaces.find_by_any_id(params[:id])
+    Rails.logger.debug "🔍 SET_SPACE: Found space #{@space.id}"
+  rescue ActiveRecord::RecordNotFound => e
+    Rails.logger.error "🔍 SET_SPACE ERROR: #{e.message}"
+    flash[:error] = "Space not found"
+    redirect_to [:account, @team, :spaces]
   end
 
   def build_space

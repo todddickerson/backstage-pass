@@ -162,12 +162,16 @@ class Account::StreamViewingController < Account::ApplicationController
   end
 
   def stream_accessible?
+    # Team members (creators) always have access to their streams
+    return true if @stream.experience.space.team.users.include?(current_user)
+
+    # For viewers/buyers:
     return true if @stream.live?
     return true if @stream.ended? && recording_available?
-    return false if @stream.scheduled? && @stream.scheduled_at > Time.current
+    return false if @stream.scheduled? && @stream.scheduled_at.present? && @stream.scheduled_at > Time.current
 
     # For scheduled streams starting soon (within 5 minutes)
-    @stream.scheduled? && @stream.scheduled_at <= 5.minutes.from_now
+    @stream.scheduled? && @stream.scheduled_at.present? && @stream.scheduled_at <= 5.minutes.from_now
   end
 
   def recording_available?

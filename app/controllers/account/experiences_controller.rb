@@ -1,4 +1,7 @@
 class Account::ExperiencesController < Account::ApplicationController
+  # Load space with friendly_id support before authorization
+  before_action :set_space, only: [:index, :new, :create], prepend: true
+
   # Use Bullet Train's team-aware resource loading
   account_load_and_authorize_resource :experience, through: :space, through_association: :experiences
 
@@ -63,11 +66,18 @@ class Account::ExperiencesController < Account::ApplicationController
 
   private
 
-  if defined?(Api::V1::ApplicationController)
-    include strong_parameters_from_api
+  def set_space
+    # Load space using dual ID support (supports obfuscated IDs, slugs, and numeric IDs)
+    @space = current_team.spaces.find_by_any_id(params[:space_id])
+  end
+
+  # Include params from API controller (Bullet Train pattern - direct for clarity)
+  if defined?(Api::V1::ExperiencesController)
+    include Api::V1::ExperiencesController::StrongParameters
   end
 
   def process_params(strong_params)
     # 🚅 super scaffolding will insert processing for new fields above this line.
+    strong_params
   end
 end

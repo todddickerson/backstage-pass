@@ -2,8 +2,13 @@ class Account::ApplicationController < ApplicationController
   include Account::Controllers::Base
 
   def ensure_onboarding_is_complete
+    # DEBUG: Log onboarding check
+    Rails.logger.debug "🔍 ONBOARDING CHECK: user=#{current_user&.id}, controller=#{controller_name}, action=#{action_name}"
+
     # First check that Bullet Train doesn't have any onboarding steps it needs to enforce.
-    return false unless super
+    bt_result = super
+    Rails.logger.debug "🔍 Bullet Train onboarding result: #{bt_result}"
+    return false unless bt_result
 
     # Most onboarding steps you'll add should be skipped if the user is adding a team or accepting an invitation ...
     unless adding_team? || accepting_invitation?
@@ -11,6 +16,7 @@ class Account::ApplicationController < ApplicationController
     end
 
     # Finally, if we've gotten this far, then onboarding appears to be complete!
+    Rails.logger.debug "🔍 Onboarding complete! Allowing access to #{controller_name}##{action_name}"
     true
   end
 end

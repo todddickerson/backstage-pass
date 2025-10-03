@@ -44,11 +44,12 @@ en:
         api_title: *experience_type
         api_description: *experience_type
         placeholder: Choose experience type
-        live_stream: Live Stream
-        course: Course
-        community: Community
-        consultation: Consultation
-        digital_product: Digital Product
+        options:
+          live_stream: Live Stream
+          course: Course
+          community: Community
+          consultation: Consultation
+          digital_product: Digital Product
       price_cents:
         _: &price_cents Price Cents
         label: *price_cents

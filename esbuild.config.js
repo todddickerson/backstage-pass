@@ -71,6 +71,7 @@ let build_details = {
   entryPoints: {
     ...otherEntrypoints,
     "application": path.join(process.cwd(), "app/javascript/application.js"),
+    "application.light": path.join(process.cwd(), "app/javascript/application.light.js"),
     "intl-tel-input-utils": path.join(process.cwd(), "app/javascript/intl-tel-input-utils.js"),
     ...themeEntrypoints,
   },

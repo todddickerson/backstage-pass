@@ -40,7 +40,7 @@
         <% unless hide_actions %>
           <% if context == space %>
             <% if can? :create, Experience.new(space: space) %>
-              <%= link_to t('.buttons.new'), [:new, :account, space, :experience], class: "#{first_button_primary(:experience)} new" %>
+              <%= link_to t('.buttons.new'), new_account_space_experience_path(space.admin_param), class: "#{first_button_primary(:experience)} new" %>
             <% end %>
           <% end %>
 
