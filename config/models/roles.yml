@@ -3,12 +3,20 @@ default:
     Analytics::DailySnapshot: read
     AccessPasses::WaitlistEntry: read
     Streaming::ChatRoom: read
-    Stream: read
+    Stream:
+      - read
+      - create
+      - update
     Billing::Purchase: read
     AccessPassExperience: read
     AccessPass: read
-    Experience: read
-    Space: read
+    Experience:
+      - read
+      - create
+      - update
+    Space:
+      - read
+      - update
     Team: read
     Membership:
       - read
