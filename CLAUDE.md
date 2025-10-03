@@ -40,7 +40,179 @@
   
 
 ## Date/Env
-It is 2025 Sept 15 when I'm updating this file.
+It is 2025 Oct 3 when I'm updating this file.
+
+## 🐛 Common Issues & Solutions (Learned Oct 2025)
+
+### CSS Not Loading / Black Circles on Pages
+
+**Symptoms:**
+- Pages show giant black circles or unstyled content
+- SVG icons render at 1000px+ instead of proper size
+- Tailwind classes don't apply
+- Browser shows "MIME type 'text/plain'" errors for CSS
+
+**Root Causes & Fixes:**
+
+#### 1. Missing Layout File
+**Problem:** Controller declares `layout "public"` but file doesn't exist
+**Fix:** Create `app/views/layouts/public.html.erb`:
+```erb
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%= render 'layouts/head' %>
+  <%= stylesheet_link_tag "application.backstage_pass", "data-turbo-track": "reload" %>
+  <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+</head>
+<body class="min-h-screen bg-gray-50">
+  <%= yield %>
+</body>
+</html>
+```
+
+#### 2. Propshaft + Theme CSS Naming Mismatch
+**Problem:** Bullet Train builds `application.backstage_pass.css` but layouts reference `application.css`
+**Why:** Propshaft serves from `app/assets/builds/` with content-based hashing
+**Solution:** Build pipeline must copy files (symlinks don't work):
+
+**Update `package.json`:**
+```json
+"build:css": "bin/link; yarn backstage_pass:build:css; yarn backstage_pass:build:mailer:css; cp app/assets/builds/application.backstage_pass.css app/assets/builds/application.css; cp app/assets/builds/application.backstage_pass.css app/assets/builds/application.light.css"
+```
+
+**Create `bin/watch-css-copy`:**
+```bash
+#!/usr/bin/env bash
+SOURCE="app/assets/builds/application.backstage_pass.css"
+echo "👀 Watching $SOURCE for changes..."
+
+if [ -f "$SOURCE" ]; then
+  cp "$SOURCE" app/assets/builds/application.css
+  cp "$SOURCE" app/assets/builds/application.light.css
+  echo "✅ Initial CSS copied"
+fi
+
+# Watch with fswatch or poll fallback
+if command -v fswatch &> /dev/null; then
+  fswatch -o "$SOURCE" | while read; do
+    cp "$SOURCE" app/assets/builds/application.css
+    cp "$SOURCE" app/assets/builds/application.light.css
+    echo "✅ CSS updated"
+  done
+else
+  while true; do
+    sleep 2
+    [ -f "$SOURCE" ] && cp "$SOURCE" app/assets/builds/application.css && cp "$SOURCE" app/assets/builds/application.light.css
+  done
+fi
+```
+
+**Update `Procfile.dev`:**
+```
+css-copy: bin/watch-css-copy
+```
+
+**Why Symlinks Fail:**
+- Propshaft calculates content hashes for cache busting
+- Symlinks confuse hash calculation
+- Files get served with MIME type 'text/plain' instead of 'text/css'
+- Browser refuses to apply stylesheet
+
+#### 3. Propshaft Serving Empty Cached CSS
+**Problem:** After rebuild, Propshaft still serves old empty/stale CSS files
+**Symptoms:** File exists with correct content but `curl /assets/application-{hash}.css` returns 0 lines
+**Fix:**
+```bash
+# Clear all caches
+rm -rf tmp/cache tmp/pids
+
+# Kill servers completely
+pkill -9 -f "puma|overmind"
+rm -f .overmind.sock
+
+# Rebuild CSS fresh
+yarn build:css
+
+# Restart server
+bin/dev
+```
+
+**Prevention:** Always restart server after CSS changes to force Propshaft to recalculate hashes.
+
+---
+
+### Authorization / Permissions Errors
+
+**Symptoms:**
+- "You are not authorized to access this page"
+- "Add New Experience" button triggers access denied
+- Forms submit but redirect with authorization error
+
+**Root Cause:** `config/models/roles.yml` only grants `read` permission by default
+
+**Solution:**
+
+#### 1. Update roles.yml for Creator Permissions
+```yaml
+default:  # Applies to ALL team members
+  models:
+    Experience:
+      - read
+      - create    # ADD THIS
+      - update    # ADD THIS
+    Stream:
+      - read
+      - create    # ADD THIS
+      - update    # ADD THIS
+    Space:
+      - read
+      - update    # ADD THIS
+```
+
+#### 2. CRITICAL: Restart Server After roles.yml Changes
+**Why:** Rails caches roles at boot time. Changes to `roles.yml` don't take effect until restart.
+
+```bash
+pkill -9 -f "puma|overmind"
+rm -f .overmind.sock tmp/pids/server.pid
+bin/dev
+```
+
+#### 3. Understanding Permission Levels
+- `read` - Can view resources
+- `create` - Can create new resources
+- `update` - Can edit existing resources
+- `destroy` - Can delete resources (typically admin-only)
+- `manage` - Full CRUD (shorthand for all above)
+
+**Best Practice:**
+- `default` role: Grant create/update for user-generated content
+- `admin` role: Use `manage` for full control including destroy
+- Keep `destroy` limited to admins for safety
+
+---
+
+### Debugging Permissions
+
+```ruby
+# In Rails console
+user = User.find_by(email: "user@example.com")
+team = user.teams.first
+membership = user.memberships.find_by(team: team)
+
+# Check roles
+puts membership.roles.map(&:key)  # => ["default", "admin"]
+
+# Check specific model permissions
+puts membership.roles.first.models["Experience"]  # => ["read", "create", "update"]
+```
+
+**Common Mistakes:**
+1. Forgetting to restart server after `roles.yml` changes
+2. Using only `read` when users need to create content
+3. Not understanding `default` role applies to EVERYONE
+4. Bypassing `account_load_and_authorize_resource` with manual checks
 
 ## Development Workflow
 
