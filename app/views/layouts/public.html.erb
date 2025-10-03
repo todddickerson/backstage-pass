@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%= render 'layouts/head' %>
+  <%= stylesheet_link_tag "application.backstage_pass", "data-turbo-track": "reload" %>
+  <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+</head>
+<body class="min-h-screen bg-gray-50 text-slate-700 text-sm font-normal dark:text-slate-300">
+  <%= yield %>
+</body>
+</html>
