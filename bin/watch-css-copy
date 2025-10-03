@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Watch for changes to application.backstage_pass.css and copy to standard names
+SOURCE="app/assets/builds/application.backstage_pass.css"
+
+echo "👀 Watching $SOURCE for changes..."
+
+# Initial copy
+if [ -f "$SOURCE" ]; then
+  cp "$SOURCE" app/assets/builds/application.css
+  cp "$SOURCE" app/assets/builds/application.light.css
+  echo "✅ Initial CSS copied"
+fi
+
+# Watch for changes (macOS fswatch or Linux inotifywait)
+if command -v fswatch &> /dev/null; then
+  fswatch -o "$SOURCE" | while read; do
+    cp "$SOURCE" app/assets/builds/application.css
+    cp "$SOURCE" app/assets/builds/application.light.css
+    echo "✅ CSS updated: $(date '+%H:%M:%S')"
+  done
+else
+  echo "⚠️  fswatch not found. Install with: brew install fswatch"
+  # Fallback: poll every 2 seconds
+  while true; do
+    sleep 2
+    if [ -f "$SOURCE" ]; then
+      cp "$SOURCE" app/assets/builds/application.css
+      cp "$SOURCE" app/assets/builds/application.light.css
+    fi
+  done
+fi

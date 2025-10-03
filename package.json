@@ -39,7 +39,7 @@
   "scripts": {
     "heroku-postbuild": "echo 'This step prevents Heroku from trying to run `yarn build` before ruby and bundler are available. The asset pipeline will call it as part of asset precompilation.'",
     "build": "THEME=\"backstage_pass\" node esbuild.config.js",
-    "build:css": "bin/link; yarn backstage_pass:build:css; yarn backstage_pass:build:mailer:css",
+    "build:css": "bin/link; yarn backstage_pass:build:css; yarn backstage_pass:build:mailer:css; cp app/assets/builds/application.backstage_pass.css app/assets/builds/application.css; cp app/assets/builds/application.backstage_pass.css app/assets/builds/application.light.css",
     "backstage_pass:build:css": "THEME=\"backstage_pass\" NODE_PATH=./node_modules tailwindcss -c tailwind.config.js -i ./app/assets/stylesheets/application.css -o ./app/assets/builds/application.backstage_pass.css --postcss ./postcss.config.js",
     "backstage_pass:build:mailer:css": "THEME=\"backstage_pass\" NODE_PATH=./node_modules tailwindcss -c $(bundle exec bin/theme tailwind-mailer-config backstage_pass) -i $(bundle exec bin/theme tailwind-stylesheet backstage_pass) -o ./app/assets/builds/application.mailer.backstage_pass.css --postcss ./postcss.mailer.config.js",
     "test:playwright": "playwright test",

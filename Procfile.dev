@@ -3,4 +3,5 @@ worker: bundle exec sidekiq -t 25
 js: THEME="backstage_pass" yarn build --watch
 backstage_pass-css: yarn backstage_pass:build:css --watch
 backstage_pass-mailer-css: yarn backstage_pass:build:mailer:css --watch
+css-copy: bin/watch-css-copy
 ngrok: ngrok http --url=bsp.ngrok.app 3020
