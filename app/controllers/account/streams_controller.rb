@@ -34,15 +34,17 @@ class Account::StreamsController < Account::ApplicationController
     respond_to do |format|
       if @stream.save
         format.html { redirect_to [:account, @stream], notice: I18n.t("streams.notifications.created") }
+        format.turbo_stream { redirect_to [:account, @stream], notice: I18n.t("streams.notifications.created") }
         format.json { render :show, status: :created, location: [:account, @stream] }
       else
         format.html { render :new, status: :unprocessable_entity }
+        format.turbo_stream { render :new, status: :unprocessable_entity }
         format.json { render json: @stream.errors, status: :unprocessable_entity }
       end
     end
   end
 
-  # PATCH/PUT /account/streams/:id
+  # PATCH//PUT /account/streams/:id
   # PATCH/PUT /account/streams/:id.json
   def update
     respond_to do |format|

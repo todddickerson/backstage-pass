@@ -32,9 +32,11 @@ class Account::ExperiencesController < Account::ApplicationController
     respond_to do |format|
       if @experience.save
         format.html { redirect_to [:account, @experience], notice: I18n.t("experiences.notifications.created") }
+        format.turbo_stream { redirect_to [:account, @experience], notice: I18n.t("experiences.notifications.created") }
         format.json { render :show, status: :created, location: [:account, @experience] }
       else
         format.html { render :new, status: :unprocessable_entity }
+        format.turbo_stream { render :new, status: :unprocessable_entity }
         format.json { render json: @experience.errors, status: :unprocessable_entity }
       end
     end
@@ -46,9 +48,11 @@ class Account::ExperiencesController < Account::ApplicationController
     respond_to do |format|
       if @experience.update(experience_params)
         format.html { redirect_to [:account, @experience], notice: I18n.t("experiences.notifications.updated") }
+        format.turbo_stream { redirect_to [:account, @experience], notice: I18n.t("experiences.notifications.updated") }
         format.json { render :show, status: :ok, location: [:account, @experience] }
       else
         format.html { render :edit, status: :unprocessable_entity }
+        format.turbo_stream { render :edit, status: :unprocessable_entity }
         format.json { render json: @experience.errors, status: :unprocessable_entity }
       end
     end
