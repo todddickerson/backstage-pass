@@ -21,7 +21,7 @@ class Space < ApplicationRecord
   # 🚅 add scopes above.
 
   validates :name, presence: true
-  validates :slug, presence: true, uniqueness: {scope: :team_id}
+  validates :slug, presence: true, uniqueness: true  # Changed from {scope: :team_id} - slugs must be globally unique for public URLs
   validates :team_id, uniqueness: true, unless: :allows_multiple_spaces?, if: :enforce_unique_space?
   # 🚅 add validations above.
 
