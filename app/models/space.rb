@@ -189,7 +189,20 @@ class Space < ApplicationRecord
   private
 
   def generate_slug
-    self.slug = name.parameterize
+    base_slug = name.parameterize
+    candidate_slug = base_slug
+    counter = 1
+
+    # Keep trying with random suffix until we find a unique slug
+    while Space.exists?(slug: candidate_slug)
+      # Append random 4-character suffix
+      random_suffix = SecureRandom.alphanumeric(4).downcase
+      candidate_slug = "#{base_slug}-#{random_suffix}"
+      counter += 1
+      break if counter > 10  # Safety: prevent infinite loop
+    end
+
+    self.slug = candidate_slug
   end
 
   def allows_multiple_spaces?
