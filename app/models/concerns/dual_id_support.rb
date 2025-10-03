@@ -64,30 +64,21 @@ module DualIdSupport
       if respond_to?(:decode_id)
         begin
           decoded_id = decode_id(id)
-          return find(decoded_id) if decoded_id.present?
+          # Call ActiveRecord's find directly to avoid recursion
+          return where(id: decoded_id).first! if decoded_id.present?
         rescue
           # Continue to standard find
         end
       end
 
-      # Fallback to standard find
-      find(id)
+      # Fallback to standard ActiveRecord find by ID
+      # Use where().first! to avoid our overridden find method
+      where(id: id).first!
     end
 
-    # Override the standard find method to support dual IDs
-    # We need to be careful to avoid infinite recursion
-    def find(*ids)
-      # If we get multiple IDs, use the default behavior
-      return super if ids.length != 1
-
-      id = ids.first
-
-      # If it's already a numeric ID, use default behavior
-      return super if id.is_a?(Integer) || (id.to_s =~ /\A\d+\z/)
-
-      # For non-numeric IDs, try our enhanced lookup
-      find_by_any_id(id)
-    end
+    # NOTE: We don't override find() here because Bullet Train's ObfuscatesId
+    # already overrides it. Instead, controllers should explicitly call
+    # find_by_any_id() when they need slug/obfuscated ID support.
 
     # Admin-specific finder that prefers obfuscated IDs
     def find_for_admin(id)
