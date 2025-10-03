@@ -224,7 +224,7 @@
                 <div class="bg-gray-50 rounded-lg p-4">
                   <h4 class="font-medium"><%= stream.title %></h4>
                   <p class="text-sm text-gray-600 mt-1">
-                    <%= stream.scheduled_at.strftime("%B %d, %Y at %I:%M %p") %>
+                    <%= stream.scheduled_at&.strftime("%B %d, %Y at %I:%M %p") || "Not scheduled" %>
                   </p>
                 </div>
               <% end %>
