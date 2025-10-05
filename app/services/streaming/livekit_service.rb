@@ -22,8 +22,9 @@ module Streaming
     def create_room(stream)
       room_name = stream.room_name
 
+      # Note: name is a positional argument, rest are keyword args
       room = room_service.create_room(
-        name: room_name,
+        room_name,  # Positional: room name
         empty_timeout: 10 * 60, # 10 minutes
         max_participants: 500,
         metadata: {
@@ -34,15 +35,18 @@ module Streaming
         }.to_json
       )
 
+      # Extract room from Twirp response
+      room_data = room.data
+
       # Update stream with room info if we have those fields
       if stream.respond_to?(:livekit_room_name=)
         stream.update!(
-          livekit_room_name: room.name,
-          livekit_room_sid: room.sid
+          livekit_room_name: room_data.name,
+          livekit_room_sid: room_data.sid
         )
       end
 
-      room
+      room_data
     end
 
     # Generate access token for participant
