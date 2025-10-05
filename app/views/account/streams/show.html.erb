@@ -55,17 +55,64 @@
                 🔴 Go Live Now
               <% end %>
             <% elsif @stream.live? %>
-              <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-red-400 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
-                      <circle cx="10" cy="10" r="8"/>
-                    </svg>
+              <!-- Stream is LIVE - Show Shareable URL -->
+              <div class="mb-4 p-6 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-500 rounded-lg">
+                <div class="flex items-start justify-between mb-4">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                      <svg class="h-6 w-6 text-red-500 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
+                        <circle cx="10" cy="10" r="8"/>
+                      </svg>
+                    </div>
+                    <div class="ml-3">
+                      <p class="text-lg font-bold text-red-900">
+                        🔴 Stream is LIVE
+                      </p>
+                      <p class="text-sm text-red-700">
+                        <%= @stream.started_at ? "Started #{time_ago_in_words(@stream.started_at)} ago" : "Just started" %>
+                      </p>
+                    </div>
                   </div>
-                  <div class="ml-3">
-                    <p class="text-sm font-medium text-red-800">
-                      Stream is LIVE • <%= @stream.started_at ? "Started #{time_ago_in_words(@stream.started_at)} ago" : "Just started" %>
-                    </p>
+                </div>
+
+                <!-- Shareable Stream URL -->
+                <div class="bg-white p-4 rounded-md border border-red-200 mb-3">
+                  <label class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2 block">
+                    Share this stream:
+                  </label>
+                  <div class="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      readonly
+                      value="<%= account_stream_viewing_url(@stream) %>"
+                      id="stream-url-<%= @stream.id %>"
+                      class="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-sm font-mono"
+                    />
+                    <button
+                      onclick="navigator.clipboard.writeText(document.getElementById('stream-url-<%= @stream.id %>').value); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000)"
+                      class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium whitespace-nowrap"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-2">
+                    Share this URL with your audience to watch the live stream
+                  </p>
+                </div>
+
+                <!-- Stream Stats -->
+                <div class="grid grid-cols-3 gap-4 text-center">
+                  <div class="bg-white p-3 rounded-md">
+                    <p class="text-2xl font-bold text-gray-900" data-stream-stat="viewers">0</p>
+                    <p class="text-xs text-gray-600">Viewers</p>
+                  </div>
+                  <div class="bg-white p-3 rounded-md">
+                    <p class="text-2xl font-bold text-gray-900"><%= @stream.started_at ? distance_of_time_in_words(Time.current, @stream.started_at) : "0m" %></p>
+                    <p class="text-xs text-gray-600">Duration</p>
+                  </div>
+                  <div class="bg-white p-3 rounded-md">
+                    <p class="text-2xl font-bold text-green-600">LIVE</p>
+                    <p class="text-xs text-gray-600">Status</p>
                   </div>
                 </div>
               </div>

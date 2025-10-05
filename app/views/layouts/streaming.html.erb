@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+  <head>
+    <%= render 'layouts/head' %>
+    <%= stylesheet_link_tag "application.backstage_pass", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+  </head>
+  
+  <body class="h-full bg-black overflow-hidden">
+    <!-- Minimal header for streaming (can be hidden/minimized) -->
+    <div id="stream-header" class="fixed top-0 left-0 right-0 z-50 transition-transform duration-300">
+      <div class="bg-gray-900 bg-opacity-95 px-4 py-2 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <%= link_to account_dashboard_path, class: "text-white hover:text-gray-300" do %>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+          <% end %>
+          
+          <% if user_signed_in? %>
+            <span class="text-sm text-gray-300">
+              <%= current_user.name || current_user.email.split('@').first %>
+            </span>
+          <% end %>
+        </div>
+
+        <!-- Minimize header button -->
+        <button
+          onclick="document.getElementById('stream-header').classList.toggle('-translate-y-full')"
+          class="text-gray-400 hover:text-white"
+          title="Hide header"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main streaming content (full screen) -->
+    <main class="h-full pt-12">
+      <%= yield %>
+    </main>
+
+    <!-- Notifications/Flash messages (minimal, auto-hide) -->
+    <% if notice.present? || alert.present? %>
+      <div class="fixed bottom-4 right-4 z-50 max-w-sm">
+        <% if notice.present? %>
+          <div class="bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg mb-2">
+            <%= notice %>
+          </div>
+        <% end %>
+        <% if alert.present? %>
+          <div class="bg-red-500 text-white px-4 py-3 rounded-lg shadow-lg">
+            <%= alert %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </body>
+</html>

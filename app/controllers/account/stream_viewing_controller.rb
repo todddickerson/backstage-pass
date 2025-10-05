@@ -1,4 +1,5 @@
 class Account::StreamViewingController < Account::ApplicationController
+  layout "streaming"  # Use dedicated full-screen streaming layout
   include ChatAccessControl
 
   before_action :set_stream
