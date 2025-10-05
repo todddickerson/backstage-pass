@@ -7,7 +7,23 @@
 <% with_attribute_settings object: stream do %>
   <tr data-id="<%= stream.id %>">
     <%= render "shared/tables/checkbox", object: stream %>
-    <td><%= render 'shared/attributes/text', attribute: :title, url: [:account, stream] %></td>
+    <td>
+      <!-- Status Badge -->
+      <% if stream.live? %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 mr-2">
+          🔴 Live
+        </span>
+      <% elsif stream.scheduled? %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mr-2">
+          ⏺ Scheduled
+        </span>
+      <% else %>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 mr-2">
+          ⏹ Ended
+        </span>
+      <% end %>
+      <%= render 'shared/attributes/text', attribute: :title, url: [:account, stream] %>
+    </td>
     <%# 🚅 super scaffolding will insert new fields above this line. %>
     <td><%= render 'shared/attributes/date_and_time', attribute: :created_at %></td>
     <td class="buttons">

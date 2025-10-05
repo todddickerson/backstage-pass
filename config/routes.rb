@@ -103,6 +103,8 @@ Rails.application.routes.draw do
                 get :video_token
                 post :start_stream
                 post :stop_stream
+                patch :go_live  # Alias for start_stream with better UX
+                patch :end_stream  # Alias for stop_stream with better UX
                 get :room_info
               end
 

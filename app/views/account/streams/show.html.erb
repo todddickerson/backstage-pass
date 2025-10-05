@@ -14,12 +14,89 @@
             <%= render 'shared/attributes/text', attribute: :title %>
             <%= render 'shared/attributes/html', attribute: :description %>
             <%= render 'shared/attributes/date_and_time', attribute: :scheduled_at %>
-            <%= render 'shared/attributes/text', attribute: :status %>
+
+            <!-- Enhanced Status Display -->
+            <div class="attribute">
+              <label class="attribute-label">Status</label>
+              <div class="mt-1">
+                <% if @stream.live? %>
+                  <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-red-100 text-red-800">
+                    🔴 LIVE NOW
+                  </span>
+                <% elsif @stream.scheduled? %>
+                  <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800">
+                    ⏺ SCHEDULED
+                  </span>
+                <% else %>
+                  <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-800">
+                    ⏹ ENDED
+                  </span>
+                <% end %>
+              </div>
+            </div>
             <%# 🚅 super scaffolding will insert new fields above this line. %>
           <% end %>
         <% end %>
 
         <% box.actions do %>
+          <!-- Stream Control Buttons (Prominent) -->
+          <% if can? :update, @stream %>
+            <% if @stream.scheduled? %>
+              <%= button_to go_live_account_stream_path(@stream),
+                  method: :patch,
+                  class: "inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-lg",
+                  data: {
+                    turbo_confirm: "Ready to go live? This will start the stream and notify viewers.",
+                    turbo_method: :patch
+                  } do %>
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <circle cx="10" cy="10" r="8"/>
+                </svg>
+                🔴 Go Live Now
+              <% end %>
+            <% elsif @stream.live? %>
+              <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
+                      <circle cx="10" cy="10" r="8"/>
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-red-800">
+                      Stream is LIVE • <%= @stream.started_at ? "Started #{time_ago_in_words(@stream.started_at)} ago" : "Just started" %>
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <%= button_to end_stream_account_stream_path(@stream),
+                  method: :patch,
+                  class: "inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500",
+                  data: {
+                    turbo_confirm: "Are you sure you want to end this stream? This action cannot be undone.",
+                    turbo_method: :patch
+                  } do %>
+                ⏹ End Stream
+              <% end %>
+            <% elsif @stream.ended? %>
+              <div class="mb-4 p-4 bg-gray-50 border-l-4 border-gray-400 rounded">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"/>
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-700">
+                      Stream ended <%= @stream.ended_at ? time_ago_in_words(@stream.ended_at) + " ago" : "recently" %>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          <% end %>
+
+          <!-- Standard Actions -->
           <%= link_to t('.buttons.edit'), [:edit, :account, @stream], class: first_button_primary if can? :edit, @stream %>
           <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
           <%= button_to t('.buttons.destroy'), [:account, @stream], method: :delete, class: first_button_primary, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(@stream)) } if can? :destroy, @stream %>

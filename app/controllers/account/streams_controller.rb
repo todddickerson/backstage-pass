@@ -2,7 +2,7 @@ class Account::StreamsController < Account::ApplicationController
   include ChatAccessControl
 
   before_action :set_experience
-  before_action :set_stream, only: [:show, :edit, :update, :destroy, :join_chat, :leave_chat, :chat_token, :video_token, :start_stream, :stop_stream, :room_info]
+  before_action :set_stream, only: [:show, :edit, :update, :destroy, :join_chat, :leave_chat, :chat_token, :video_token, :start_stream, :stop_stream, :go_live, :end_stream, :room_info]
   before_action :build_stream, only: [:new, :create]
 
   # GET /account/experiences/:experience_id/streams
@@ -248,6 +248,52 @@ class Account::StreamsController < Account::ApplicationController
       success: false,
       message: "Unable to get room information"
     }, status: :internal_server_error
+  end
+
+  # PATCH /account/streams/:id/go_live
+  # User-friendly HTML version of start_stream
+  def go_live
+    unless @stream.can_broadcast?(current_user)
+      redirect_to [:account, @stream], alert: "You are not authorized to broadcast this stream."
+      return
+    end
+
+    if @stream.live?
+      redirect_to [:account, @stream], alert: "Stream is already live."
+      return
+    end
+
+    if @stream.update(status: :live)
+      # The model's handle_status_change callback will create the LiveKit room
+      redirect_to account_stream_viewing_path(@stream),
+                  notice: "🔴 Stream is now LIVE! Broadcasting started."
+    else
+      redirect_to [:account, @stream],
+                  alert: "Failed to start stream: #{@stream.errors.full_messages.join(', ')}"
+    end
+  end
+
+  # PATCH /account/streams/:id/end_stream
+  # User-friendly HTML version of stop_stream
+  def end_stream
+    unless @stream.can_broadcast?(current_user)
+      redirect_to [:account, @stream], alert: "You are not authorized to control this stream."
+      return
+    end
+
+    unless @stream.live?
+      redirect_to [:account, @stream], alert: "Stream is not currently live."
+      return
+    end
+
+    if @stream.update(status: :ended)
+      # The model's handle_status_change callback will cleanup the LiveKit room
+      redirect_to [:account, @stream],
+                  notice: "Stream ended successfully. Thank you for broadcasting!"
+    else
+      redirect_to [:account, @stream],
+                  alert: "Failed to end stream: #{@stream.errors.full_messages.join(', ')}"
+    end
   end
 
   private
