@@ -1,4 +1,7 @@
 class Experience < ApplicationRecord
+  extend FriendlyId
+  friendly_id :slug, use: :scoped, scope: :space
+
   include DualIdSupport
   # 🚅 add concerns above.
 
