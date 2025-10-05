@@ -224,6 +224,9 @@ can_view = @stream.can_view?(current_user)
         </div>
       </div>
     </div>
+
+    <!-- Professional Broadcaster/Viewer Controls -->
+    <%= render 'shared/streaming/broadcaster_controls', stream: @stream, user: current_user %>
   </div>
 </div>
 
