@@ -14,7 +14,12 @@
             <%= render 'shared/attributes/text', attribute: :name %>
             <%= render 'shared/attributes/html', attribute: :description %>
             <%= render 'shared/attributes/text', attribute: :experience_type %>
-            <%= render 'shared/attributes/number', attribute: :price_cents %>
+            <div class="attribute">
+              <label class="attribute-label"><%= t('experiences.fields.price.heading', default: 'Price') %></label>
+              <div class="text-2xl font-bold text-blue-600">
+                <%= @experience.price_display %>
+              </div>
+            </div>
             <%# 🚅 super scaffolding will insert new fields above this line. %>
           <% end %>
         <% end %>
