@@ -80,6 +80,20 @@ class Experience < ApplicationRecord
     end
   end
 
+  # Override ObfuscatesId.find to handle FriendlyId slugs first
+  def self.find(*ids)
+    # If it's a single slug-like string, try FriendlyId first
+    if ids.length == 1 && ids.first.is_a?(String) && ids.first !~ /\A\d+\z/
+      begin
+        return friendly.find(ids.first)
+      rescue ActiveRecord::RecordNotFound
+        # Fall through to ObfuscatesId if FriendlyId doesn't find it
+      end
+    end
+    # Otherwise use ObfuscatesId's find (supports obfuscated IDs and numeric IDs)
+    super
+  end
+
   private
 
   def generate_slug
