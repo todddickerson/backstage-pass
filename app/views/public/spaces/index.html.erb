@@ -86,9 +86,17 @@
               <% end %>
               
               <div class="p-6">
+                <!-- Live Now Indicator (if any live streams) -->
+                <% if space.experiences.any? { |e| e.streams.live.any? } %>
+                  <div class="mb-3 inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                    <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-1.5"></div>
+                    LIVE NOW
+                  </div>
+                <% end %>
+
                 <!-- Space Name & Description -->
                 <h3 class="text-xl font-semibold text-gray-900 mb-2"><%= space.name %></h3>
-                
+
                 <% if space.description.present? %>
                   <p class="text-gray-600 text-sm mb-4 line-clamp-2">
                     <%= truncate(strip_tags(space.description.to_s), length: 100) %>
