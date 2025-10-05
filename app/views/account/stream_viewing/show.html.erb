@@ -30,9 +30,24 @@ can_view = @stream.can_view?(current_user)
           
           <!-- Video loading overlay -->
           <div data-stream-viewer-target="loading" class="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
-            <div class="text-center text-white">
-              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-              <p class="text-lg">Loading stream...</p>
+            <div class="text-center text-white max-w-md px-6">
+              <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-6"></div>
+              <p class="text-xl font-semibold mb-2" data-stream-viewer-target="loadingTitle">Connecting to stream...</p>
+              <p class="text-sm text-gray-300" data-stream-viewer-target="loadingSubtitle">
+                <% if @stream.live? %>
+                  Initializing video player and chat
+                <% else %>
+                  Preparing stream viewer
+                <% end %>
+              </p>
+
+              <!-- Connection timeout message (shown after 10s) -->
+              <div data-stream-viewer-target="connectionError" class="hidden mt-6 p-4 bg-red-900 bg-opacity-50 rounded-lg border border-red-700">
+                <p class="text-red-200 text-sm mb-3">Taking longer than expected...</p>
+                <button onclick="window.location.reload()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm font-medium">
+                  Retry Connection
+                </button>
+              </div>
             </div>
           </div>
         <% else %>
