@@ -14,14 +14,16 @@
             <%= render 'shared/attributes/text', attribute: :name %>
 
             <!-- Experience Type with Badge -->
-            <div class="attribute">
-              <label class="attribute-label"><%= t('experiences.fields.experience_type.heading', default: 'Type') %></label>
-              <div class="mt-1">
-                <span class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium <%= experience_type_badge_class(@experience.experience_type) %>">
-                  <%= @experience.experience_type.titleize %>
-                </span>
+            <% if @experience.experience_type.present? %>
+              <div class="attribute">
+                <label class="attribute-label"><%= t('experiences.fields.experience_type.heading', default: 'Type') %></label>
+                <div class="mt-1">
+                  <span class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium <%= experience_type_badge_class(@experience.experience_type) %>">
+                    <%= @experience.experience_type.titleize %>
+                  </span>
+                </div>
               </div>
-            </div>
+            <% end %>
 
             <%= render 'shared/attributes/html', attribute: :description %>
 
