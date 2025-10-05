@@ -266,10 +266,10 @@ class Account::StreamsController < Account::ApplicationController
     if @stream.update(status: :live)
       # The model's handle_status_change callback will create the LiveKit room
       redirect_to account_stream_viewing_path(@stream),
-                  notice: "🔴 Stream is now LIVE! Broadcasting started."
+        notice: "🔴 Stream is now LIVE! Broadcasting started."
     else
       redirect_to [:account, @stream],
-                  alert: "Failed to start stream: #{@stream.errors.full_messages.join(', ')}"
+        alert: "Failed to start stream: #{@stream.errors.full_messages.join(", ")}"
     end
   end
 
@@ -289,10 +289,10 @@ class Account::StreamsController < Account::ApplicationController
     if @stream.update(status: :ended)
       # The model's handle_status_change callback will cleanup the LiveKit room
       redirect_to [:account, @stream],
-                  notice: "Stream ended successfully. Thank you for broadcasting!"
+        notice: "Stream ended successfully. Thank you for broadcasting!"
     else
       redirect_to [:account, @stream],
-                  alert: "Failed to end stream: #{@stream.errors.full_messages.join(', ')}"
+        alert: "Failed to end stream: #{@stream.errors.full_messages.join(", ")}"
     end
   end
 
