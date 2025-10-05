@@ -23,6 +23,37 @@
       </div>
     </div>
 
+    <!-- Live Now Section (if any live streams) -->
+    <% live_experiences = @experiences&.select { |e| e.streams.live.any? } || [] %>
+    <% if live_experiences.any? %>
+      <div class="px-6 py-6 bg-red-50 border-b border-red-100">
+        <div class="flex items-center mb-4">
+          <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2"></div>
+          <h2 class="text-xl font-semibold text-red-900">🔴 LIVE NOW</h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <% live_experiences.each do |experience| %>
+            <%= link_to account_stream_viewing_path(experience.streams.live.first),
+                class: "block border-2 border-red-300 bg-white rounded-lg p-4 hover:shadow-lg hover:border-red-500 transition-all" do %>
+              <div class="flex items-start justify-between mb-2">
+                <h3 class="font-semibold text-gray-900"><%= experience.name %></h3>
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                  🔴 LIVE
+                </span>
+              </div>
+              <p class="text-gray-600 text-sm mb-3">
+                <%= truncate(experience.description.to_plain_text, length: 80) if experience.description.present? %>
+              </p>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-500"><%= experience.price_display %></span>
+                <span class="text-sm font-medium text-red-600">Watch Now →</span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <!-- Experiences Section -->
     <% if @experiences&.any? %>
       <div class="px-6 py-6">
@@ -31,13 +62,31 @@
           <% @experiences.each do |experience| %>
             <%= link_to public_space_experience_path(@space.slug, experience.slug),
                 class: "block border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all" do %>
-              <h3 class="font-medium text-gray-900 mb-2"><%= experience.name %></h3>
+              <div class="flex items-start justify-between mb-2">
+                <h3 class="font-medium text-gray-900"><%= experience.name %></h3>
+                <% if experience.experience_type.present? %>
+                  <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium <%= experience_type_badge_class(experience.experience_type) %>">
+                    <%= experience.experience_type.titleize %>
+                  </span>
+                <% end %>
+              </div>
               <p class="text-gray-600 text-sm mb-3">
                 <%= truncate(experience.description.to_plain_text, length: 100) if experience.description.present? %>
               </p>
               <div class="flex justify-between items-center">
-                <span class="text-sm text-gray-500"><%= experience.experience_type.humanize %></span>
-                <span class="font-medium text-green-600"><%= experience.price_display %></span>
+                <% if experience.streams.live.any? %>
+                  <span class="inline-flex items-center text-xs font-medium text-red-600">
+                    <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse mr-1"></div>
+                    LIVE NOW
+                  </span>
+                <% elsif experience.streams.scheduled.any? %>
+                  <span class="text-xs text-gray-500">
+                    Next: <%= experience.streams.scheduled.first.scheduled_at&.strftime("%b %-d") %>
+                  </span>
+                <% else %>
+                  <span class="text-xs text-gray-500">On demand</span>
+                <% end %>
+                <span class="font-semibold text-blue-600"><%= experience.price_display %></span>
               </div>
             <% end %>
           <% end %>
