@@ -102,7 +102,8 @@ module Streaming
       room_name = stream.room_name
 
       response = room_service.list_participants(room: room_name)
-      response.participants
+      # Response is Twirp::ClientResp with data property containing ListParticipantsResponse
+      response.data&.participants || []
     end
 
     # Remove participant from room
@@ -176,7 +177,8 @@ module Streaming
     def get_room_info(stream)
       room_name = stream.room_name
       response = room_service.list_rooms(names: [room_name])
-      response.rooms.first
+      # Response is Twirp::ClientResp with data property containing LiveKit::Proto::ListRoomsResponse
+      response.data&.rooms&.first
     rescue => e
       Rails.logger.error "Failed to get room info: #{e.message}"
       nil
