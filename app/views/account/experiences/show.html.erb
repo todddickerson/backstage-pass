@@ -12,8 +12,19 @@
         <% box.body do %>
           <% with_attribute_settings object: @experience, strategy: :label do %>
             <%= render 'shared/attributes/text', attribute: :name %>
+
+            <!-- Experience Type with Badge -->
+            <div class="attribute">
+              <label class="attribute-label"><%= t('experiences.fields.experience_type.heading', default: 'Type') %></label>
+              <div class="mt-1">
+                <span class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium <%= experience_type_badge_class(@experience.experience_type) %>">
+                  <%= @experience.experience_type.titleize %>
+                </span>
+              </div>
+            </div>
+
             <%= render 'shared/attributes/html', attribute: :description %>
-            <%= render 'shared/attributes/text', attribute: :experience_type %>
+
             <div class="attribute">
               <label class="attribute-label"><%= t('experiences.fields.price.heading', default: 'Price') %></label>
               <div class="text-2xl font-bold text-blue-600">
@@ -25,6 +36,22 @@
         <% end %>
 
         <% box.actions do %>
+          <!-- Quick Action: Jump to Latest Stream -->
+          <% if @experience.streams.live.any? %>
+            <%= link_to account_stream_viewing_path(@experience.streams.live.first),
+                class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-sm" do %>
+              <svg class="w-4 h-4 mr-2 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                <circle cx="10" cy="10" r="8"/>
+              </svg>
+              🔴 Watch Live Now
+            <% end %>
+          <% elsif @experience.streams.scheduled.any? %>
+            <%= link_to [:account, @experience.streams.scheduled.first],
+                class: "inline-flex items-center px-4 py-2 border border-yellow-300 text-sm font-medium rounded-md text-yellow-700 bg-yellow-50 hover:bg-yellow-100" do %>
+              ⏺ Next Stream: <%= @experience.streams.scheduled.first.title %>
+            <% end %>
+          <% end %>
+
           <%= link_to t('.buttons.edit'), [:edit, :account, @experience], class: first_button_primary if can? :edit, @experience %>
           <%# 🚅 super scaffolding will insert new action model buttons above this line. %>
           <%= button_to t('.buttons.destroy'), [:account, @experience], method: :delete, class: first_button_primary, data: { turbo_confirm: t('.buttons.confirmations.destroy', model_locales(@experience)) } if can? :destroy, @experience %>
