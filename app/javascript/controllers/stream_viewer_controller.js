@@ -14,7 +14,7 @@ export default class extends Controller {
   static targets = [
     "video",
     "loading",
-    "error", 
+    "error",
     "controls",
     "chatSidebar",
     "mobileChat",
@@ -23,6 +23,7 @@ export default class extends Controller {
     "chatInput",
     "mobileChatInput",
     "viewerCount",
+    "viewersList",
     "connectionStatus"
   ]
 
@@ -433,6 +434,22 @@ export default class extends Controller {
     const div = document.createElement('div')
     div.textContent = text
     return div.innerHTML
+  }
+
+  toggleChatSidebar() {
+    if (this.hasChatSidebarTarget) {
+      const isHidden = this.chatSidebarTarget.style.transform === 'translateX(100%)'
+
+      if (isHidden) {
+        // Show chat
+        this.chatSidebarTarget.style.transform = 'translateX(0)'
+        console.log('💬 Chat opened')
+      } else {
+        // Hide chat
+        this.chatSidebarTarget.style.transform = 'translateX(100%)'
+        console.log('💬 Chat closed')
+      }
+    }
   }
 
   toggleMobileChat() {
