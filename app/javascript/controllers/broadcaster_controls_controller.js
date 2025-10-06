@@ -146,10 +146,53 @@ export default class extends Controller {
     try {
       await this.localParticipant.setCameraEnabled(this.cameraEnabled)
       console.log('✅ Camera toggled successfully')
+
+      // Show local video preview
+      if (this.cameraEnabled) {
+        this.showLocalVideoPreview()
+      } else {
+        this.hideLocalVideoPreview()
+      }
     } catch (error) {
       console.error('Failed to toggle camera:', error)
       // Revert state on error
       this.cameraEnabled = !this.cameraEnabled
+    }
+  }
+
+  showLocalVideoPreview() {
+    if (!this.localParticipant) return
+
+    // Find video container
+    const videoContainer = document.querySelector('[data-stream-viewer-target="video"]')
+    if (!videoContainer) {
+      console.warn('Video container not found')
+      return
+    }
+
+    // Get camera track
+    const cameraPublication = this.localParticipant.getTrack('camera')
+    if (cameraPublication && cameraPublication.track) {
+      const videoElement = cameraPublication.track.attach()
+      videoElement.id = 'local-video-preview'
+      videoElement.style.width = '100%'
+      videoElement.style.height = '100%'
+      videoElement.style.objectFit = 'contain'
+      videoElement.style.backgroundColor = 'black'
+
+      // Clear container and add preview
+      videoContainer.innerHTML = ''
+      videoContainer.appendChild(videoElement)
+
+      console.log('📹 Local video preview shown')
+    }
+  }
+
+  hideLocalVideoPreview() {
+    const preview = document.getElementById('local-video-preview')
+    if (preview) {
+      preview.remove()
+      console.log('📹 Local video preview hidden')
     }
   }
 
