@@ -171,8 +171,10 @@ export default class extends Controller {
       return
     }
 
-    // Get camera track
-    const cameraPublication = this.localParticipant.getTrack('camera')
+    // Get camera track - use videoTrackPublications Map
+    const videoTracks = Array.from(this.localParticipant.videoTrackPublications.values())
+    const cameraPublication = videoTracks.find(pub => pub.source === 'camera')
+
     if (cameraPublication && cameraPublication.track) {
       const videoElement = cameraPublication.track.attach()
       videoElement.id = 'local-video-preview'
@@ -186,6 +188,8 @@ export default class extends Controller {
       videoContainer.appendChild(videoElement)
 
       console.log('📹 Local video preview shown')
+    } else {
+      console.warn('Camera track not found yet, will appear when track publishes')
     }
   }
 
