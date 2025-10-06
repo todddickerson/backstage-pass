@@ -29,6 +29,8 @@ class AccessPass < ApplicationRecord
   # 🚅 add validations above.
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
+  after_create :create_stripe_product_and_prices, if: -> { !free? && stripe_product_id.blank? }
+  after_update :sync_stripe_prices, if: -> { !free? && saved_change_to_price_cents? }
   # 🚅 add callbacks above.
 
   delegate :team, to: :space
@@ -122,6 +124,103 @@ class AccessPass < ApplicationRecord
     # For now, waitlist is enabled for all published access passes
     # In the future, this could be a configurable field
     published?
+  end
+
+  # Stripe product and price management
+  def create_stripe_product_and_prices
+    return if Rails.env.test? || free?
+
+    begin
+      stripe_service = Billing::StripeService.new
+
+      # Create Stripe product
+      product = stripe_service.create_product(
+        name: name,
+        description: description.to_plain_text.presence || "Access pass for #{space.name}",
+        metadata: {
+          access_pass_id: id,
+          space_id: space_id,
+          team_id: team.id
+        }
+      )
+
+      # Create prices based on pricing type
+      case pricing_type
+      when "one_time"
+        price = stripe_service.create_price(
+          product_id: product.id,
+          unit_amount: price_cents,
+          currency: "usd"
+        )
+        update_columns(stripe_product_id: product.id)
+
+      when "monthly"
+        monthly_price = stripe_service.create_price(
+          product_id: product.id,
+          unit_amount: price_cents,
+          currency: "usd",
+          recurring: {interval: "month"}
+        )
+        update_columns(
+          stripe_product_id: product.id,
+          stripe_monthly_price_id: monthly_price.id
+        )
+
+      when "yearly"
+        yearly_price = stripe_service.create_price(
+          product_id: product.id,
+          unit_amount: price_cents,
+          currency: "usd",
+          recurring: {interval: "year"}
+        )
+        update_columns(
+          stripe_product_id: product.id,
+          stripe_yearly_price_id: yearly_price.id
+        )
+      end
+
+      Rails.logger.info "✅ Stripe product/prices created for AccessPass ##{id}"
+    rescue Stripe::StripeError => e
+      Rails.logger.error "❌ Failed to create Stripe product for AccessPass ##{id}: #{e.message}"
+      # Don't raise - allow AccessPass to be created even if Stripe sync fails
+    end
+  end
+
+  def sync_stripe_prices
+    return if Rails.env.test? || free? || stripe_product_id.blank?
+
+    begin
+      stripe_service = Billing::StripeService.new
+
+      # Stripe prices are immutable, so create new ones when price changes
+      case pricing_type
+      when "one_time"
+        # For one-time, we can just use the product directly with new price
+        # Stripe will handle this in the checkout session
+
+      when "monthly"
+        new_price = stripe_service.create_price(
+          product_id: stripe_product_id,
+          unit_amount: price_cents,
+          currency: "usd",
+          recurring: {interval: "month"}
+        )
+        update_column(:stripe_monthly_price_id, new_price.id)
+
+      when "yearly"
+        new_price = stripe_service.create_price(
+          product_id: stripe_product_id,
+          unit_amount: price_cents,
+          currency: "usd",
+          recurring: {interval: "year"}
+        )
+        update_column(:stripe_yearly_price_id, new_price.id)
+      end
+
+      Rails.logger.info "✅ Stripe prices updated for AccessPass ##{id}"
+    rescue Stripe::StripeError => e
+      Rails.logger.error "❌ Failed to sync Stripe prices for AccessPass ##{id}: #{e.message}"
+    end
   end
 
   private

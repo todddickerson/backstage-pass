@@ -55,6 +55,15 @@ class User < ApplicationRecord
     end
   end
 
+  # Name helper methods for Stripe and other integrations
+  def full_name
+    [first_name, last_name].compact.join(" ").presence || email.split("@").first
+  end
+
+  def name
+    full_name
+  end
+
   private
 
   def normalize_timezone

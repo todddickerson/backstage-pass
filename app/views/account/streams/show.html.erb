@@ -55,8 +55,8 @@
                 🔴 Go Live Now
               <% end %>
             <% elsif @stream.live? %>
-              <!-- Stream is LIVE - Show Shareable URL -->
-              <div class="mb-4 p-6 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-500 rounded-lg">
+              <!-- Stream is LIVE - Show Broadcaster Studio Access -->
+              <div class="mb-6 p-6 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-500 rounded-lg">
                 <div class="flex items-start justify-between mb-4">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -72,6 +72,31 @@
                         <%= @stream.started_at ? "Started #{time_ago_in_words(@stream.started_at)} ago" : "Just started" %>
                       </p>
                     </div>
+                  </div>
+                </div>
+
+                <!-- Broadcaster Studio Access - PROMINENT -->
+                <div class="mb-4 p-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-xl">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                      <div class="bg-white p-2 rounded-full mr-3">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <p class="text-white font-bold text-lg">You are the Broadcaster</p>
+                        <p class="text-purple-100 text-sm">Access camera, mic, and screen share controls</p>
+                      </div>
+                    </div>
+                    <%= link_to account_stream_viewing_path(@stream),
+                        class: "inline-flex items-center px-6 py-3 bg-white text-purple-600 font-bold rounded-lg hover:bg-purple-50 transition-all shadow-lg hover:shadow-xl",
+                        data: { turbo: false } do %>
+                      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                      </svg>
+                      Enter Broadcasting Studio
+                    <% end %>
                   </div>
                 </div>
 
