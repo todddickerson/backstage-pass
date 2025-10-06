@@ -335,6 +335,64 @@ export default class extends Controller {
     })
   }
 
+  // Chat Toggle
+  toggleChat() {
+    // Find the chat sidebar and toggle it
+    const chatSidebar = document.querySelector('[data-stream-viewer-target="chatSidebar"]')
+    if (chatSidebar) {
+      const isHidden = chatSidebar.style.transform === 'translateX(100%)' ||
+                      chatSidebar.style.transform === ''
+
+      if (isHidden) {
+        chatSidebar.style.transform = 'translateX(0)'
+        console.log('💬 Chat opened')
+      } else {
+        chatSidebar.style.transform = 'translateX(100%)'
+        console.log('💬 Chat closed')
+      }
+    }
+  }
+
+  // End Stream
+  async endStream() {
+    if (!confirm('End the stream? This will disconnect all viewers.')) return
+
+    try {
+      // Get stream ID from data attribute or config
+      const streamId = this.streamIdValue || this.getStreamId()
+      if (!streamId) {
+        console.error('Stream ID not found')
+        return
+      }
+
+      const response = await fetch(`/account/streams/${streamId}/end_stream`, {
+        method: 'PATCH',
+        headers: {
+          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content,
+          'Accept': 'application/json'
+        }
+      })
+
+      if (response.ok) {
+        console.log('✅ Stream ended successfully')
+        // Redirect to stream management page
+        window.location.href = `/account/streams/${streamId}`
+      } else {
+        console.error('Failed to end stream:', response.status)
+        alert('Failed to end stream. Please try again.')
+      }
+    } catch (error) {
+      console.error('Error ending stream:', error)
+      alert('An error occurred. Please try again.')
+    }
+  }
+
+  getStreamId() {
+    // Try to extract from URL or page data
+    const match = window.location.pathname.match(/streams\/([^\/]+)/)
+    return match ? match[1] : null
+  }
+
   // Fullscreen Toggle
   toggleFullscreen() {
     if (!document.fullscreenElement) {

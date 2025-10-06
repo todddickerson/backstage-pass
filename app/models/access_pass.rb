@@ -147,7 +147,7 @@ class AccessPass < ApplicationRecord
       # Create prices based on pricing type
       case pricing_type
       when "one_time"
-        price = stripe_service.create_price(
+        stripe_service.create_price(
           product_id: product.id,
           unit_amount: price_cents,
           currency: "usd"
