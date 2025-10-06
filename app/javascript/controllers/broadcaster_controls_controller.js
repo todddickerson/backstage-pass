@@ -273,8 +273,16 @@ export default class extends Controller {
     console.log(`📹 Switching camera to:`, deviceId)
 
     try {
-      await this.localParticipant.switchActiveDevice('videoinput', deviceId)
-      console.log('✅ Camera switched successfully')
+      // Get the camera track publication
+      const videoPublication = this.localParticipant.getTrackPublication('camera')
+      if (videoPublication && videoPublication.track) {
+        // Use restartTrack to switch devices
+        await videoPublication.track.restartTrack({ deviceId: deviceId })
+        console.log('✅ Camera switched successfully')
+
+        // Update preview
+        this.showLocalVideoPreview()
+      }
     } catch (error) {
       console.error('Failed to switch camera:', error)
     }
@@ -293,8 +301,13 @@ export default class extends Controller {
     console.log(`🎤 Switching microphone to:`, deviceId)
 
     try {
-      await this.localParticipant.switchActiveDevice('audioinput', deviceId)
-      console.log('✅ Microphone switched successfully')
+      // Get the microphone track publication
+      const audioPublication = this.localParticipant.getTrackPublication('microphone')
+      if (audioPublication && audioPublication.track) {
+        // Use restartTrack to switch devices
+        await audioPublication.track.restartTrack({ deviceId: deviceId })
+        console.log('✅ Microphone switched successfully')
+      }
     } catch (error) {
       console.error('Failed to switch microphone:', error)
     }
