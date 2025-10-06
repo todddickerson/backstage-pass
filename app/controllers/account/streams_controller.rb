@@ -251,25 +251,46 @@ class Account::StreamsController < Account::ApplicationController
   end
 
   # PATCH /account/streams/:id/go_live
-  # User-friendly HTML version of start_stream
+  # Start stream in REHEARSAL mode (test before going live to viewers)
   def go_live
     unless @stream.can_broadcast?(current_user)
       redirect_to [:account, @stream], alert: "You are not authorized to broadcast this stream."
       return
     end
 
-    if @stream.live?
-      redirect_to [:account, @stream], alert: "Stream is already live."
+    if @stream.live? || @stream.rehearsal?
+      redirect_to [:account, @stream], alert: "Stream is already active."
       return
     end
 
-    if @stream.update(status: :live, started_at: Time.current)
+    if @stream.update(status: :rehearsal, started_at: Time.current)
       # The model's handle_status_change callback will create the LiveKit room
       redirect_to account_viewer_stream_path(@stream),
-        notice: "🔴 Stream is now LIVE! Broadcasting started."
+        notice: "🎬 Rehearsal started! Test your setup, then click 'Go Live to Viewers' when ready."
     else
       redirect_to [:account, @stream],
         alert: "Failed to start stream: #{@stream.errors.full_messages.join(", ")}"
+    end
+  end
+
+  # Transition from REHEARSAL to LIVE (make visible to viewers)
+  def go_live_to_viewers
+    unless @stream.can_broadcast?(current_user)
+      redirect_to [:account, @stream], alert: "You are not authorized to broadcast this stream."
+      return
+    end
+
+    unless @stream.rehearsal?
+      redirect_to [:account, @stream], alert: "Stream must be in rehearsal mode first."
+      return
+    end
+
+    if @stream.update(status: :live)
+      redirect_to account_viewer_stream_path(@stream),
+        notice: "🔴 NOW LIVE! Viewers can now join your stream."
+    else
+      redirect_to [:account, @stream],
+        alert: "Failed to go live: #{@stream.errors.full_messages.join(", ")}"
     end
   end
 

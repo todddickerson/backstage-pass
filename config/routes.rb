@@ -103,7 +103,8 @@ Rails.application.routes.draw do
                 get :video_token
                 post :start_stream
                 post :stop_stream
-                patch :go_live  # Alias for start_stream with better UX
+                patch :go_live  # Start in rehearsal mode
+                patch :go_live_to_viewers  # Transition rehearsal -> live
                 patch :end_stream  # Alias for stop_stream with better UX
                 get :room_info
               end

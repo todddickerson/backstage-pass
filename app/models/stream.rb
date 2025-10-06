@@ -27,7 +27,8 @@ class Stream < ApplicationRecord
   # Status enum for stream lifecycle
   enum :status, {
     scheduled: "scheduled",
-    live: "live",
+    rehearsal: "rehearsal",  # Testing mode - only broadcaster can see
+    live: "live",            # Public - viewers can join
     ended: "ended"
   }
 
@@ -38,6 +39,11 @@ class Stream < ApplicationRecord
 
   # Check if user can view this stream
   def can_view?(user)
+    # REHEARSAL MODE: Only broadcaster can view
+    if rehearsal?
+      return experience.space.team.users.include?(user)
+    end
+
     # Team members (creators) always have access
     return true if experience.space.team.users.include?(user)
 

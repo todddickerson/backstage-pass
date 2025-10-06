@@ -74,13 +74,31 @@
 
       <!-- Center: Stream Status -->
       <div class="flex-1 text-center">
-        <div class="inline-flex items-center space-x-3 px-4 py-2 bg-red-900 bg-opacity-50 rounded-full">
-          <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-          <span class="text-white font-semibold">LIVE</span>
-          <span class="text-gray-300" data-broadcaster-controls-target="duration">00:00</span>
-          <span class="text-gray-400">•</span>
-          <span class="text-gray-300" data-broadcaster-controls-target="viewerCount">0 viewers</span>
-        </div>
+        <% if stream.rehearsal? %>
+          <!-- Rehearsal Mode - with Go Live button -->
+          <div class="inline-flex items-center space-x-4">
+            <div class="inline-flex items-center space-x-3 px-4 py-2 bg-yellow-900 bg-opacity-50 rounded-full">
+              <div class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span class="text-white font-semibold">REHEARSAL</span>
+              <span class="text-gray-300" data-broadcaster-controls-target="duration">00:00</span>
+            </div>
+            <%= button_to go_live_to_viewers_account_stream_path(stream),
+                method: :patch,
+                class: "px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-lg transition-all",
+                data: { turbo_confirm: "Ready to go LIVE to viewers? This will make your stream public." } do %>
+              🔴 Go Live to Viewers
+            <% end %>
+          </div>
+        <% else %>
+          <!-- Live Mode -->
+          <div class="inline-flex items-center space-x-3 px-4 py-2 bg-red-900 bg-opacity-50 rounded-full">
+            <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <span class="text-white font-semibold">LIVE</span>
+            <span class="text-gray-300" data-broadcaster-controls-target="duration">00:00</span>
+            <span class="text-gray-400">•</span>
+            <span class="text-gray-300" data-broadcaster-controls-target="viewerCount">0 viewers</span>
+          </div>
+        <% end %>
       </div>
 
       <!-- Right: System Controls -->
