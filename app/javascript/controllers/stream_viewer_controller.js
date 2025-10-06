@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { StreamChat } from "stream-chat"
 
 /**
  * Stream Viewer Controller
@@ -221,35 +222,7 @@ export default class extends Controller {
   }
 
   async connectToChat() {
-    // Debug: Check what's actually loaded
-    console.log('🔍 Checking for StreamChat SDK...')
-    console.log('window.StreamChat:', typeof window.StreamChat)
-    console.log('window.stream:', typeof window.stream)
-    console.log('window.Stream:', typeof window.Stream)
-
-    // Check all loaded scripts
-    const scripts = Array.from(document.querySelectorAll('script[src*="stream-chat"]'))
-    console.log('📦 StreamChat scripts found:', scripts.length)
-    scripts.forEach(s => console.log('  -', s.src, s.readyState))
-
-    // Give SDK time to load from CDN
-    let retries = 0
-    while (typeof window.StreamChat === 'undefined' && retries < 10) {
-      console.log(`⏳ Waiting for StreamChat SDK (attempt ${retries + 1}/10)...`)
-      console.log('  Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('stream')))
-      await new Promise(resolve => setTimeout(resolve, 500))
-      retries++
-    }
-
-    if (typeof window.StreamChat === 'undefined') {
-      console.error('❌ StreamChat SDK failed to load after 5 seconds')
-      console.error('📋 All window properties with "stream":',
-        Object.keys(window).filter(k => k.toLowerCase().includes('stream')))
-      return
-    }
-
-    console.log('✅ StreamChat SDK loaded successfully!')
-    const StreamChat = window.StreamChat
+    console.log('💬 Initializing GetStream Chat...')
 
     if (!this.config.chat_room) {
       console.warn('No chat room configured')

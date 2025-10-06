@@ -10,8 +10,7 @@ can_view = @stream.can_view?(current_user)
 <!-- Include LiveKit SDK -->
 <%= javascript_include_tag "https://unpkg.com/livekit-client@2.6.1/dist/livekit-client.umd.js", defer: false %>
 
-<!-- Include GetStream Chat SDK - load synchronously to ensure availability -->
-<%= javascript_include_tag "https://cdn.jsdelivr.net/npm/stream-chat@8.40.3/dist/browser/index.umd.js", defer: false %>
+<!-- GetStream Chat SDK loaded via npm import in stream_viewer_controller.js -->
 
 <div class="min-h-screen bg-black" 
      data-controller="stream-viewer"
