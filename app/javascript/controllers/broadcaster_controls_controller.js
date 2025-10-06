@@ -28,7 +28,9 @@ export default class extends Controller {
     this.localParticipant = null
 
     // Listen for LiveKit connection from stream-viewer controller
-    this.element.addEventListener('livekit:connected', this.handleLiveKitConnected.bind(this))
+    // Listen on document to catch events from anywhere
+    document.addEventListener('livekit:connected', this.handleLiveKitConnected.bind(this))
+    console.log('👂 Listening for livekit:connected event...')
 
     // Try to get existing connection from parent stream-viewer controller
     this.connectToLiveKit()

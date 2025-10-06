@@ -148,9 +148,15 @@ export default class extends Controller {
       console.log('Connected to LiveKit room:', tokenData.room_name)
 
       // Dispatch event for other controllers (e.g., broadcaster-controls)
-      this.element.dispatchEvent(new CustomEvent('livekit:connected', {
-        detail: { room: this.room, localParticipant: this.room.localParticipant }
-      }))
+      // Dispatch on both element AND document for broader reach
+      const event = new CustomEvent('livekit:connected', {
+        detail: { room: this.room, localParticipant: this.room.localParticipant },
+        bubbles: true
+      })
+
+      this.element.dispatchEvent(event)
+      document.dispatchEvent(event)
+      console.log('📡 Dispatched livekit:connected event')
       
     } catch (error) {
       console.error('Video connection failed:', error)
