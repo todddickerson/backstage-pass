@@ -73,6 +73,10 @@ class Account::StreamViewingController < Account::ApplicationController
   def stream_info
     return render_access_denied unless @stream.can_view?(current_user)
 
+    # Set experience and space (needed for response)
+    @experience = @stream.experience
+    @space = @experience.space
+
     livekit_service = Streaming::LivekitService.new
     room_info = livekit_service.get_room_info(@stream)
     participants = livekit_service.get_room_participants(@stream)
