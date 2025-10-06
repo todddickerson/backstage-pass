@@ -162,23 +162,26 @@ export default class extends Controller {
     // Handle track subscribed (when broadcaster starts streaming)
     this.room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
       console.log('Track subscribed:', track.kind, participant.identity)
-      
+
       if (track.kind === Track.Kind.Video) {
         const videoElement = track.attach()
         videoElement.style.width = '100%'
         videoElement.style.height = '100%'
         videoElement.style.objectFit = 'contain'
         videoElement.style.backgroundColor = 'black'
-        
+
         // Clear loading and add video
         if (this.hasVideoTarget) {
           this.videoTarget.innerHTML = ''
           this.videoTarget.appendChild(videoElement)
         }
-        
+
         this.hideLoading()
+
+        // Start monitoring this track's stats
+        this.monitorTrackStats(track, publication)
       }
-      
+
       if (track.kind === Track.Kind.Audio) {
         const audioElement = track.attach()
         if (this.hasVideoTarget) {
@@ -477,9 +480,26 @@ export default class extends Controller {
   }
 
   updateViewerCount() {
-    if (this.hasViewerCountTarget && this.room) {
-      const count = this.room.participants.size
+    if (!this.room) return
+
+    const count = this.room.participants.size
+
+    // Update local viewer count target
+    if (this.hasViewerCountTarget) {
       this.viewerCountTarget.textContent = `${count} viewer${count !== 1 ? 's' : ''}`
+    }
+
+    // Also update broadcaster-controls controller if present
+    const broadcasterControlsElement = document.querySelector('[data-controller~="broadcaster-controls"]')
+    if (broadcasterControlsElement) {
+      const controller = this.application.getControllerForElementAndIdentifier(
+        broadcasterControlsElement,
+        'broadcaster-controls'
+      )
+
+      if (controller && controller.updateViewerCount) {
+        controller.updateViewerCount(count)
+      }
     }
   }
 
@@ -498,14 +518,109 @@ export default class extends Controller {
     }
   }
 
+  monitorTrackStats(track, publication) {
+    // Clear any existing stats interval
+    if (this.statsInterval) {
+      clearInterval(this.statsInterval)
+    }
+
+    // Update stats every 2 seconds
+    this.statsInterval = setInterval(async () => {
+      try {
+        const stats = await this.collectTrackStats(track, publication)
+        this.updateStatsDisplay(stats)
+      } catch (error) {
+        console.error('Failed to collect stats:', error)
+      }
+    }, 2000)
+  }
+
+  async collectTrackStats(track, publication) {
+    if (!track || !publication) return null
+
+    const stats = {
+      bitrate: 0,
+      fps: 0,
+      resolution: null,
+      quality: 'Unknown',
+      packetLoss: 0
+    }
+
+    try {
+      // Get stats from the track
+      const trackStats = await track.getRTCStatsReport()
+
+      if (trackStats) {
+        for (const [, stat] of trackStats) {
+          // Inbound RTP stats (for receiving/viewing)
+          if (stat.type === 'inbound-rtp' && stat.kind === 'video') {
+            stats.bitrate = stat.bytesReceived ? (stat.bytesReceived * 8) / (stat.timestamp / 1000) : 0
+            stats.fps = stat.framesPerSecond || 0
+            stats.resolution = {
+              width: stat.frameWidth || 0,
+              height: stat.frameHeight || 0
+            }
+            stats.packetLoss = stat.packetsLost || 0
+          }
+
+          // Outbound RTP stats (for broadcasting)
+          if (stat.type === 'outbound-rtp' && stat.kind === 'video') {
+            stats.bitrate = stat.bytesSent ? (stat.bytesSent * 8) / (stat.timestamp / 1000) : 0
+            stats.fps = stat.framesPerSecond || 0
+            stats.resolution = {
+              width: stat.frameWidth || 0,
+              height: stat.frameHeight || 0
+            }
+          }
+        }
+      }
+
+      // Determine connection quality based on bitrate and packet loss
+      if (stats.bitrate > 1000000 && stats.packetLoss < 10) {
+        stats.quality = 'Excellent'
+      } else if (stats.bitrate > 500000 && stats.packetLoss < 50) {
+        stats.quality = 'Good'
+      } else if (stats.bitrate > 100000) {
+        stats.quality = 'Fair'
+      } else {
+        stats.quality = 'Poor'
+      }
+
+    } catch (error) {
+      console.error('Error collecting track stats:', error)
+    }
+
+    return stats
+  }
+
+  updateStatsDisplay(stats) {
+    if (!stats) return
+
+    // Try to find broadcaster-controls controller and update its stats
+    const broadcasterControlsElement = document.querySelector('[data-controller~="broadcaster-controls"]')
+    if (broadcasterControlsElement) {
+      const controller = this.application.getControllerForElementAndIdentifier(
+        broadcasterControlsElement,
+        'broadcaster-controls'
+      )
+
+      if (controller && controller.updateStats) {
+        controller.updateStats(stats)
+      }
+    }
+
+    // Also update viewer count periodically
+    this.updateViewerCount()
+  }
+
   startPeriodicUpdates() {
-    // Update viewer count every 30 seconds
-    setInterval(() => {
+    // Update viewer count every 10 seconds
+    this.viewerCountInterval = setInterval(() => {
       this.updateViewerCount()
-    }, 30000)
+    }, 10000)
 
     // Check stream status every 60 seconds
-    setInterval(() => {
+    this.streamStatusInterval = setInterval(() => {
       this.checkStreamStatus()
     }, 60000)
   }
@@ -597,6 +712,19 @@ export default class extends Controller {
     // Disconnect from chat
     if (this.chat && this.chatConnected) {
       this.chat.disconnectUser()
+    }
+
+    // Clear intervals
+    if (this.statsInterval) {
+      clearInterval(this.statsInterval)
+    }
+
+    if (this.viewerCountInterval) {
+      clearInterval(this.viewerCountInterval)
+    }
+
+    if (this.streamStatusInterval) {
+      clearInterval(this.streamStatusInterval)
     }
 
     // Clear timeouts
