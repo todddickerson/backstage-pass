@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_06_144528) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_06_152530) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -417,6 +417,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_06_144528) do
     t.integer "total_viewers", default: 0, null: false
     t.integer "chat_messages_count", default: 0, null: false
     t.datetime "last_broadcaster_seen_at"
+    t.datetime "started_at"
     t.index ["experience_id", "status"], name: "index_streams_on_experience_id_and_status"
     t.index ["experience_id"], name: "index_streams_on_experience_id"
     t.index ["max_viewer_count"], name: "index_streams_on_max_viewer_count"
