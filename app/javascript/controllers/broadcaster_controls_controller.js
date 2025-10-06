@@ -48,23 +48,31 @@ export default class extends Controller {
     const { room, localParticipant } = event.detail
     this.room = room
     this.localParticipant = localParticipant
-    console.log("🎬 Broadcaster controls connected to LiveKit room!")
+    console.log("🎬 Broadcaster controls connected to LiveKit room via event!")
+    console.log("  Room:", this.room)
+    console.log("  LocalParticipant:", this.localParticipant)
   }
 
   connectToLiveKit() {
-    // Try to find the stream-viewer controller
-    const streamViewerElement = this.element.closest('[data-controller~="stream-viewer"]')
+    // Try to find the stream-viewer controller (could be anywhere on page)
+    const streamViewerElement = document.querySelector('[data-controller~="stream-viewer"]')
     if (streamViewerElement) {
       const streamViewer = this.application.getControllerForElementAndIdentifier(
         streamViewerElement,
         'stream-viewer'
       )
 
-      if (streamViewer && streamViewer.isConnected()) {
+      if (streamViewer && streamViewer.isConnected && streamViewer.isConnected()) {
         this.room = streamViewer.getRoom()
         this.localParticipant = streamViewer.getLocalParticipant()
         console.log("🎬 Broadcaster controls connected to existing LiveKit room!")
+        console.log("  Room:", this.room)
+        console.log("  LocalParticipant:", this.localParticipant)
+      } else {
+        console.log("⏳ Stream viewer not connected yet, waiting for event...")
       }
+    } else {
+      console.warn("⚠️ Stream viewer element not found on page")
     }
   }
 
