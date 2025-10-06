@@ -263,7 +263,7 @@ class Account::StreamsController < Account::ApplicationController
       return
     end
 
-    if @stream.update(status: :live)
+    if @stream.update(status: :live, started_at: Time.current)
       # The model's handle_status_change callback will create the LiveKit room
       redirect_to account_viewer_stream_path(@stream),
         notice: "🔴 Stream is now LIVE! Broadcasting started."
