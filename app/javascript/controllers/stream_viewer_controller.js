@@ -221,8 +221,16 @@ export default class extends Controller {
   }
 
   async connectToChat() {
+    // Give SDK time to load from CDN
+    let retries = 0
+    while (typeof StreamChat === 'undefined' && retries < 10) {
+      console.log('Waiting for StreamChat SDK to load...')
+      await new Promise(resolve => setTimeout(resolve, 500))
+      retries++
+    }
+
     if (typeof StreamChat === 'undefined') {
-      console.warn('StreamChat SDK not loaded')
+      console.warn('StreamChat SDK failed to load after 5 seconds')
       return
     }
 
@@ -497,9 +505,9 @@ export default class extends Controller {
   }
 
   updateViewerCount() {
-    if (!this.room) return
+    if (!this.room || !this.room.participants) return
 
-    const count = this.room.participants.size
+    const count = this.room.participants.size || 0
 
     // Update local viewer count target
     if (this.hasViewerCountTarget) {

@@ -25,17 +25,15 @@ class MonitorLiveStreamsJob < ApplicationJob
     end
 
     # Check 2: No broadcaster present (check LiveKit room)
-    unless broadcaster_present?(stream)
-      # Grace period: Only end if no broadcaster for 5 minutes
-      if stream.last_broadcaster_seen_at && stream.last_broadcaster_seen_at < 5.minutes.ago
-        end_stream_with_reason(stream, "Broadcaster disconnected")
-        return
-      elsif stream.last_broadcaster_seen_at.nil?
-        # First check - set timestamp
-        stream.update_column(:last_broadcaster_seen_at, Time.current)
-      end
-    else
+    if broadcaster_present?(stream)
       # Broadcaster is present - reset grace period
+      stream.update_column(:last_broadcaster_seen_at, Time.current)
+    elsif stream.last_broadcaster_seen_at && stream.last_broadcaster_seen_at < 5.minutes.ago
+      # Grace period: Only end if no broadcaster for 5 minutes
+      end_stream_with_reason(stream, "Broadcaster disconnected")
+      return
+    elsif stream.last_broadcaster_seen_at.nil?
+      # First check - set timestamp
       stream.update_column(:last_broadcaster_seen_at, Time.current)
     end
 
