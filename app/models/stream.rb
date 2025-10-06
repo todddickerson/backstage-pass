@@ -38,12 +38,18 @@ class Stream < ApplicationRecord
 
   # Check if user can view this stream
   def can_view?(user)
+    # Team members (creators) always have access
     return true if experience.space.team.users.include?(user)
 
-    # Check if user has valid access pass for this experience or space
-    user&.access_grants&.where(
+    # FREE CONTENT: Allow access if experience is free
+    return true if experience.price_cents == 0
+
+    # PAID CONTENT: Check if user has valid access pass
+    return false unless user
+
+    user.access_grants.where(
       purchasable: [experience, experience.space]
-    )&.any?(&:active?)
+    ).any?(&:active?)
   end
 
   # Check if user can broadcast (host) this stream
