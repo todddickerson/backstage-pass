@@ -18,22 +18,54 @@ export default class extends Controller {
 
   connect() {
     console.log("🎬 Broadcaster controls connected!")
-    
+
     // Initialize state
     this.cameraEnabled = false
     this.micEnabled = false
     this.screenShareEnabled = false
     this.startTime = Date.now()
-    
+    this.room = null
+    this.localParticipant = null
+
+    // Listen for LiveKit connection from stream-viewer controller
+    this.element.addEventListener('livekit:connected', this.handleLiveKitConnected.bind(this))
+
+    // Try to get existing connection from parent stream-viewer controller
+    this.connectToLiveKit()
+
     // Enumerate available devices
     this.enumerateDevices()
-    
+
     // Start duration timer
     this.updateDuration()
     this.durationInterval = setInterval(() => this.updateDuration(), 1000)
-    
+
     // Setup keyboard shortcuts
     this.setupKeyboardShortcuts()
+  }
+
+  handleLiveKitConnected(event) {
+    const { room, localParticipant } = event.detail
+    this.room = room
+    this.localParticipant = localParticipant
+    console.log("🎬 Broadcaster controls connected to LiveKit room!")
+  }
+
+  connectToLiveKit() {
+    // Try to find the stream-viewer controller
+    const streamViewerElement = this.element.closest('[data-controller~="stream-viewer"]')
+    if (streamViewerElement) {
+      const streamViewer = this.application.getControllerForElementAndIdentifier(
+        streamViewerElement,
+        'stream-viewer'
+      )
+
+      if (streamViewer && streamViewer.isConnected()) {
+        this.room = streamViewer.getRoom()
+        this.localParticipant = streamViewer.getLocalParticipant()
+        console.log("🎬 Broadcaster controls connected to existing LiveKit room!")
+      }
+    }
   }
 
   disconnect() {
@@ -82,111 +114,225 @@ export default class extends Controller {
 
   // Camera Toggle
   async toggleCamera() {
+    if (!this.localParticipant) {
+      console.warn('Cannot toggle camera: Not connected to LiveKit')
+      return
+    }
+
     this.cameraEnabled = !this.cameraEnabled
-    
+
     if (this.hasCameraStatusTarget) {
       this.cameraStatusTarget.classList.toggle('hidden', !this.cameraEnabled)
     }
-    
+
     // Update button appearance
     if (this.hasCameraBtnTarget) {
       this.cameraBtnTarget.classList.toggle('bg-green-700', this.cameraEnabled)
       this.cameraBtnTarget.classList.toggle('bg-gray-800', !this.cameraEnabled)
     }
-    
+
     console.log(`📹 Camera ${this.cameraEnabled ? 'enabled' : 'disabled'}`)
-    
-    // TODO: Integrate with LiveKit
-    // await this.localParticipant.setCameraEnabled(this.cameraEnabled)
+
+    try {
+      await this.localParticipant.setCameraEnabled(this.cameraEnabled)
+      console.log('✅ Camera toggled successfully')
+    } catch (error) {
+      console.error('Failed to toggle camera:', error)
+      // Revert state on error
+      this.cameraEnabled = !this.cameraEnabled
+    }
   }
 
   // Microphone Toggle
   async toggleMicrophone() {
+    if (!this.localParticipant) {
+      console.warn('Cannot toggle microphone: Not connected to LiveKit')
+      return
+    }
+
     this.micEnabled = !this.micEnabled
-    
+
     if (this.hasMicStatusTarget) {
       this.micStatusTarget.classList.toggle('hidden', !this.micEnabled)
     }
-    
+
     // Update button appearance
     if (this.hasMicBtnTarget) {
       this.micBtnTarget.classList.toggle('bg-green-700', this.micEnabled)
       this.micBtnTarget.classList.toggle('bg-gray-800', !this.micEnabled)
     }
-    
+
     console.log(`🎤 Microphone ${this.micEnabled ? 'enabled' : 'disabled'}`)
-    
-    // TODO: Integrate with LiveKit
-    // await this.localParticipant.setMicrophoneEnabled(this.micEnabled)
+
+    try {
+      await this.localParticipant.setMicrophoneEnabled(this.micEnabled)
+      console.log('✅ Microphone toggled successfully')
+    } catch (error) {
+      console.error('Failed to toggle microphone:', error)
+      // Revert state on error
+      this.micEnabled = !this.micEnabled
+    }
   }
 
   // Screen Share Toggle
   async toggleScreenShare() {
+    if (!this.localParticipant) {
+      console.warn('Cannot toggle screen share: Not connected to LiveKit')
+      return
+    }
+
     this.screenShareEnabled = !this.screenShareEnabled
-    
+
     if (this.hasScreenStatusTarget) {
       this.screenStatusTarget.classList.toggle('hidden', !this.screenShareEnabled)
     }
-    
+
     // Update button appearance
     if (this.hasScreenBtnTarget) {
       this.screenBtnTarget.classList.toggle('bg-blue-700', this.screenShareEnabled)
       this.screenBtnTarget.classList.toggle('bg-gray-800', !this.screenShareEnabled)
     }
-    
+
     console.log(`🖥️ Screen share ${this.screenShareEnabled ? 'enabled' : 'disabled'}`)
-    
-    // TODO: Integrate with LiveKit
-    // await this.localParticipant.setScreenShareEnabled(this.screenShareEnabled, { audio: true })
+
+    try {
+      await this.localParticipant.setScreenShareEnabled(this.screenShareEnabled, {
+        audio: true // Include system audio
+      })
+      console.log('✅ Screen share toggled successfully')
+    } catch (error) {
+      console.error('Failed to toggle screen share:', error)
+      // Revert state on error
+      this.screenShareEnabled = !this.screenShareEnabled
+    }
   }
 
   // Change Camera Device
   async changeCamera(event) {
+    if (!this.localParticipant) {
+      console.warn('Cannot change camera: Not connected to LiveKit')
+      return
+    }
+
     const deviceId = event.target.value
+    if (!deviceId) return
+
     console.log(`📹 Switching camera to:`, deviceId)
-    
-    // TODO: Integrate with LiveKit
-    // await this.localParticipant.switchActiveDevice('videoinput', deviceId)
+
+    try {
+      await this.localParticipant.switchActiveDevice('videoinput', deviceId)
+      console.log('✅ Camera switched successfully')
+    } catch (error) {
+      console.error('Failed to switch camera:', error)
+    }
   }
 
   // Change Microphone Device
   async changeMicrophone(event) {
+    if (!this.localParticipant) {
+      console.warn('Cannot change microphone: Not connected to LiveKit')
+      return
+    }
+
     const deviceId = event.target.value
+    if (!deviceId) return
+
     console.log(`🎤 Switching microphone to:`, deviceId)
-    
-    // TODO: Integrate with LiveKit
-    // await this.localParticipant.switchActiveDevice('audioinput', deviceId)
+
+    try {
+      await this.localParticipant.switchActiveDevice('audioinput', deviceId)
+      console.log('✅ Microphone switched successfully')
+    } catch (error) {
+      console.error('Failed to switch microphone:', error)
+    }
   }
 
-  // Change Quality Preset
+  // Change Quality Preset (for broadcaster)
   async changeQuality(event) {
+    if (!this.localParticipant || typeof LiveKitClient === 'undefined') {
+      console.warn('Cannot change quality: Not connected to LiveKit')
+      return
+    }
+
     const quality = event.target.value
+    if (!quality) return
+
     console.log(`🎚️ Changing quality to:`, quality)
-    
-    // TODO: Integrate with LiveKit VideoPresets
-    // await this.localParticipant.setTrackPublishOptions(videoTrack, {
-    //   videoEncoding: VideoPresets[quality]
-    // })
+
+    try {
+      const { VideoPresets, Track } = LiveKitClient
+      const videoTrack = await this.localParticipant.getTrack(Track.Source.Camera)
+
+      if (videoTrack) {
+        // Map quality names to VideoPresets
+        const presetMap = {
+          'h1080': VideoPresets.h1080,
+          'h720': VideoPresets.h720,
+          'h540': VideoPresets.h540,
+          'h360': VideoPresets.h360
+        }
+
+        const preset = presetMap[quality] || VideoPresets.h720
+
+        await videoTrack.setPublishingOptions({
+          videoEncoding: preset
+        })
+        console.log('✅ Quality changed successfully')
+      }
+    } catch (error) {
+      console.error('Failed to change quality:', error)
+    }
   }
 
   // Set Quality (Viewer)
   async setQuality(event) {
+    if (!this.room || typeof LiveKitClient === 'undefined') {
+      console.warn('Cannot set quality: Not connected to LiveKit')
+      return
+    }
+
     const quality = event.currentTarget.dataset.quality
+    if (!quality) return
+
     console.log(`👁️ Viewer setting quality to:`, quality)
-    
-    // TODO: Integrate with LiveKit
-    // const videoTrack = this.remoteParticipant.getTrack(Track.Source.Camera)
-    // await videoTrack.setVideoQuality(VideoQuality[quality.toUpperCase()])
+
+    try {
+      const { VideoQuality, Track } = LiveKitClient
+
+      // Get the first remote participant (broadcaster)
+      const remoteParticipants = Array.from(this.room.participants.values())
+      if (remoteParticipants.length > 0) {
+        const broadcaster = remoteParticipants[0]
+        const videoPublication = broadcaster.getTrack(Track.Source.Camera)
+
+        if (videoPublication && videoPublication.track) {
+          // Map quality string to VideoQuality enum
+          const qualityMap = {
+            'high': VideoQuality.HIGH,
+            'medium': VideoQuality.MEDIUM,
+            'low': VideoQuality.LOW
+          }
+
+          const videoQuality = qualityMap[quality.toLowerCase()] || VideoQuality.HIGH
+          videoPublication.setVideoQuality(videoQuality)
+          console.log('✅ Viewer quality set successfully')
+        }
+      }
+    } catch (error) {
+      console.error('Failed to set quality:', error)
+    }
   }
 
   // Volume Control
   changeVolume(event) {
     const volume = event.target.value / 100
     console.log(`🔊 Volume changed to:`, volume)
-    
-    // TODO: Set audio element volume
-    // const audioElements = document.querySelectorAll('audio')
-    // audioElements.forEach(el => el.volume = volume)
+
+    // Set volume on all audio and video elements
+    const mediaElements = document.querySelectorAll('audio, video')
+    mediaElements.forEach(el => {
+      el.volume = volume
+    })
   }
 
   // Fullscreen Toggle

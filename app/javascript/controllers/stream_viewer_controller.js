@@ -113,19 +113,27 @@ export default class extends Controller {
         throw new Error(tokenData.message || 'Access denied')
       }
 
-      // Create LiveKit room with viewer-optimized settings
-      const { Room, RoomEvent, Track } = LiveKitClient
-      
+      // Create LiveKit room with simulcast enabled
+      const { Room, RoomEvent, Track, VideoPresets } = LiveKitClient
+
+      // Check if this user can broadcast
+      const canBroadcast = this.config.permissions?.can_broadcast || false
+
       this.room = new Room({
         adaptiveStream: true,
         dynacast: true,
-        // Viewer-specific settings
+        // Enable simulcast for broadcasters
         publishDefaults: {
-          videoSimulcastLayers: [] // Viewers don't publish
+          simulcast: canBroadcast,
+          videoSimulcastLayers: canBroadcast ? [
+            VideoPresets.h720,
+            VideoPresets.h360,
+            VideoPresets.h180
+          ] : []
         },
-        // Optimized for mobile viewing
+        // Optimized video capture
         videoCaptureDefaults: {
-          resolution: { width: 1280, height: 720 }
+          resolution: VideoPresets.h720.resolution
         }
       })
 
@@ -134,8 +142,13 @@ export default class extends Controller {
       // Connect to room
       await this.room.connect(tokenData.room_url, tokenData.access_token)
       this.connected = true
-      
+
       console.log('Connected to LiveKit room:', tokenData.room_name)
+
+      // Dispatch event for other controllers (e.g., broadcaster-controls)
+      this.element.dispatchEvent(new CustomEvent('livekit:connected', {
+        detail: { room: this.room, localParticipant: this.room.localParticipant }
+      }))
       
     } catch (error) {
       console.error('Video connection failed:', error)
@@ -529,6 +542,19 @@ export default class extends Controller {
     if (this.hasConnectionStatusTarget) {
       this.connectionStatusTarget.textContent = status
     }
+  }
+
+  // Public methods for broadcaster-controls controller
+  getRoom() {
+    return this.room
+  }
+
+  getLocalParticipant() {
+    return this.room?.localParticipant
+  }
+
+  isConnected() {
+    return this.connected && this.room
   }
 
   cleanup() {
