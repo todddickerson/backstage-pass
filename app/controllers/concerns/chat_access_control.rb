@@ -66,7 +66,7 @@ module ChatAccessControl
     respond_to do |format|
       format.html do
         flash[:alert] = message
-        redirect_to [@stream.experience.space]
+        redirect_to [:account, @stream.experience.space]
       end
 
       format.json do
