@@ -164,7 +164,7 @@ class Account::StreamViewingController < Account::ApplicationController
   end
 
   def ensure_chat_room
-    @stream.chat_room
+    @chat_room = @stream.chat_room
   end
 
   def stream_accessible?
