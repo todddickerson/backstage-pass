@@ -161,18 +161,20 @@ export default class extends Controller {
       viewersList.appendChild(broadcasterDiv)
     }
 
-    // Add viewers (remote participants)
-    room.participants.forEach((participant) => {
-      const viewerDiv = this.createViewerElement(
-        participant.identity,
-        false,
-        participant.metadata
-      )
-      viewersList.appendChild(viewerDiv)
-    })
+    // Add viewers (remote participants) - room.participants is a Map
+    if (room.participants && room.participants.size > 0) {
+      Array.from(room.participants.values()).forEach((participant) => {
+        const viewerDiv = this.createViewerElement(
+          participant.identity,
+          false,
+          participant.metadata
+        )
+        viewersList.appendChild(viewerDiv)
+      })
+    }
 
     // Show count
-    const totalViewers = room.participants.size + 1 // Include broadcaster
+    const totalViewers = (room.participants?.size || 0) + 1 // Include broadcaster
     console.log(`👥 ${totalViewers} total participants`)
   }
 
