@@ -56,6 +56,7 @@ class Account::StreamViewingController < Account::ApplicationController
       render json: {
         success: true,
         token: token,
+        api_key: ENV["GETSTREAM_API_KEY"],
         user_id: current_user.id.to_s,
         user_name: current_user.name || current_user.email.split("@").first,
         chat_room_id: @chat_room.channel_id

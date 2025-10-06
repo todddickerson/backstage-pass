@@ -218,7 +218,7 @@ export default class extends Controller {
 
   async connectToChat() {
     if (typeof StreamChat === 'undefined') {
-      console.warn('StreamChat not available')
+      console.warn('StreamChat SDK not loaded')
       return
     }
 
@@ -245,9 +245,13 @@ export default class extends Controller {
         throw new Error(tokenData.message || 'Chat access denied')
       }
 
-      // Initialize StreamChat
-      this.chat = StreamChat.getInstance(tokenData.api_key || 'your-api-key')
-      
+      if (!tokenData.api_key) {
+        throw new Error('API key not provided by server')
+      }
+
+      // Initialize StreamChat with the correct constructor
+      this.chat = new StreamChat(tokenData.api_key)
+
       // Connect user
       await this.chat.connectUser({
         id: tokenData.user_id,
@@ -255,17 +259,17 @@ export default class extends Controller {
       }, tokenData.token)
 
       // Get channel
-      this.chatChannel = this.chat.channel('livestream', this.config.chat_room.channel_id)
+      this.chatChannel = this.chat.channel('livestream', tokenData.chat_room_id)
       await this.chatChannel.watch()
 
       this.setupChatEvents()
       this.enableChatInput()
       this.chatConnected = true
-      
-      console.log('Connected to chat:', this.config.chat_room.channel_id)
-      
+
+      console.log('✅ Connected to chat:', tokenData.chat_room_id)
+
     } catch (error) {
-      console.error('Chat connection failed:', error)
+      console.error('❌ Chat connection failed:', error)
       this.disableChatInput()
     }
   }
@@ -300,6 +304,25 @@ export default class extends Controller {
     this.element.addEventListener('click', (e) => {
       if (e.target.id === 'fullscreen-toggle') {
         this.toggleFullscreen()
+      }
+    })
+
+    // Send button handlers
+    this.element.addEventListener('click', (e) => {
+      if (e.target.id === 'send-message' || e.target.closest('#send-message')) {
+        e.preventDefault()
+        if (this.hasChatInputTarget) {
+          this.sendMessage(this.chatInputTarget.value)
+          this.chatInputTarget.value = ''
+        }
+      }
+
+      if (e.target.id === 'mobile-send-message' || e.target.closest('#mobile-send-message')) {
+        e.preventDefault()
+        if (this.hasMobileChatInputTarget) {
+          this.sendMessage(this.mobileChatInputTarget.value)
+          this.mobileChatInputTarget.value = ''
+        }
       }
     })
 
@@ -432,6 +455,10 @@ export default class extends Controller {
       this.mobileChatInputTarget.disabled = false
       this.mobileChatInputTarget.placeholder = 'Type a message...'
     }
+
+    // Enable send buttons
+    const sendButtons = document.querySelectorAll('#send-message, #mobile-send-message')
+    sendButtons.forEach(btn => btn.disabled = false)
   }
 
   disableChatInput() {
@@ -443,6 +470,10 @@ export default class extends Controller {
       this.mobileChatInputTarget.disabled = true
       this.mobileChatInputTarget.placeholder = 'Chat unavailable'
     }
+
+    // Disable send buttons
+    const sendButtons = document.querySelectorAll('#send-message, #mobile-send-message')
+    sendButtons.forEach(btn => btn.disabled = true)
   }
 
   updateViewerCount() {
