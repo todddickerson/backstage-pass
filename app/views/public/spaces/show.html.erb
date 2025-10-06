@@ -33,7 +33,7 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <% live_experiences.each do |experience| %>
-            <%= link_to account_stream_viewing_path(experience.streams.live.first),
+            <%= link_to account_viewer_stream_path(experience.streams.live.first),
                 class: "block border-2 border-red-300 bg-white rounded-lg p-4 hover:shadow-lg hover:border-red-500 transition-all" do %>
               <div class="flex items-start justify-between mb-2">
                 <h3 class="font-semibold text-gray-900"><%= experience.name %></h3>
