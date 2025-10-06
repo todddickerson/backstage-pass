@@ -8,7 +8,8 @@ export default class extends Controller {
     "cameraStatus", "micStatus", "screenStatus",
     "cameraSelect", "micSelect", "qualitySelect",
     "noiseSuppression", "echoCancellation",
-    "viewerCount", "duration", "bitrate", "fps", "resolution", "connection"
+    "viewerCount", "duration", "bitrate", "fps", "resolution", "connection",
+    "settingsModal"
   ]
 
   static values = {
@@ -545,6 +546,28 @@ export default class extends Controller {
     const help = document.querySelector('[data-broadcaster-controls-target="shortcuts"]')
     if (help) {
       help.classList.toggle('hidden')
+    }
+  }
+
+  // Settings Modal (Google Meet Style)
+  openSettings() {
+    if (this.hasSettingsModalTarget) {
+      this.settingsModalTarget.classList.remove('hidden')
+      console.log('⚙️ Settings modal opened')
+    }
+  }
+
+  closeSettings() {
+    if (this.hasSettingsModalTarget) {
+      this.settingsModalTarget.classList.add('hidden')
+      console.log('⚙️ Settings modal closed')
+    }
+  }
+
+  closeSettingsOnBackdrop(event) {
+    // Only close if clicking the backdrop (not the modal content)
+    if (event.target === this.settingsModalTarget) {
+      this.closeSettings()
     }
   }
 }

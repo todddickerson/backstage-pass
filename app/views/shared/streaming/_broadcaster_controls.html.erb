@@ -8,52 +8,34 @@
     <!-- Main Control Bar -->
     <div class="flex items-center justify-between">
       
-      <!-- Left: Media Controls -->
+      <!-- Left: Media Controls (Google Meet Style - Clean) -->
       <div class="flex items-center space-x-4">
         <% if can_broadcast %>
-          <!-- Camera Toggle & Select -->
-          <div class="flex items-center space-x-2">
-            <button
-              data-action="click->broadcaster-controls#toggleCamera"
-              data-broadcaster-controls-target="cameraBtn"
-              class="group relative p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
-              title="Toggle Camera (C)"
-            >
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-              </svg>
-              <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full hidden" data-broadcaster-controls-target="cameraStatus"></span>
-            </button>
-            <select
-              data-action="change->broadcaster-controls#changeCamera"
-              data-broadcaster-controls-target="cameraSelect"
-              class="bg-gray-800 text-white text-sm px-2 py-1 rounded border border-gray-700 focus:border-indigo-500 focus:outline-none"
-            >
-              <option value="">Camera...</option>
-            </select>
-          </div>
+          <!-- Camera Toggle -->
+          <button
+            data-action="click->broadcaster-controls#toggleCamera"
+            data-broadcaster-controls-target="cameraBtn"
+            class="group relative p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+            title="Toggle Camera (C)"
+          >
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+            <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full hidden" data-broadcaster-controls-target="cameraStatus"></span>
+          </button>
 
-          <!-- Microphone Toggle & Select -->
-          <div class="flex items-center space-x-2">
-            <button
-              data-action="click->broadcaster-controls#toggleMicrophone"
-              data-broadcaster-controls-target="micBtn"
-              class="group relative p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
-              title="Toggle Microphone (M)"
-            >
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-              </svg>
-              <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full hidden" data-broadcaster-controls-target="micStatus"></span>
-            </button>
-            <select
-              data-action="change->broadcaster-controls#changeMicrophone"
-              data-broadcaster-controls-target="micSelect"
-              class="bg-gray-800 text-white text-sm px-2 py-1 rounded border border-gray-700 focus:border-indigo-500 focus:outline-none"
-            >
-              <option value="">Microphone...</option>
-            </select>
-          </div>
+          <!-- Microphone Toggle -->
+          <button
+            data-action="click->broadcaster-controls#toggleMicrophone"
+            data-broadcaster-controls-target="micBtn"
+            class="group relative p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+            title="Toggle Microphone (M)"
+          >
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+            </svg>
+            <span class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full hidden" data-broadcaster-controls-target="micStatus"></span>
+          </button>
 
           <!-- Screen Share -->
           <button
@@ -66,6 +48,18 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
             </svg>
             <span class="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full hidden" data-broadcaster-controls-target="screenStatus"></span>
+          </button>
+
+          <!-- Settings (Google Meet Style) -->
+          <button
+            data-action="click->broadcaster-controls#openSettings"
+            class="p-3 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+            title="Settings"
+          >
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.350 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
           </button>
         <% else %>
           <p class="text-sm text-gray-400">Viewer Mode</p>
@@ -134,6 +128,108 @@
           <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
           </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal (Google Meet Style) -->
+  <div
+    data-broadcaster-controls-target="settingsModal"
+    class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center"
+    data-action="click->broadcaster-controls#closeSettingsOnBackdrop"
+  >
+    <div class="bg-gray-900 rounded-lg shadow-2xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden" data-settings-panel>
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-700">
+        <h2 class="text-xl font-semibold text-white">Settings</h2>
+        <button
+          data-action="click->broadcaster-controls#closeSettings"
+          class="text-gray-400 hover:text-white transition-colors"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto max-h-[calc(80vh-140px)]">
+        <!-- Camera Settings -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-3">Camera</label>
+          <select
+            data-action="change->broadcaster-controls#changeCamera"
+            data-broadcaster-controls-target="cameraSelect"
+            class="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-indigo-500 focus:outline-none"
+          >
+            <option value="">Select camera...</option>
+          </select>
+          <p class="mt-2 text-sm text-gray-400">Choose which camera to use for broadcasting</p>
+        </div>
+
+        <!-- Microphone Settings -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-3">Microphone</label>
+          <select
+            data-action="change->broadcaster-controls#changeMicrophone"
+            data-broadcaster-controls-target="micSelect"
+            class="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-indigo-500 focus:outline-none"
+          >
+            <option value="">Select microphone...</option>
+          </select>
+          <p class="mt-2 text-sm text-gray-400">Choose which microphone to use</p>
+        </div>
+
+        <!-- Quality Settings -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-3">Video Quality</label>
+          <select
+            data-action="change->broadcaster-controls#changeQuality"
+            data-broadcaster-controls-target="qualitySelect"
+            class="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-indigo-500 focus:outline-none"
+          >
+            <option value="h1080">1080p (High)</option>
+            <option value="h720" selected>720p (Standard)</option>
+            <option value="h540">540p (Medium)</option>
+            <option value="h360">360p (Low Bandwidth)</option>
+          </select>
+          <p class="mt-2 text-sm text-gray-400">Higher quality uses more bandwidth</p>
+        </div>
+
+        <!-- Audio Processing -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-300 mb-3">Audio Processing</label>
+          <div class="space-y-3">
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                data-broadcaster-controls-target="noiseSuppression"
+                checked
+                class="w-5 h-5 bg-gray-800 border-gray-700 rounded text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0"
+              >
+              <span class="ml-3 text-white">Noise Suppression</span>
+            </label>
+            <label class="flex items-center">
+              <input
+                type="checkbox"
+                data-broadcaster-controls-target="echoCancellation"
+                checked
+                class="w-5 h-5 bg-gray-800 border-gray-700 rounded text-indigo-600 focus:ring-indigo-500 focus:ring-offset-0"
+              >
+              <span class="ml-3 text-white">Echo Cancellation</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-6 border-t border-gray-700 flex justify-end">
+        <button
+          data-action="click->broadcaster-controls#closeSettings"
+          class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
+        >
+          Done
         </button>
       </div>
     </div>
