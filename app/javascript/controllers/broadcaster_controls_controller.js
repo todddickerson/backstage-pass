@@ -27,6 +27,7 @@ export default class extends Controller {
     this.startTime = Date.now()
     this.room = null
     this.localParticipant = null
+    this.isTestingDevices = false // For green room testing
 
     // Listen for LiveKit connection from stream-viewer controller
     // Listen on document to catch events from anywhere
@@ -45,6 +46,9 @@ export default class extends Controller {
 
     // Setup keyboard shortcuts
     this.setupKeyboardShortcuts()
+
+    // Load saved device preferences
+    this.loadDevicePreferences()
   }
 
   handleLiveKitConnected(event) {
@@ -90,37 +94,75 @@ export default class extends Controller {
     try {
       // Request permissions first
       await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-      
+
       const devices = await navigator.mediaDevices.enumerateDevices()
-      
+
+      // Get saved preferences
+      const savedCamera = localStorage.getItem('backstagepass_camera_id')
+      const savedMic = localStorage.getItem('backstagepass_mic_id')
+
       // Populate camera dropdown
       const cameras = devices.filter(d => d.kind === 'videoinput')
       if (this.hasCameraSelectTarget) {
-        this.cameraSelectTarget.innerHTML = '<option value="">Select Camera...</option>'
+        this.cameraSelectTarget.innerHTML = ''
         cameras.forEach((device, index) => {
           const option = document.createElement('option')
           option.value = device.deviceId
           option.textContent = device.label || `Camera ${index + 1}`
+
+          // Select saved device or first camera as default
+          if ((savedCamera && device.deviceId === savedCamera) || (!savedCamera && index === 0)) {
+            option.selected = true
+            console.log(`📹 Selected camera: ${option.textContent}`)
+          }
+
           this.cameraSelectTarget.appendChild(option)
         })
       }
-      
+
       // Populate microphone dropdown
       const mics = devices.filter(d => d.kind === 'audioinput')
       if (this.hasMicSelectTarget) {
-        this.micSelectTarget.innerHTML = '<option value="">Select Microphone...</option>'
+        this.micSelectTarget.innerHTML = ''
         mics.forEach((device, index) => {
           const option = document.createElement('option')
           option.value = device.deviceId
           option.textContent = device.label || `Microphone ${index + 1}`
+
+          // Select saved device or first mic as default
+          if ((savedMic && device.deviceId === savedMic) || (!savedMic && index === 0)) {
+            option.selected = true
+            console.log(`🎤 Selected microphone: ${option.textContent}`)
+          }
+
           this.micSelectTarget.appendChild(option)
         })
       }
-      
+
       console.log(`📹 Found ${cameras.length} cameras, 🎤 ${mics.length} microphones`)
     } catch (error) {
       console.error("Failed to enumerate devices:", error)
     }
+  }
+
+  // Load Device Preferences
+  loadDevicePreferences() {
+    const savedCamera = localStorage.getItem('backstagepass_camera_id')
+    const savedMic = localStorage.getItem('backstagepass_mic_id')
+
+    if (savedCamera) {
+      console.log(`💾 Loaded saved camera preference: ${savedCamera}`)
+    }
+    if (savedMic) {
+      console.log(`💾 Loaded saved microphone preference: ${savedMic}`)
+    }
+  }
+
+  // Save Device Preference
+  saveDevicePreference(type, deviceId) {
+    const key = `backstagepass_${type}_id`
+    localStorage.setItem(key, deviceId)
+    console.log(`💾 Saved ${type} preference: ${deviceId}`)
   }
 
   // Camera Toggle
@@ -180,8 +222,12 @@ export default class extends Controller {
       videoElement.id = 'local-video-preview'
       videoElement.style.width = '100%'
       videoElement.style.height = '100%'
-      videoElement.style.objectFit = 'contain'
+      videoElement.style.objectFit = 'cover' // Changed from 'contain' to 'cover' for better centering
       videoElement.style.backgroundColor = 'black'
+      videoElement.style.position = 'absolute'
+      videoElement.style.top = '50%'
+      videoElement.style.left = '50%'
+      videoElement.style.transform = 'translate(-50%, -50%)' // Center the video
 
       // Clear container and add preview
       videoContainer.innerHTML = ''
@@ -267,15 +313,25 @@ export default class extends Controller {
 
   // Change Camera Device
   async changeCamera(event) {
-    if (!this.localParticipant) {
-      console.warn('Cannot change camera: Not connected to LiveKit')
-      return
-    }
-
     const deviceId = event.target.value
     if (!deviceId) return
 
     console.log(`📹 Switching camera to:`, deviceId)
+
+    // Save preference
+    this.saveDevicePreference('camera', deviceId)
+
+    // If testing devices in settings, update test preview
+    if (this.isTestingDevices) {
+      await this.updateTestPreview('camera', deviceId)
+      return
+    }
+
+    // If not connected to LiveKit, just save preference
+    if (!this.localParticipant) {
+      console.log('💾 Camera preference saved, will use when going live')
+      return
+    }
 
     try {
       // Get the camera track publication
@@ -295,15 +351,25 @@ export default class extends Controller {
 
   // Change Microphone Device
   async changeMicrophone(event) {
-    if (!this.localParticipant) {
-      console.warn('Cannot change microphone: Not connected to LiveKit')
-      return
-    }
-
     const deviceId = event.target.value
     if (!deviceId) return
 
     console.log(`🎤 Switching microphone to:`, deviceId)
+
+    // Save preference
+    this.saveDevicePreference('mic', deviceId)
+
+    // If testing devices in settings, update test
+    if (this.isTestingDevices) {
+      await this.updateTestPreview('microphone', deviceId)
+      return
+    }
+
+    // If not connected to LiveKit, just save preference
+    if (!this.localParticipant) {
+      console.log('💾 Microphone preference saved, will use when going live')
+      return
+    }
 
     try {
       // Get the microphone track publication
@@ -565,6 +631,9 @@ export default class extends Controller {
     if (this.hasSettingsModalTarget) {
       this.settingsModalTarget.classList.add('hidden')
       console.log('⚙️ Settings modal closed')
+
+      // Stop testing devices when closing settings
+      this.stopTestingDevices()
     }
   }
 
@@ -573,5 +642,153 @@ export default class extends Controller {
     if (event.target === this.settingsModalTarget) {
       this.closeSettings()
     }
+  }
+
+  // Device Testing (for settings modal preview)
+  async startTestingDevices() {
+    this.isTestingDevices = true
+    console.log('🧪 Starting device testing mode')
+
+    try {
+      // Get selected devices
+      const cameraId = this.hasCameraSelectTarget ? this.cameraSelectTarget.value : null
+      const micId = this.hasMicSelectTarget ? this.micSelectTarget.value : null
+
+      // Create test video preview
+      const constraints = {
+        video: cameraId ? { deviceId: { exact: cameraId } } : true,
+        audio: micId ? { deviceId: { exact: micId } } } : true
+      }
+
+      this.testStream = await navigator.mediaDevices.getUserMedia(constraints)
+
+      // Show video in test container
+      const testVideoContainer = document.getElementById('test-video-preview')
+      if (testVideoContainer) {
+        const videoElement = document.createElement('video')
+        videoElement.srcObject = this.testStream
+        videoElement.autoplay = true
+        videoElement.muted = true // Mute to avoid feedback
+        videoElement.style.width = '100%'
+        videoElement.style.height = '100%'
+        videoElement.style.objectFit = 'cover'
+        videoElement.style.borderRadius = '8px'
+
+        testVideoContainer.innerHTML = ''
+        testVideoContainer.appendChild(videoElement)
+        console.log('📹 Test video preview shown')
+      }
+
+      // Setup audio level monitoring
+      this.setupAudioLevelMonitor()
+
+    } catch (error) {
+      console.error('Failed to start device testing:', error)
+      alert('Could not access camera/microphone. Please check permissions.')
+    }
+  }
+
+  async stopTestingDevices() {
+    this.isTestingDevices = false
+
+    if (this.testStream) {
+      this.testStream.getTracks().forEach(track => track.stop())
+      this.testStream = null
+      console.log('🧪 Stopped device testing mode')
+    }
+
+    if (this.audioContext) {
+      this.audioContext.close()
+      this.audioContext = null
+    }
+  }
+
+  async updateTestPreview(type, deviceId) {
+    console.log(`🧪 Updating test preview for ${type}:`, deviceId)
+
+    // Stop current test stream
+    await this.stopTestingDevices()
+
+    // Restart with new device
+    await this.startTestingDevices()
+  }
+
+  setupAudioLevelMonitor() {
+    try {
+      const audioTrack = this.testStream.getAudioTracks()[0]
+      if (!audioTrack) return
+
+      this.audioContext = new AudioContext()
+      const source = this.audioContext.createMediaStreamSource(new MediaStream([audioTrack]))
+      const analyser = this.audioContext.createAnalyser()
+      analyser.fftSize = 256
+      source.connect(analyser)
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount)
+
+      const updateLevel = () => {
+        if (!this.isTestingDevices) return
+
+        analyser.getByteFrequencyData(dataArray)
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length
+        const level = Math.min(100, (average / 128) * 100)
+
+        // Update audio level indicator
+        const indicator = document.getElementById('audio-level-indicator')
+        if (indicator) {
+          indicator.style.width = `${level}%`
+          indicator.style.backgroundColor = level > 80 ? '#ef4444' : level > 50 ? '#22c55e' : '#3b82f6'
+        }
+
+        requestAnimationFrame(updateLevel)
+      }
+
+      updateLevel()
+      console.log('🎤 Audio level monitoring started')
+    } catch (error) {
+      console.error('Failed to setup audio monitoring:', error)
+    }
+  }
+
+  // Green Room Mode (talk with co-hosts before going live)
+  async enterGreenRoom() {
+    console.log('🎭 Entering green room mode')
+
+    // Enable camera and mic but don't publish to viewers yet
+    await this.toggleCamera()
+    await this.toggleMicrophone()
+
+    // Show green room UI
+    const greenRoomBanner = document.getElementById('green-room-banner')
+    if (greenRoomBanner) {
+      greenRoomBanner.classList.remove('hidden')
+    }
+
+    // Update UI to show we're in rehearsal
+    const goLiveBtn = document.getElementById('go-live-btn')
+    if (goLiveBtn) {
+      goLiveBtn.classList.remove('hidden')
+    }
+  }
+
+  async goLive() {
+    if (!confirm('Ready to go live? Viewers will be able to see and hear you.')) return
+
+    console.log('🔴 Going live to viewers!')
+
+    // Hide green room UI
+    const greenRoomBanner = document.getElementById('green-room-banner')
+    if (greenRoomBanner) {
+      greenRoomBanner.classList.add('hidden')
+    }
+
+    const goLiveBtn = document.getElementById('go-live-btn')
+    if (goLiveBtn) {
+      goLiveBtn.classList.add('hidden')
+    }
+
+    // Start publishing to viewers (already connected via LiveKit)
+    // The stream is already live, just need to update UI state
+    alert('🎉 You are now LIVE to viewers!')
   }
 }

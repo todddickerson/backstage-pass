@@ -221,6 +221,37 @@
             </label>
           </div>
         </div>
+
+        <!-- Device Testing Section -->
+        <div class="mb-6 bg-gray-800 rounded-lg p-6 border border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-white">Test Your Setup</h3>
+            <button
+              data-action="click->broadcaster-controls#startTestingDevices"
+              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+            >
+              🧪 Test Devices
+            </button>
+          </div>
+
+          <!-- Video Preview Container -->
+          <div id="test-video-preview" class="mb-4 bg-black rounded-lg aspect-video flex items-center justify-center">
+            <p class="text-gray-400">Click "Test Devices" to preview your camera</p>
+          </div>
+
+          <!-- Audio Level Indicator -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-300">Microphone Level</label>
+            <div class="w-full h-4 bg-gray-700 rounded-full overflow-hidden">
+              <div
+                id="audio-level-indicator"
+                class="h-full bg-blue-500 transition-all duration-100"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p class="text-xs text-gray-400">Speak to see your microphone level</p>
+          </div>
+        </div>
       </div>
 
       <!-- Modal Footer -->
