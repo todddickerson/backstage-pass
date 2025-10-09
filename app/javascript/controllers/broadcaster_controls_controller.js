@@ -657,7 +657,7 @@ export default class extends Controller {
       // Create test video preview
       const constraints = {
         video: cameraId ? { deviceId: { exact: cameraId } } : true,
-        audio: micId ? { deviceId: { exact: micId } } } : true
+        audio: micId ? { deviceId: { exact: micId } } : true
       }
 
       this.testStream = await navigator.mediaDevices.getUserMedia(constraints)
